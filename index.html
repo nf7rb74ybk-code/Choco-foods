@@ -2,317 +2,261 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>CHOCO FOODS</title>
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-}
-
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-font-family:Arial,sans-serif;
-background:#f5f5f5;
-color:#222;
-padding-bottom:75px;
+  font-family:Arial,sans-serif;
+  background:#f5f5f5;
+  color:#222;
+  padding-bottom:75px
 }
-
 header{
-background:#ff6b00;
-color:white;
-padding:15px;
-position:sticky;
-top:0;
-z-index:1000;
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:#ff6b00;
+  color:white;
+  padding:14px
 }
-
 .header{
-max-width:700px;
-margin:auto;
-display:flex;
-justify-content:space-between;
-align-items:center;
+  max-width:700px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
 }
-
-.logo{
-font-size:21px;
-font-weight:bold;
-}
-
+.logo{font-size:21px;font-weight:bold}
 .cart{
-border:0;
-background:white;
-color:#ff6b00;
-border-radius:10px;
-padding:9px 13px;
-font-weight:bold;
+  border:0;
+  background:white;
+  color:#ff6b00;
+  padding:9px 13px;
+  border-radius:10px;
+  font-weight:bold
 }
-
-.container{
-max-width:700px;
-margin:auto;
-padding:15px;
-}
-
+.container{max-width:700px;margin:auto;padding:15px}
 .search{
-width:100%;
-padding:14px;
-border:0;
-border-radius:12px;
-font-size:16px;
-margin-bottom:15px;
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:12px;
+  font-size:16px;
+  margin-bottom:14px
 }
-
 .categories{
-display:flex;
-gap:8px;
-overflow-x:auto;
-margin-bottom:18px;
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  margin-bottom:18px
 }
-
 .categories button{
-border:0;
-background:white;
-padding:10px 16px;
-border-radius:20px;
-white-space:nowrap;
+  border:0;
+  background:white;
+  padding:10px 16px;
+  border-radius:20px;
+  white-space:nowrap
 }
-
 .categories .active{
-background:#ff6b00;
-color:white;
+  background:#ff6b00;
+  color:white
 }
-
 .title{
-font-size:20px;
-font-weight:bold;
-margin:18px 0 12px;
+  font-size:20px;
+  font-weight:bold;
+  margin:18px 0 12px
 }
-
 .map-box{
-background:white;
-padding:10px;
-border-radius:15px;
+  background:white;
+  padding:10px;
+  border-radius:15px
 }
-
 #map{
-height:280px;
-border-radius:12px;
+  height:280px;
+  border-radius:12px
 }
-
 .location{
-width:100%;
-border:0;
-background:#1677ff;
-color:white;
-padding:13px;
-border-radius:10px;
-margin-top:10px;
-font-weight:bold;
+  width:100%;
+  border:0;
+  background:#1677ff;
+  color:white;
+  padding:13px;
+  border-radius:10px;
+  margin-top:10px;
+  font-weight:bold
 }
-
 .location-text{
-font-size:13px;
-margin-top:8px;
-color:#555;
+  margin-top:8px;
+  color:#666;
+  font-size:13px
 }
-
 .restaurant{
-background:white;
-border-radius:15px;
-padding:12px;
-margin-bottom:14px;
-box-shadow:0 2px 8px #ddd;
+  background:white;
+  border-radius:15px;
+  padding:12px;
+  margin-bottom:14px;
+  box-shadow:0 2px 8px #ddd
 }
-
 .restaurant-head{
-display:flex;
-gap:12px;
+  display:flex;
+  gap:12px
 }
-
 .restaurant-img{
-width:85px;
-height:85px;
-object-fit:cover;
-border-radius:12px;
+  width:85px;
+  height:85px;
+  object-fit:cover;
+  border-radius:12px
 }
-
-.restaurant-info{
-flex:1;
-}
-
+.restaurant-info{flex:1}
 .restaurant-name{
-font-size:18px;
-font-weight:bold;
-margin-bottom:7px;
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:7px
 }
-
-.rating{
-color:#f59e0b;
-}
-
+.rating{color:#f59e0b}
 .open{
-color:#16a34a;
-font-size:13px;
-margin-top:5px;
+  color:#16a34a;
+  font-size:13px;
+  margin-top:5px
 }
-
 .food{
-border-top:1px solid #eee;
-padding:12px 0;
-display:flex;
-justify-content:space-between;
-align-items:center;
+  border-top:1px solid #eee;
+  padding:12px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
 }
-
-.food-name{
-font-weight:bold;
-}
-
+.food-name{font-weight:bold}
 .price{
-color:#ff5a00;
-font-weight:bold;
-margin-top:5px;
+  color:#ff5a00;
+  font-weight:bold;
+  margin-top:5px
 }
-
 .add{
-border:0;
-background:#ff6b00;
-color:white;
-border-radius:8px;
-padding:8px 12px;
-font-weight:bold;
+  border:0;
+  background:#ff6b00;
+  color:white;
+  border-radius:8px;
+  padding:8px 12px;
+  font-weight:bold
 }
-
 .modal{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.55);
-z-index:2000;
-align-items:flex-end;
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:2000;
+  align-items:flex-end
 }
-
 .modal-content{
-background:white;
-width:100%;
-max-width:700px;
-margin:auto;
-border-radius:20px 20px 0 0;
-padding:20px;
-max-height:90vh;
-overflow:auto;
+  background:white;
+  width:100%;
+  max-width:700px;
+  margin:auto;
+  border-radius:20px 20px 0 0;
+  padding:20px;
+  max-height:90vh;
+  overflow:auto
 }
-
 .modal-title{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px
 }
-
 .close{
-border:0;
-background:#eee;
-border-radius:50%;
-width:35px;
-height:35px;
-font-size:20px;
+  border:0;
+  background:#eee;
+  border-radius:50%;
+  width:35px;
+  height:35px;
+  font-size:20px
 }
-
 .cart-item{
-padding:12px 0;
-border-bottom:1px solid #eee;
-display:flex;
-justify-content:space-between;
+  padding:12px 0;
+  border-bottom:1px solid #eee;
+  display:flex;
+  justify-content:space-between
 }
-
 .qty button{
-width:28px;
-height:28px;
-border:0;
-border-radius:6px;
+  width:28px;
+  height:28px;
+  border:0;
+  border-radius:6px
 }
-
-.form{
-margin-top:15px;
-}
-
+.form{margin-top:15px}
 .form label{
-display:block;
-font-weight:bold;
-margin:10px 0 5px;
+  display:block;
+  font-weight:bold;
+  margin:10px 0 5px
 }
-
 .form input,
 .form textarea,
 .form select{
-width:100%;
-padding:12px;
-border:1px solid #ddd;
-border-radius:9px;
-font-size:15px;
+  width:100%;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:9px;
+  font-size:15px
 }
-
-.form textarea{
-height:75px;
-}
-
+.form textarea{height:75px}
 .total{
-display:flex;
-justify-content:space-between;
-font-size:19px;
-font-weight:bold;
-margin:18px 0;
+  display:flex;
+  justify-content:space-between;
+  font-size:19px;
+  font-weight:bold;
+  margin:18px 0
 }
-
 .order{
-width:100%;
-background:#16a34a;
-color:white;
-border:0;
-padding:15px;
-border-radius:12px;
-font-size:17px;
-font-weight:bold;
+  width:100%;
+  background:#16a34a;
+  color:white;
+  border:0;
+  padding:15px;
+  border-radius:12px;
+  font-size:17px;
+  font-weight:bold
 }
-
 .empty{
-text-align:center;
-padding:25px;
-color:#777;
+  text-align:center;
+  padding:25px;
+  color:#777
 }
-
 .bottom{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-height:65px;
-background:white;
-border-top:1px solid #ddd;
-display:flex;
-justify-content:space-around;
-align-items:center;
-z-index:1500;
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:65px;
+  background:white;
+  border-top:1px solid #ddd;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:1500
 }
-
 .bottom button{
-border:0;
-background:none;
-font-size:12px;
+  border:0;
+  background:none;
+  font-size:12px
 }
-
 .bottom span{
-display:block;
-font-size:22px;
+  display:block;
+  font-size:22px
 }
-
+.success{
+  background:#ecfdf5;
+  color:#166534;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:12px;
+  display:none
+}
 </style>
 </head>
 
@@ -320,18 +264,12 @@ font-size:22px;
 
 <header>
 <div class="header">
-
-<div class="logo">
-🍔 CHOCO FOODS
-</div>
-
+<div class="logo">🍔 CHOCO FOODS</div>
 <button class="cart" onclick="openCart()">
 🛒 <span id="count">0</span>
 </button>
-
 </div>
 </header>
-
 
 <div class="container">
 
@@ -342,159 +280,86 @@ placeholder="🔎 Tìm món ăn hoặc quán..."
 oninput="showRestaurants()"
 >
 
-
 <div class="categories">
-
-<button class="active"
-onclick="category('all',this)">
-Tất cả
-</button>
-
-<button onclick="category('cơm',this)">
-🍚 Cơm
-</button>
-
-<button onclick="category('bún',this)">
-🍜 Bún
-</button>
-
-<button onclick="category('gà',this)">
-🍗 Gà
-</button>
-
-<button onclick="category('đồ uống',this)">
-🥤 Đồ uống
-</button>
-
+<button class="active" onclick="category('all',this)">Tất cả</button>
+<button onclick="category('cơm',this)">🍚 Cơm</button>
+<button onclick="category('bún',this)">🍜 Bún</button>
+<button onclick="category('gà',this)">🍗 Gà</button>
+<button onclick="category('đồ uống',this)">🥤 Đồ uống</button>
 </div>
 
-
-<div class="title">
-📍 Vị trí giao hàng
-</div>
-
+<div class="title">📍 Vị trí giao hàng</div>
 
 <div class="map-box">
-
 <div id="map"></div>
 
-<button class="location"
-onclick="getGPS()">
+<button class="location" onclick="getGPS()">
 📍 LẤY VỊ TRÍ HIỆN TẠI
 </button>
 
 <div class="location-text" id="locationText">
 Chưa lấy vị trí.
 </div>
-
 </div>
 
-
-<div class="title">
-🍽️ Quán đang bán
-</div>
+<div class="title">🍽️ Quán đang bán</div>
 
 <div id="restaurants"></div>
 
 </div>
-
-
-<!-- GIỎ HÀNG -->
 
 <div class="modal" id="modal">
 
 <div class="modal-content">
 
 <div class="modal-title">
-
 <h2>🛒 Giỏ hàng</h2>
-
-<button class="close"
-onclick="closeCart()">
-×
-</button>
-
+<button class="close" onclick="closeCart()">×</button>
 </div>
 
-<div id="cartItems"></div>
+<div id="success" class="success"></div>
 
+<div id="cartItems"></div>
 
 <div id="orderForm">
 
 <div class="form">
 
 <label>Họ tên</label>
-
-<input
-id="name"
-placeholder="Nguyễn Văn A"
->
-
+<input id="name" placeholder="Nguyễn Văn A">
 
 <label>Số điện thoại</label>
-
-<input
-id="phone"
-type="tel"
-placeholder="09xxxxxxxx"
->
-
+<input id="phone" type="tel" placeholder="09xxxxxxxx">
 
 <label>Địa chỉ giao hàng</label>
-
-<input
-id="address"
-placeholder="Nhập địa chỉ giao hàng"
->
-
+<input id="address" placeholder="Nhập địa chỉ giao hàng">
 
 <label>Ghi chú</label>
-
-<textarea
-id="note"
-placeholder="Ví dụ: gọi trước khi giao..."
-></textarea>
-
+<textarea id="note"
+placeholder="Ví dụ: gọi trước khi giao..."></textarea>
 
 <label>Thanh toán</label>
 
 <select id="payment">
-
-<option value="cash">
-💵 Tiền mặt
-</option>
-
-<option value="bank">
-🏦 Chuyển khoản
-</option>
-
+<option value="cash">💵 Tiền mặt</option>
+<option value="bank">🏦 Chuyển khoản</option>
 </select>
 
 </div>
 
-
 <div class="total">
-
 <span>Tổng</span>
-
-<span id="total">
-0đ
-</span>
-
+<span id="total">0đ</span>
 </div>
 
-
-<button class="order"
-onclick="createOrder()">
+<button class="order" onclick="createOrder()">
 🚀 ĐẶT ĐƠN
 </button>
 
 </div>
 
 </div>
-
 </div>
-
 
 <div class="bottom">
 
@@ -515,13 +380,20 @@ GPS
 
 </div>
 
-
-<script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+
+/* =========================
+SUPABASE
+========================= */
+
+const SUPABASE_URL =
+"https://euigncrdkquefalpoyvk.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_ZWwYeqorK3CPQzlvcIZLNw_YYHjyrIc";
+
 
 /* =========================
 DỮ LIỆU QUÁN
@@ -535,7 +407,6 @@ name:"Cơm Nhà Phú Quốc",
 category:"cơm",
 rating:"4.9",
 image:"https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=500&q=80",
-
 foods:[
 {id:101,name:"Cơm gà",price:45000},
 {id:102,name:"Cơm sườn",price:50000},
@@ -549,7 +420,6 @@ name:"Bún Phú Quốc",
 category:"bún",
 rating:"4.8",
 image:"https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=500&q=80",
-
 foods:[
 {id:201,name:"Bún bò",price:50000},
 {id:202,name:"Bún thịt nướng",price:45000},
@@ -563,7 +433,6 @@ name:"Gà Rán PQ",
 category:"gà",
 rating:"4.7",
 image:"https://images.unsplash.com/photo-1562967916-eb82221dfb92?auto=format&fit=crop&w=500&q=80",
-
 foods:[
 {id:301,name:"Gà rán",price:40000},
 {id:302,name:"Gà sốt cay",price:45000},
@@ -577,7 +446,6 @@ name:"Choco Drinks",
 category:"đồ uống",
 rating:"4.9",
 image:"https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=500&q=80",
-
 foods:[
 {id:401,name:"Trà sữa",price:30000},
 {id:402,name:"Trà đào",price:30000},
@@ -587,18 +455,19 @@ foods:[
 
 ];
 
-
 let cart=[];
 let currentCategory="all";
-
+let marker=null;
+let userLat=null;
+let userLng=null;
 
 function money(n){
-return n.toLocaleString("vi-VN")+"đ";
+return Number(n).toLocaleString("vi-VN")+"đ";
 }
 
 
 /* =========================
-HIỂN THỊ QUÁN
+HIỂN THỊ
 ========================= */
 
 function showRestaurants(){
@@ -607,18 +476,14 @@ const box=document.getElementById("restaurants");
 
 const search=document
 .getElementById("search")
-.value
-.toLowerCase();
+.value.toLowerCase();
 
 box.innerHTML="";
 
-
 data.forEach(r=>{
 
-if(
-currentCategory!="all" &&
-r.category!=currentCategory
-)return;
+if(currentCategory!="all" &&
+r.category!=currentCategory)return;
 
 if(
 search &&
@@ -626,9 +491,7 @@ search &&
 !r.foods.some(f=>f.name.toLowerCase().includes(search))
 )return;
 
-
 let foods="";
-
 
 r.foods.forEach(f=>{
 
@@ -637,19 +500,11 @@ foods+=`
 <div class="food">
 
 <div>
-
-<div class="food-name">
-${f.name}
+<div class="food-name">${f.name}</div>
+<div class="price">${money(f.price)}</div>
 </div>
 
-<div class="price">
-${money(f.price)}
-</div>
-
-</div>
-
-<button
-class="add"
+<button class="add"
 onclick="add(${r.id},${f.id})">
 + Thêm
 </button>
@@ -660,17 +515,15 @@ onclick="add(${r.id},${f.id})">
 
 });
 
-
 box.innerHTML+=`
 
 <div class="restaurant">
 
 <div class="restaurant-head">
 
-<img
-class="restaurant-img"
+<img class="restaurant-img"
 src="${r.image}"
->
+onerror="this.style.display='none'">
 
 <div class="restaurant-info">
 
@@ -721,44 +574,30 @@ showRestaurants();
 
 
 /* =========================
-THÊM MÓN
+GIỎ HÀNG
 ========================= */
 
 function add(restaurantId,foodId){
 
 const r=data.find(x=>x.id===restaurantId);
-
 const food=r.foods.find(x=>x.id===foodId);
 
 const item=cart.find(x=>x.foodId===foodId);
 
-
-if(item){
-
-item.qty++;
-
-}else{
-
+if(item)item.qty++;
+else{
 cart.push({
 foodId:food.id,
 name:food.name,
 price:food.price,
 qty:1
 });
-
 }
-
 
 updateCart();
 
-alert("✅ Đã thêm "+food.name);
-
 }
 
-
-/* =========================
-GIỎ HÀNG
-========================= */
 
 function updateCart(){
 
@@ -795,59 +634,35 @@ const box=document.getElementById("cartItems");
 
 box.innerHTML="";
 
-
 if(cart.length===0){
 
-box.innerHTML=`
-<div class="empty">
-🛒 Giỏ hàng đang trống
-</div>
-`;
+box.innerHTML=
+`<div class="empty">🛒 Giỏ hàng đang trống</div>`;
 
-document.getElementById("total")
-.innerText="0đ";
+document.getElementById("total").innerText="0đ";
 
 return;
-
 }
 
-
 let total=0;
-
 
 cart.forEach((item,i)=>{
 
 total+=item.price*item.qty;
-
 
 box.innerHTML+=`
 
 <div class="cart-item">
 
 <div>
-
-<strong>
-${item.name}
-</strong>
-
-<div>
-${money(item.price)}
-</div>
-
+<strong>${item.name}</strong>
+<div>${money(item.price)}</div>
 </div>
 
 <div class="qty">
-
-<button onclick="changeQty(${i},-1)">
-−
-</button>
-
+<button onclick="changeQty(${i},-1)">−</button>
 ${item.qty}
-
-<button onclick="changeQty(${i},1)">
-+
-</button>
-
+<button onclick="changeQty(${i},1)">+</button>
 </div>
 
 </div>
@@ -856,9 +671,7 @@ ${item.qty}
 
 });
 
-
-document.getElementById("total")
-.innerText=money(total);
+document.getElementById("total").innerText=money(total);
 
 }
 
@@ -871,61 +684,44 @@ if(cart[i].qty<=0)
 cart.splice(i,1);
 
 updateCart();
-
 renderCart();
 
 }
 
 
 /* =========================
-TẠO ĐƠN
+GỬI ĐƠN SUPABASE
 ========================= */
 
-function createOrder(){
+async function createOrder(){
 
 if(cart.length===0){
 
 alert("⚠️ Bạn chưa chọn món.");
-
 return;
 
 }
 
-
-const name=
-document.getElementById("name").value.trim();
-
-const phone=
-document.getElementById("phone").value.trim();
-
-const address=
-document.getElementById("address").value.trim();
-
+const name=document.getElementById("name").value.trim();
+const phone=document.getElementById("phone").value.trim();
+const address=document.getElementById("address").value.trim();
+const note=document.getElementById("note").value.trim();
+const payment=document.getElementById("payment").value;
 
 if(!name){
-
 alert("⚠️ Nhập họ tên.");
-
 return;
-
 }
 
 if(!phone){
-
 alert("⚠️ Nhập số điện thoại.");
-
 return;
-
 }
 
 if(!address){
-
 alert("⚠️ Nhập địa chỉ giao hàng.");
-
 return;
-
 }
-
 
 let total=0;
 
@@ -933,59 +729,83 @@ cart.forEach(x=>{
 total+=x.price*x.qty;
 });
 
-
-const code=
-"CF"+Date.now().toString().slice(-6);
-
+const code="CF"+Date.now().toString().slice(-8);
 
 const order={
 
 code:code,
-
 name:name,
-
 phone:phone,
-
 address:address,
-
-note:document
-.getElementById("note")
-.value,
-
-payment:document
-.getElementById("payment")
-.value,
-
+note:note,
+payment:payment,
 items:cart,
-
 total:total,
-
 status:"Chờ xác nhận",
-
-time:new Date()
-.toLocaleString("vi-VN")
+latitude:userLat,
+longitude:userLng
 
 };
 
+const button=document.querySelector(".order");
 
-localStorage.setItem(
-"choco_food_last_order",
-JSON.stringify(order)
+button.disabled=true;
+button.innerText="⏳ ĐANG GỬI ĐƠN...";
+
+try{
+
+const response=await fetch(
+SUPABASE_URL+"/rest/v1/orders",
+{
+method:"POST",
+
+headers:{
+"Content-Type":"application/json",
+"apikey":SUPABASE_KEY,
+"Authorization":"Bearer "+SUPABASE_KEY,
+"Prefer":"return=minimal"
+},
+
+body:JSON.stringify(order)
+
+}
 );
 
+if(!response.ok){
 
-alert(
-"🎉 ĐẶT ĐƠN THÀNH CÔNG!\n\n"+
-"Mã đơn: "+code+
-"\nTổng tiền: "+money(total)
-);
+const errorText=await response.text();
 
+throw new Error(errorText);
+
+}
+
+document.getElementById("success").style.display="block";
+
+document.getElementById("success").innerHTML=
+"🎉 <b>Đặt đơn thành công!</b><br>"+
+"Mã đơn: <b>"+code+"</b><br>"+
+"Tổng tiền: <b>"+money(total)+"</b>";
 
 cart=[];
 
 updateCart();
+renderCart();
 
-closeCart();
+}catch(error){
+
+console.error(error);
+
+alert(
+"❌ Không gửi được đơn.\n\n"+
+"Kiểm tra lại Policy INSERT hoặc tên các cột trong bảng orders."
+);
+
+}finally{
+
+button.disabled=false;
+button.innerText="🚀 ĐẶT ĐƠN";
+
+}
 
 }
 
@@ -997,7 +817,6 @@ BẢN ĐỒ
 const map=L.map("map")
 .setView([10.2899,103.9840],12);
 
-
 L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 {
@@ -1005,9 +824,6 @@ maxZoom:19,
 attribution:"© OpenStreetMap"
 }
 ).addTo(map);
-
-
-let marker=null;
 
 
 /* =========================
@@ -1019,57 +835,44 @@ function getGPS(){
 if(!navigator.geolocation){
 
 alert("❌ Thiết bị không hỗ trợ GPS.");
-
 return;
 
 }
 
-
 document.getElementById("locationText")
 .innerText="📍 Đang lấy vị trí...";
-
 
 navigator.geolocation.getCurrentPosition(
 
 position=>{
 
-const lat=position.coords.latitude;
-
-const lng=position.coords.longitude;
-
+userLat=position.coords.latitude;
+userLng=position.coords.longitude;
 
 if(marker)
 map.removeLayer(marker);
 
-
-marker=L.marker([lat,lng])
+marker=L.marker([userLat,userLng])
 .addTo(map)
-.bindPopup("📍 Vị trí của bạn")
+.bindPopup("📍 Vị trí giao hàng")
 .openPopup();
 
-
-map.setView([lat,lng],16);
-
+map.setView([userLat,userLng],16);
 
 document.getElementById("locationText")
 .innerText=
-"📍 Vị trí: "+
-lat.toFixed(6)+
-", "+
-lng.toFixed(6);
+"📍 "+userLat.toFixed(6)+
+", "+userLng.toFixed(6);
 
 },
 
 error=>{
 
-alert(
-"⚠️ Không lấy được GPS.\n"+
-"Hãy cho phép trình duyệt sử dụng vị trí."
-);
+console.log(error);
 
 document.getElementById("locationText")
 .innerText=
-"Chưa lấy được vị trí.";
+"⚠️ Không lấy được GPS. Hãy cho phép trình duyệt dùng vị trí.";
 
 },
 
@@ -1089,7 +892,6 @@ KHỞI ĐỘNG
 ========================= */
 
 showRestaurants();
-
 updateCart();
 
 </script>
