@@ -695,6 +695,147 @@ GỬI ĐƠN SUPABASE
 
 async function createOrder(){
 
+  if(cart.length===0){
+    alert("⚠️ Bạn chưa chọn món.");
+    return;
+  }
+
+  const name=document.getElementById("name").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const address=document.getElementById("address").value.trim();
+  const note=document.getElementById("note").value.trim();
+  const payment=document.getElementById("payment").value;
+
+  if(!name){
+    alert("⚠️ Nhập họ tên.");
+    return;
+  }
+
+  if(!phone){
+    alert("⚠️ Nhập số điện thoại.");
+    return;
+  }
+
+  if(!address){
+    alert("⚠️ Nhập địa chỉ giao hàng.");
+    return;
+  }
+
+  let total=0;
+
+  cart.forEach(item=>{
+    total += item.price * item.qty;
+  });
+
+  const code="CF"+Date.now().toString().slice(-8);
+
+  const items=cart.map(item=>({
+    name:item.name,
+    price:item.price,
+    qty:item.qty
+  }));
+
+  const order={
+
+    code:code,
+
+    name:name,
+
+    phone:phone,
+
+    pickup:"Quán ăn",
+
+    dropoff:address,
+
+    address:address,
+
+    service:"Đặt đồ ăn",
+
+    note:note,
+
+    payment:payment,
+
+    items:items,
+
+    total:total,
+
+    fee:total,
+
+    status:"Chờ xác nhận",
+
+    latitude:userLat,
+
+    longitude:userLng
+
+  };
+
+  const button=document.querySelector(".order");
+
+  button.disabled=true;
+  button.innerText="⏳ ĐANG GỬI ĐƠN...";
+
+  try{
+
+    const response=await fetch(
+      SUPABASE_URL+"/rest/v1/orders",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":SUPABASE_KEY,
+          "Authorization":"Bearer "+SUPABASE_KEY,
+          "Prefer":"return=minimal"
+        },
+
+        body:JSON.stringify(order)
+      }
+    );
+
+    if(!response.ok){
+
+      const errorText=await response.text();
+
+      console.error("SUPABASE ERROR:",errorText);
+
+      throw new Error(errorText);
+    }
+
+    document.getElementById("success").style.display="block";
+
+    document.getElementById("success").innerHTML=
+      "🎉 <b>Đặt đơn thành công!</b><br>"+
+      "Mã đơn: <b>"+code+"</b><br>"+
+      "Tổng tiền: <b>"+money(total)+"</b>";
+
+    cart=[];
+
+    updateCart();
+    renderCart();
+
+    document.getElementById("name").value="";
+    document.getElementById("phone").value="";
+    document.getElementById("address").value="";
+    document.getElementById("note").value="";
+
+  }catch(error){
+
+    console.error(error);
+
+    alert(
+      "❌ Không gửi được đơn.\n\n"+
+      "Lỗi: "+error.message
+    );
+
+  }finally{
+
+    button.disabled=false;
+    button.innerText="🚀 ĐẶT ĐƠN";
+
+  }
+
+}
+
 if(cart.length===0){
 
 alert("⚠️ Bạn chưa chọn món.");
