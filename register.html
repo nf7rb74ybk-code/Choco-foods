@@ -1,253 +1,489 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1">
+
 <title>CHOCO SHIP - Đăng ký Shipper</title>
 
 <style>
-*{box-sizing:border-box}
+
+*{
+box-sizing:border-box;
+}
 
 body{
+
 margin:0;
+
 min-height:100vh;
+
 display:flex;
+
 align-items:center;
+
 justify-content:center;
+
 padding:20px;
+
 font-family:Arial,sans-serif;
-background:#f4f5f7
+
+background:#f4f5f7;
+
 }
 
 .box{
+
 width:100%;
+
 max-width:420px;
+
 background:#fff;
+
 padding:25px;
+
 border-radius:20px;
-box-shadow:0 5px 25px rgba(0,0,0,.12)
+
+box-shadow:0 5px 25px rgba(0,0,0,.12);
+
 }
 
 .logo{
+
 text-align:center;
+
 font-size:30px;
+
 font-weight:bold;
-color:#ff6b00
+
+color:#ff6b00;
+
 }
 
 .title{
+
 text-align:center;
-font-size:20px;
+
+font-size:21px;
+
 font-weight:bold;
-margin-top:8px
+
+margin-top:8px;
+
 }
 
 .sub{
+
 text-align:center;
+
 color:#777;
-margin:8px 0 22px
+
+margin:8px 0 22px;
+
 }
 
 label{
+
 display:block;
+
 font-weight:bold;
-margin:12px 0 6px
+
+margin:12px 0 6px;
+
 }
 
 input{
+
 width:100%;
+
 padding:13px;
+
 border:1px solid #ddd;
+
 border-radius:10px;
-font-size:16px
+
+font-size:16px;
+
+outline:none;
+
+}
+
+input:focus{
+
+border-color:#ff6b00;
+
 }
 
 button{
+
 width:100%;
-margin-top:20px;
+
 padding:14px;
+
+margin-top:20px;
+
 border:0;
+
 border-radius:10px;
+
 background:#ff6b00;
-color:#fff;
+
+color:white;
+
 font-size:16px;
-font-weight:bold
+
+font-weight:bold;
+
+cursor:pointer;
+
 }
 
 button:disabled{
-opacity:.6
+
+opacity:.6;
+
 }
 
-.msg{
+.message{
+
 display:none;
-padding:12px;
+
+padding:13px;
+
 border-radius:10px;
+
 margin-top:15px;
-line-height:1.5
+
+line-height:1.5;
+
+white-space:pre-line;
+
 }
 
 .error{
+
 background:#fee2e2;
-color:#991b1b
+
+color:#991b1b;
+
 }
 
 .success{
+
 background:#dcfce7;
-color:#166534
+
+color:#166534;
+
 }
 
 .login{
+
 text-align:center;
-margin-top:20px
+
+margin-top:20px;
+
+color:#666;
+
 }
 
 .login a{
+
 color:#ff6b00;
+
 font-weight:bold;
-text-decoration:none
+
+text-decoration:none;
+
 }
+
 </style>
+
 </head>
+
 
 <body>
 
+
 <div class="box">
 
-<div class="logo">🚚 CHOCO SHIP</div>
 
-<div class="title">Đăng ký Shipper</div>
+<div class="logo">
+
+🚚 CHOCO SHIP
+
+</div>
+
+
+<div class="title">
+
+Đăng ký Shipper
+
+</div>
+
 
 <div class="sub">
-Tạo tài khoản để nhận và giao đơn
+
+Tạo tài khoản để nhận đơn giao hàng
+
 </div>
+
 
 <form id="registerForm">
 
-<label>Họ và tên</label>
+
+<label>
+
+Họ và tên
+
+</label>
+
 
 <input
-id="name"
+
+id="fullName"
+
 type="text"
+
 placeholder="Nguyễn Văn A"
+
+autocomplete="name"
+
 required
+
 >
 
-<label>Số điện thoại</label>
+
+<label>
+
+Số điện thoại
+
+</label>
+
 
 <input
+
 id="phone"
+
 type="tel"
+
 placeholder="09xxxxxxxx"
+
+autocomplete="tel"
+
 required
+
 >
 
-<label>Email</label>
+
+<label>
+
+Email
+
+</label>
+
 
 <input
+
 id="email"
+
 type="email"
+
 placeholder="shipper@gmail.com"
+
+autocomplete="email"
+
 required
+
 >
 
-<label>Mật khẩu</label>
+
+<label>
+
+Mật khẩu
+
+</label>
+
 
 <input
+
 id="password"
+
 type="password"
+
 placeholder="Ít nhất 6 ký tự"
+
+autocomplete="new-password"
+
 minlength="6"
+
 required
+
 >
 
-<label>Nhập lại mật khẩu</label>
+
+<label>
+
+Nhập lại mật khẩu
+
+</label>
+
 
 <input
+
 id="password2"
+
 type="password"
+
 placeholder="Nhập lại mật khẩu"
+
+autocomplete="new-password"
+
 minlength="6"
+
 required
+
 >
 
-<button id="btn" type="submit">
-🚚 ĐĂNG KÝ
+
+<button
+id="registerBtn"
+type="submit">
+
+🚚 ĐĂNG KÝ SHIPPER
+
 </button>
+
 
 </form>
 
-<div id="msg" class="msg"></div>
+
+<div
+id="message"
+class="message">
+</div>
+
 
 <div class="login">
+
 Đã có tài khoản?
-<a href="login.html">Đăng nhập</a>
-</div>
+
+<a href="login.html">
+
+Đăng nhập
+
+</a>
 
 </div>
+
+
+</div>
+
 
 <script>
 
+
+/* =================================
+   SUPABASE
+================================= */
+
 const SUPABASE_URL =
 "https://guwdswqaqnhzqapflvey.supabase.co";
+
 
 const SUPABASE_KEY =
 "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-const form =
-document.getElementById("registerForm");
+/* =================================
+   HIỂN THỊ THÔNG BÁO
+================================= */
 
-const btn =
-document.getElementById("btn");
+function showMessage(text,type){
 
-const msg =
-document.getElementById("msg");
+const message =
+document.getElementById("message");
 
-
-function message(text,type){
-
-msg.className =
-"msg " + type;
-
-msg.textContent =
+message.textContent =
 text;
 
-msg.style.display =
+message.className =
+"message "+type;
+
+message.style.display =
 "block";
 
 }
 
 
-form.addEventListener("submit",async function(e){
+/* =================================
+   ĐĂNG KÝ
+================================= */
 
-e.preventDefault();
+document
+.getElementById("registerForm")
+.addEventListener(
+"submit",
+async function(event){
 
-msg.style.display="none";
+event.preventDefault();
 
-const name =
-document.getElementById("name")
-.value.trim();
+
+const fullName =
+document
+.getElementById("fullName")
+.value
+.trim();
+
 
 const phone =
-document.getElementById("phone")
-.value.trim();
+document
+.getElementById("phone")
+.value
+.trim();
+
 
 const email =
-document.getElementById("email")
-.value.trim();
+document
+.getElementById("email")
+.value
+.trim()
+.toLowerCase();
+
 
 const password =
-document.getElementById("password")
+document
+.getElementById("password")
 .value;
+
 
 const password2 =
-document.getElementById("password2")
+document
+.getElementById("password2")
 .value;
 
+
+const button =
+document
+.getElementById("registerBtn");
+
+
+/* Xóa thông báo cũ */
+
+document
+.getElementById("message")
+.style.display="none";
+
+
+/* Kiểm tra mật khẩu */
 
 if(password !== password2){
 
-message(
+showMessage(
 "❌ Hai mật khẩu không giống nhau.",
 "error"
 );
@@ -259,7 +495,7 @@ return;
 
 if(password.length < 6){
 
-message(
+showMessage(
 "❌ Mật khẩu phải có ít nhất 6 ký tự.",
 "error"
 );
@@ -269,121 +505,28 @@ return;
 }
 
 
-btn.disabled=true;
+/* Bắt đầu */
 
-btn.textContent=
+button.disabled=true;
+
+button.textContent=
 "⏳ Đang đăng ký...";
 
 
 try{
 
+
 /*
-==============================
-TẠO TÀI KHOẢN AUTH
-==============================
+=================================
+TẠO TÀI KHOẢN SUPABASE AUTH
+=================================
 */
 
-const authResponse =
+const response =
 await fetch(
 
 SUPABASE_URL+
 "/auth/v1/signup",
-
-{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json",
-"apikey":SUPABASE_KEY
-},
-
-body:JSON.stringify({
-
-email:email,
-
-password:password,
-
-data:{
-full_name:name,
-phone:phone
-}
-
-})
-
-}
-
-);
-
-
-const authData =
-await authResponse.json();
-
-
-if(!authResponse.ok){
-
-throw new Error(
-
-authData.error_description ||
-authData.msg ||
-authData.message ||
-"Không thể đăng ký tài khoản."
-
-);
-
-}
-
-
-if(!authData.user){
-
-throw new Error(
-"Không tạo được tài khoản."
-);
-
-}
-
-
-/*
-==============================
-TRƯỜNG HỢP EMAIL PHẢI XÁC NHẬN
-==============================
-*/
-
-if(!authData.session){
-
-message(
-
-"✅ Tạo tài khoản thành công!\n\n"+
-"Hãy kiểm tra email để xác nhận tài khoản. "+
-"Sau khi xác nhận, bạn có thể đăng nhập.",
-
-"success"
-
-);
-
-form.reset();
-
-btn.disabled=false;
-
-btn.textContent=
-"🚚 ĐĂNG KÝ";
-
-return;
-
-}
-
-
-/*
-==============================
-TẠO PROFILE SHIPPER
-==============================
-*/
-
-const profileResponse =
-await fetch(
-
-SUPABASE_URL+
-"/rest/v1/profiles",
 
 {
 
@@ -395,26 +538,23 @@ headers:{
 "application/json",
 
 "apikey":
-SUPABASE_KEY,
-
-"Authorization":
-"Bearer "+
-authData.session.access_token,
-
-"Prefer":
-"return=minimal"
+SUPABASE_KEY
 
 },
 
 body:JSON.stringify({
 
-id:authData.user.id,
+email:email,
 
-role:"shipper",
+password:password,
 
-full_name:name,
+data:{
+
+full_name:fullName,
 
 phone:phone
+
+}
 
 })
 
@@ -423,20 +563,79 @@ phone:phone
 );
 
 
-if(!profileResponse.ok){
+const data =
+await response.json();
 
-const errorText =
-await profileResponse.text();
+
+/*
+=================================
+KIỂM TRA LỖI
+=================================
+*/
+
+if(!response.ok){
 
 throw new Error(
-"Không tạo được hồ sơ Shipper: "+
-errorText
+
+data.error_description ||
+data.msg ||
+data.message ||
+"Không thể tạo tài khoản."
+
 );
 
 }
 
 
-message(
+if(!data.user){
+
+throw new Error(
+"Không nhận được tài khoản mới."
+);
+
+}
+
+
+/*
+=================================
+SUPABASE CÓ THỂ YÊU CẦU
+XÁC NHẬN EMAIL
+=================================
+*/
+
+if(!data.session){
+
+showMessage(
+
+"✅ Đăng ký thành công!\n\n"+
+"Vui lòng kiểm tra email để xác nhận tài khoản.\n\n"+
+"Sau khi xác nhận, hãy quay lại trang đăng nhập.",
+
+"success"
+
+);
+
+document
+.getElementById("registerForm")
+.reset();
+
+button.disabled=false;
+
+button.textContent=
+"🚚 ĐĂNG KÝ SHIPPER";
+
+return;
+
+}
+
+
+/*
+=================================
+NẾU EMAIL KHÔNG CẦN XÁC NHẬN
+=================================
+*/
+
+showMessage(
 
 "✅ Đăng ký Shipper thành công!\n\n"+
 "Bạn có thể đăng nhập ngay.",
@@ -445,27 +644,45 @@ message(
 
 );
 
-form.reset();
 
-btn.disabled=false;
+/*
+=================================
+KHÔNG LƯU TOKEN
+=================================
 
-btn.textContent=
-"🚚 ĐĂNG KÝ";
+Tài khoản đăng ký chỉ tạo user.
+Không tự đăng nhập vào hệ thống.
+*/
+
+document
+.getElementById("registerForm")
+.reset();
+
+
+button.disabled=false;
+
+button.textContent=
+"🚚 ĐĂNG KÝ SHIPPER";
 
 
 }catch(error){
 
 console.error(error);
 
-message(
+
+showMessage(
+
 "❌ "+error.message,
+
 "error"
+
 );
 
-btn.disabled=false;
 
-btn.textContent=
-"🚚 ĐĂNG KÝ";
+button.disabled=false;
+
+button.textContent=
+"🚚 ĐĂNG KÝ SHIPPER";
 
 }
 
@@ -473,5 +690,7 @@ btn.textContent=
 
 </script>
 
+
 </body>
+
 </html>
