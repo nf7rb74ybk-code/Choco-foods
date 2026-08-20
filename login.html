@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOCO SHIP - Đăng nhập</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
+}
+
+.login-box{
+  width:100%;
+  max-width:400px;
+  background:white;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 5px 25px rgba(0,0,0,.12);
+}
+
+.logo{
+  text-align:center;
+  font-size:30px;
+  font-weight:bold;
+  color:#ff6b00;
+  margin-bottom:5px;
+}
+
+.subtitle{
+  text-align:center;
+  color:#666;
+  margin-bottom:25px;
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:7px;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:15px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font-size:16px;
+  outline:none;
+}
+
+input:focus{
+  border-color:#ff6b00;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:10px;
+  background:#ff6b00;
+  color:white;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.6;
+}
+
+#error{
+  display:none;
+  background:#fee2e2;
+  color:#991b1b;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:15px;
+  line-height:1.4;
+}
+
+#loading{
+  text-align:center;
+  margin-top:12px;
+  color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+  <div class="logo">🍔 CHOCO SHIP</div>
+
+  <div class="subtitle">
+    Đăng nhập Admin / Shipper
+  </div>
+
+  <div id="error"></div>
+
+  <form onsubmit="login(event)">
+
+    <label>Email</label>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Nhập email"
+      autocomplete="username"
+      required
+    >
+
+    <label>Mật khẩu</label>
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Nhập mật khẩu"
+      autocomplete="current-password"
+      required
+    >
+
+    <button id="loginBtn" type="submit">
+      🔐 ĐĂNG NHẬP
+    </button>
+
+  </form>
+
+  <div id="loading"></div>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL =
+"https://guwdswqaqnhzqapflvey.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+
+
+function showError(message){
+
+  const box = document.getElementById("error");
+
+  box.innerText = "❌ " + message;
+
+  box.style.display = "block";
+}
+
+
+async function login(event){
+
+  event.preventDefault();
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const button =
+    document.getElementById("loginBtn");
+
+  const loading =
+    document.getElementById("loading");
+
+  document.getElementById("error").style.display =
+    "none";
+
+  button.disabled = true;
+
+  loading.innerText = "⏳ Đang đăng nhập...";
+
+
+  try{
+
+    /*
+      1. Đăng nhập Supabase Auth
+    */
+
+    const response = await fetch(
+      SUPABASE_URL +
+      "/auth/v1/token?grant_type=password",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":SUPABASE_KEY
+        },
+
+        body:JSON.stringify({
+          email:email,
+          password:password
+        })
+      }
+    );
+
+
+    const data = await response.json();
+
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error_description ||
+        data.msg ||
+        "Email hoặc mật khẩu không đúng."
+      );
+
+    }
+
+
+    /*
+      2. Lấy ID người dùng
+    */
+
+    const userId = data.user.id;
+
+    const accessToken = data.access_token;
+
+
+    /*
+      3. Lấy quyền từ bảng profiles
+    */
+
+    const profileResponse = await fetch(
+
+      SUPABASE_URL +
+      "/rest/v1/profiles?id=eq." +
+      encodeURIComponent(userId) +
+      "&select=role",
+
+      {
+        method:"GET",
+
+        headers:{
+          "apikey":SUPABASE_KEY,
+          "Authorization":
+            "Bearer " + accessToken
+        }
+      }
+
+    );
+
+
+    if(!profileResponse.ok){
+
+      throw new Error(
+        "Không thể kiểm tra quyền tài khoản."
+      );
+
+    }
+
+
+    const profiles =
+      await profileResponse.json();
+
+
+    /*
+      4. Kiểm tra tài khoản đã được cấp role chưa
+    */
+
+    if(!profiles.length){
+
+      throw new Error(
+        "Tài khoản chưa được cấp quyền."
+      );
+
+    }
+
+
+    const role = profiles[0].role;
+
+
+    /*
+      5. Chỉ cho phép Admin hoặc Shipper
+    */
+
+    if(role !== "admin" && role !== "shipper"){
+
+      throw new Error(
+        "Tài khoản không có quyền truy cập."
+      );
+
+    }
+
+
+    /*
+      6. Lưu phiên đăng nhập
+    */
+
+    localStorage.setItem(
+      "choco_access_token",
+      accessToken
+    );
+
+    localStorage.setItem(
+      "choco_user_id",
+      userId
+    );
+
+    localStorage.setItem(
+      "choco_role",
+      role
+    );
+
+    localStorage.setItem(
+      "choco_email",
+      data.user.email || email
+    );
+
+
+    /*
+      7. Chuyển trang theo quyền
+    */
+
+    if(role === "admin"){
+
+      window.location.href =
+        "admin.html";
+
+    }
+
+    else if(role === "shipper"){
+
+      window.location.href =
+        "shipper.html";
+
+    }
+
+  }
+
+  catch(error){
+
+    showError(error.message);
+
+    button.disabled = false;
+
+    loading.innerText = "";
+
+  }
+
+}
+
+</script>
+
+</body>
+</html>
