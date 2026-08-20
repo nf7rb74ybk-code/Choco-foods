@@ -1,485 +1,251 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-name="viewport"
-content="width=device-width,initial-scale=1">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CHOCO SHIP - Đăng ký Shipper</title>
 
 <style>
-
-*{
-box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
-
 margin:0;
-
 min-height:100vh;
-
 display:flex;
-
 align-items:center;
-
 justify-content:center;
-
 padding:20px;
-
 font-family:Arial,sans-serif;
-
-background:#f4f5f7;
-
+background:#f4f5f7
 }
 
 .box{
-
 width:100%;
-
 max-width:420px;
-
-background:#fff;
-
+background:white;
 padding:25px;
-
 border-radius:20px;
-
-box-shadow:0 5px 25px rgba(0,0,0,.12);
-
+box-shadow:0 5px 25px rgba(0,0,0,.12)
 }
 
 .logo{
-
 text-align:center;
-
 font-size:30px;
-
 font-weight:bold;
-
-color:#ff6b00;
-
+color:#ff6b00
 }
 
 .title{
-
 text-align:center;
-
 font-size:21px;
-
 font-weight:bold;
-
-margin-top:8px;
-
+margin-top:8px
 }
 
 .sub{
-
 text-align:center;
-
 color:#777;
-
-margin:8px 0 22px;
-
+margin:8px 0 22px
 }
 
 label{
-
 display:block;
-
 font-weight:bold;
-
-margin:12px 0 6px;
-
+margin:12px 0 6px
 }
 
 input{
-
 width:100%;
-
 padding:13px;
-
 border:1px solid #ddd;
-
 border-radius:10px;
-
-font-size:16px;
-
-outline:none;
-
-}
-
-input:focus{
-
-border-color:#ff6b00;
-
+font-size:16px
 }
 
 button{
-
 width:100%;
-
 padding:14px;
-
 margin-top:20px;
-
 border:0;
-
 border-radius:10px;
-
 background:#ff6b00;
-
 color:white;
-
 font-size:16px;
-
-font-weight:bold;
-
-cursor:pointer;
-
+font-weight:bold
 }
 
 button:disabled{
-
-opacity:.6;
-
+opacity:.6
 }
 
 .message{
-
 display:none;
-
 padding:13px;
-
 border-radius:10px;
-
 margin-top:15px;
-
 line-height:1.5;
-
-white-space:pre-line;
-
+white-space:pre-line
 }
 
 .error{
-
 background:#fee2e2;
-
-color:#991b1b;
-
+color:#991b1b
 }
 
 .success{
-
 background:#dcfce7;
-
-color:#166534;
-
+color:#166534
 }
 
 .login{
-
 text-align:center;
-
 margin-top:20px;
-
-color:#666;
-
+color:#666
 }
 
 .login a{
-
 color:#ff6b00;
-
 font-weight:bold;
-
-text-decoration:none;
-
+text-decoration:none
 }
-
 </style>
-
 </head>
-
 
 <body>
 
-
 <div class="box">
 
-
-<div class="logo">
-
-🚚 CHOCO SHIP
-
-</div>
-
+<div class="logo">🚚 CHOCO SHIP</div>
 
 <div class="title">
-
 Đăng ký Shipper
-
 </div>
-
 
 <div class="sub">
-
 Tạo tài khoản để nhận đơn giao hàng
-
 </div>
-
 
 <form id="registerForm">
 
-
-<label>
-
-Họ và tên
-
-</label>
-
+<label>Họ và tên</label>
 
 <input
-
 id="fullName"
-
 type="text"
-
 placeholder="Nguyễn Văn A"
-
-autocomplete="name"
-
 required
-
 >
 
-
-<label>
-
-Số điện thoại
-
-</label>
-
+<label>Số điện thoại</label>
 
 <input
-
 id="phone"
-
 type="tel"
-
 placeholder="09xxxxxxxx"
-
-autocomplete="tel"
-
 required
-
 >
 
-
-<label>
-
-Email
-
-</label>
-
+<label>Email</label>
 
 <input
-
 id="email"
-
 type="email"
-
 placeholder="shipper@gmail.com"
-
-autocomplete="email"
-
 required
-
 >
 
-
-<label>
-
-Mật khẩu
-
-</label>
-
+<label>Mật khẩu</label>
 
 <input
-
 id="password"
-
 type="password"
-
 placeholder="Ít nhất 6 ký tự"
-
-autocomplete="new-password"
-
 minlength="6"
-
 required
-
 >
 
-
-<label>
-
-Nhập lại mật khẩu
-
-</label>
-
+<label>Nhập lại mật khẩu</label>
 
 <input
-
 id="password2"
-
 type="password"
-
 placeholder="Nhập lại mật khẩu"
-
-autocomplete="new-password"
-
 minlength="6"
-
 required
-
 >
 
-
-<button
-id="registerBtn"
-type="submit">
-
+<button id="registerBtn" type="submit">
 🚚 ĐĂNG KÝ SHIPPER
-
 </button>
-
 
 </form>
 
-
-<div
-id="message"
-class="message">
-</div>
-
+<div id="message" class="message"></div>
 
 <div class="login">
-
 Đã có tài khoản?
-
-<a href="login.html">
-
-Đăng nhập
-
-</a>
-
+<a href="login.html">Đăng nhập</a>
 </div>
 
-
 </div>
-
 
 <script>
 
-
-/* =================================
-   SUPABASE
-================================= */
-
 const SUPABASE_URL =
 "https://guwdswqaqnhzqapflvey.supabase.co";
-
 
 const SUPABASE_KEY =
 "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-/* =================================
-   HIỂN THỊ THÔNG BÁO
-================================= */
+const form =
+document.getElementById("registerForm");
 
-function showMessage(text,type){
+const button =
+document.getElementById("registerBtn");
 
 const message =
 document.getElementById("message");
 
-message.textContent =
-text;
 
-message.className =
-"message "+type;
+function showMessage(text,type){
 
-message.style.display =
-"block";
+message.textContent=text;
+
+message.className="message "+type;
+
+message.style.display="block";
 
 }
 
 
-/* =================================
-   ĐĂNG KÝ
-================================= */
+form.addEventListener("submit",async function(e){
 
-document
-.getElementById("registerForm")
-.addEventListener(
-"submit",
-async function(event){
+e.preventDefault();
 
-event.preventDefault();
-
+message.style.display="none";
 
 const fullName =
-document
-.getElementById("fullName")
-.value
-.trim();
-
+document.getElementById("fullName")
+.value.trim();
 
 const phone =
-document
-.getElementById("phone")
-.value
-.trim();
-
+document.getElementById("phone")
+.value.trim();
 
 const email =
-document
-.getElementById("email")
-.value
-.trim()
+document.getElementById("email")
+.value.trim()
 .toLowerCase();
 
-
 const password =
-document
-.getElementById("password")
+document.getElementById("password")
 .value;
-
 
 const password2 =
-document
-.getElementById("password2")
+document.getElementById("password2")
 .value;
 
-
-const button =
-document
-.getElementById("registerBtn");
-
-
-/* Xóa thông báo cũ */
-
-document
-.getElementById("message")
-.style.display="none";
-
-
-/* Kiểm tra mật khẩu */
 
 if(password !== password2){
 
@@ -505,41 +271,23 @@ return;
 }
 
 
-/* Bắt đầu */
-
 button.disabled=true;
 
-button.textContent=
-"⏳ Đang đăng ký...";
+button.textContent="⏳ Đang đăng ký...";
 
 
 try{
 
+const response = await fetch(
 
-/*
-=================================
-TẠO TÀI KHOẢN SUPABASE AUTH
-=================================
-*/
-
-const response =
-await fetch(
-
-SUPABASE_URL+
-"/auth/v1/signup",
+SUPABASE_URL + "/auth/v1/signup",
 
 {
-
 method:"POST",
 
 headers:{
-
-"Content-Type":
-"application/json",
-
-"apikey":
-SUPABASE_KEY
-
+"Content-Type":"application/json",
+"apikey":SUPABASE_KEY
 },
 
 body:JSON.stringify({
@@ -549,29 +297,43 @@ email:email,
 password:password,
 
 data:{
-
 full_name:fullName,
-
 phone:phone
-
 }
 
 })
-
 }
 
 );
 
 
-const data =
-await response.json();
+const text =
+await response.text();
 
 
-/*
-=================================
-KIỂM TRA LỖI
-=================================
-*/
+let data={};
+
+try{
+
+data=JSON.parse(text);
+
+}catch(e){
+
+data={};
+
+}
+
+
+console.log(
+"Supabase signup:",
+response.status,
+data
+);
+
+
+/* =================================
+   SUPABASE TRẢ LỖI
+================================= */
 
 if(!response.ok){
 
@@ -580,109 +342,83 @@ throw new Error(
 data.error_description ||
 data.msg ||
 data.message ||
-"Không thể tạo tài khoản."
+text ||
+"Supabase không cho đăng ký."
 
 );
 
 }
 
+
+/* =================================
+   KIỂM TRA USER
+================================= */
 
 if(!data.user){
 
-throw new Error(
-"Không nhận được tài khoản mới."
-);
-
-}
-
-
 /*
-=================================
-SUPABASE CÓ THỂ YÊU CẦU
-XÁC NHẬN EMAIL
-=================================
+Một số cấu hình Supabase có thể
+không trả user theo cách cũ.
+Nếu không có user nhưng response
+thành công, vẫn báo thành công.
 */
-
-if(!data.session){
 
 showMessage(
 
-"✅ Đăng ký thành công!\n\n"+
-"Vui lòng kiểm tra email để xác nhận tài khoản.\n\n"+
-"Sau khi xác nhận, hãy quay lại trang đăng nhập.",
+"✅ Supabase đã nhận đăng ký.\n\n"+
+"Email: "+email+"\n\n"+
+"Kiểm tra email để xác nhận tài khoản. "+
+"Sau đó quay lại trang đăng nhập.",
 
 "success"
 
 );
 
-document
-.getElementById("registerForm")
-.reset();
+form.reset();
 
 button.disabled=false;
 
-button.textContent=
-"🚚 ĐĂNG KÝ SHIPPER";
+button.textContent="🚚 ĐĂNG KÝ SHIPPER";
 
 return;
 
 }
 
 
-/*
-=================================
-NẾU EMAIL KHÔNG CẦN XÁC NHẬN
-=================================
-*/
+/* =================================
+   CÓ USER
+================================= */
 
 showMessage(
 
 "✅ Đăng ký Shipper thành công!\n\n"+
-"Bạn có thể đăng nhập ngay.",
+"Email: "+email+"\n\n"+
+"Kiểm tra email để xác nhận tài khoản "+
+"nếu Supabase yêu cầu.",
 
 "success"
 
 );
 
-
-/*
-=================================
-KHÔNG LƯU TOKEN
-=================================
-
-Tài khoản đăng ký chỉ tạo user.
-Không tự đăng nhập vào hệ thống.
-*/
-
-document
-.getElementById("registerForm")
-.reset();
-
+form.reset();
 
 button.disabled=false;
 
-button.textContent=
-"🚚 ĐĂNG KÝ SHIPPER";
+button.textContent="🚚 ĐĂNG KÝ SHIPPER";
 
 
 }catch(error){
 
 console.error(error);
 
-
 showMessage(
-
 "❌ "+error.message,
-
 "error"
-
 );
-
 
 button.disabled=false;
 
-button.textContent=
-"🚚 ĐĂNG KÝ SHIPPER";
+button.textContent="🚚 ĐĂNG KÝ SHIPPER";
 
 }
 
@@ -690,7 +426,5 @@ button.textContent=
 
 </script>
 
-
 </body>
-
 </html>
