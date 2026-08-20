@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>CHOCO SHIP - SHIPPER</title>
+
+<style>
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+font-family:Arial,sans-serif;
+background:#f3f4f6;
+color:#222;
+padding-bottom:30px;
+}
+
+header{
+background:#1677ff;
+color:white;
+padding:16px;
+position:sticky;
+top:0;
+z-index:1000;
+}
+
+.header{
+max-width:800px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo{
+font-size:20px;
+font-weight:bold;
+}
+
+.refresh{
+border:0;
+background:white;
+color:#1677ff;
+padding:10px 14px;
+border-radius:9px;
+font-weight:bold;
+}
+
+.container{
+max-width:800px;
+margin:auto;
+padding:15px;
+}
+
+.shipper-box{
+background:white;
+padding:15px;
+border-radius:12px;
+margin-bottom:15px;
+box-shadow:0 2px 7px #ddd;
+}
+
+.shipper-box input{
+width:100%;
+padding:12px;
+border:1px solid #ddd;
+border-radius:9px;
+font-size:16px;
+margin-top:8px;
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-bottom:15px;
+}
+
+.stat{
+background:white;
+padding:15px;
+border-radius:12px;
+box-shadow:0 2px 6px #ddd;
+text-align:center;
+}
+
+.stat b{
+display:block;
+font-size:22px;
+margin-top:5px;
+}
+
+.orders{
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.order{
+background:white;
+border-radius:14px;
+padding:15px;
+box-shadow:0 2px 7px #ddd;
+}
+
+.order-head{
+display:flex;
+justify-content:space-between;
+gap:10px;
+margin-bottom:10px;
+}
+
+.code{
+font-size:18px;
+font-weight:bold;
+}
+
+.status{
+padding:6px 9px;
+border-radius:8px;
+font-size:12px;
+font-weight:bold;
+background:#dbeafe;
+color:#1d4ed8;
+}
+
+.info{
+font-size:14px;
+line-height:1.7;
+}
+
+.items{
+background:#f9fafb;
+padding:10px;
+border-radius:9px;
+margin:10px 0;
+}
+
+.money{
+font-size:18px;
+font-weight:bold;
+color:#16a34a;
+margin-top:8px;
+}
+
+.actions{
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+margin-top:12px;
+}
+
+.actions button{
+border:0;
+padding:11px 13px;
+border-radius:8px;
+color:white;
+font-weight:bold;
+}
+
+.accept{
+background:#16a34a;
+}
+
+.map{
+background:#1677ff;
+}
+
+.done{
+background:#7c3aed;
+}
+
+.loading,
+.empty,
+.error{
+background:white;
+padding:25px;
+text-align:center;
+border-radius:12px;
+}
+
+@media(max-width:600px){
+
+.stats{
+grid-template-columns:1fr;
+}
+
+.order-head{
+flex-direction:column;
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="header">
+
+<div class="logo">
+🛵 CHOCO SHIPPER
+</div>
+
+<button
+class="refresh"
+onclick="loadOrders()">
+
+🔄 Làm mới
+
+</button>
+
+</div>
+
+</header>
+
+
+<div class="container">
+
+
+<div class="shipper-box">
+
+<strong>
+👤 Tên shipper
+</strong>
+
+<input
+id="shipperName"
+placeholder="Nhập tên shipper..."
+>
+
+</div>
+
+
+<div class="stats">
+
+<div class="stat">
+
+📦 Đơn có thể nhận
+
+<b id="available">0</b>
+
+</div>
+
+<div class="stat">
+
+🛵 Đang giao
+
+<b id="shipping">0</b>
+
+</div>
+
+<div class="stat">
+
+✅ Hoàn thành
+
+<b id="completed">0</b>
+
+</div>
+
+</div>
+
+
+<div id="orders" class="orders">
+
+<div class="loading">
+
+⏳ Đang tải đơn...
+
+</div>
+
+</div>
+
+
+</div>
+
+
+<script>
+
+/* =================================
+SUPABASE
+================================= */
+
+const SUPABASE_URL =
+"https://guwdswqaqnhzqapflvey.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+
+
+/* =================================
+LƯU TÊN SHIPPER
+================================= */
+
+const savedName =
+localStorage.getItem(
+"choco_shipper_name"
+);
+
+if(savedName){
+
+document.getElementById(
+"shipperName"
+).value = savedName;
+
+}
+
+
+document.getElementById(
+"shipperName"
+).addEventListener(
+"input",
+function(){
+
+localStorage.setItem(
+"choco_shipper_name",
+this.value.trim()
+);
+
+loadOrders();
+
+}
+);
+
+
+/* =================================
+TIỀN
+================================= */
+
+function money(number){
+
+return Number(number || 0)
+.toLocaleString("vi-VN") + "đ";
+
+}
+
+
+/* =================================
+TẢI ĐƠN
+================================= */
+
+async function loadOrders(){
+
+const box =
+document.getElementById("orders");
+
+box.innerHTML =
+`
+<div class="loading">
+⏳ Đang tải đơn...
+</div>
+`;
+
+
+try{
+
+const response =
+await fetch(
+
+SUPABASE_URL +
+"/rest/v1/orders?select=*&order=time.desc",
+
+{
+
+headers:{
+
+"apikey":
+SUPABASE_KEY,
+
+"Authorization":
+"Bearer " + SUPABASE_KEY
+
+}
+
+}
+
+);
+
+
+const text =
+await response.text();
+
+
+if(!response.ok){
+
+throw new Error(text);
+
+}
+
+
+const orders =
+JSON.parse(text);
+
+
+showStats(orders);
+
+renderOrders(orders);
+
+
+}catch(error){
+
+console.error(error);
+
+box.innerHTML = `
+
+<div class="error">
+
+❌ Không tải được đơn.
+
+<br><br>
+
+${error.message}
+
+</div>
+
+`;
+
+}
+
+}
+
+
+/* =================================
+THỐNG KÊ
+================================= */
+
+function showStats(orders){
+
+const name =
+document.getElementById(
+"shipperName"
+).value.trim();
+
+
+document.getElementById(
+"available"
+).innerText =
+
+orders.filter(
+x => x.status === "Đã xác nhận"
+).length;
+
+
+document.getElementById(
+"shipping"
+).innerText =
+
+orders.filter(
+x =>
+x.status === "Đang giao" &&
+x.shipper_name === name
+).length;
+
+
+document.getElementById(
+"completed"
+).innerText =
+
+orders.filter(
+x =>
+x.status === "Hoàn thành" &&
+x.shipper_name === name
+).length;
+
+}
+
+
+/* =================================
+HIỂN THỊ
+================================= */
+
+function renderOrders(orders){
+
+const box =
+document.getElementById("orders");
+
+const name =
+document.getElementById(
+"shipperName"
+).value.trim();
+
+
+/*
+Đơn shipper được nhìn thấy:
+
+1. Đã xác nhận
+2. Đang giao bởi chính shipper
+3. Hoàn thành bởi chính shipper
+*/
+
+const visible =
+orders.filter(order =>
+
+order.status === "Đã xác nhận" ||
+
+(
+order.shipper_name === name &&
+(
+order.status === "Đang giao" ||
+order.status === "Hoàn thành"
+)
+)
+
+);
+
+
+if(!visible.length){
+
+box.innerHTML = `
+
+<div class="empty">
+
+📦 Hiện chưa có đơn để giao.
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+box.innerHTML = "";
+
+
+visible.forEach(order=>{
+
+let itemsHTML = "";
+
+
+try{
+
+let items =
+typeof order.items === "string"
+? JSON.parse(order.items)
+: order.items;
+
+
+if(Array.isArray(items)){
+
+items.forEach(item=>{
+
+itemsHTML += `
+
+<div>
+
+🍽️ ${item.name}
+
+× ${item.qty}
+
+— ${money(
+item.price * item.qty
+)}
+
+</div>
+
+`;
+
+});
+
+}
+
+}catch(e){
+
+itemsHTML =
+"Không đọc được món.";
+
+}
+
+
+const foodTotal =
+Number(
+order.food_total ||
+order.total ||
+0
+);
+
+
+const shippingFee =
+Number(
+order.shipping_fee ||
+0
+);
+
+
+const total =
+Number(
+order.total ||
+foodTotal + shippingFee
+);
+
+
+let action = "";
+
+
+/* =============================
+ĐƠN ĐÃ XÁC NHẬN
+============================= */
+
+if(order.status === "Đã xác nhận"){
+
+action = `
+
+<button
+class="accept"
+onclick="acceptOrder('${order.code}')">
+
+🛵 NHẬN ĐƠN
+
+</button>
+
+`;
+
+}
+
+
+/* =============================
+ĐANG GIAO
+============================= */
+
+if(
+order.status === "Đang giao" &&
+order.shipper_name === name
+){
+
+action = `
+
+<button
+class="map"
+onclick="openMap(
+${order.latitude},
+${order.longitude}
+)">
+
+📍 MỞ BẢN ĐỒ
+
+</button>
+
+<button
+class="done"
+onclick="completeOrder('${order.code}')">
+
+✅ ĐÃ GIAO
+
+</button>
+
+`;
+
+}
+
+
+/* =============================
+HOÀN THÀNH
+============================= */
+
+if(
+order.status === "Hoàn thành"
+){
+
+action = `
+
+<button
+class="map"
+onclick="openMap(
+${order.latitude},
+${order.longitude}
+)">
+
+📍 XEM VỊ TRÍ
+
+</button>
+
+`;
+
+}
+
+
+box.innerHTML += `
+
+<div class="order">
+
+<div class="order-head">
+
+<div class="code">
+
+🧾 ${order.code}
+
+</div>
+
+<div class="status">
+
+${order.status}
+
+</div>
+
+</div>
+
+
+<div class="info">
+
+👤 <b>Khách:</b>
+${order.name || ""}
+
+<br>
+
+📞 <b>SĐT:</b>
+${order.phone || ""}
+
+<br>
+
+📍 <b>Giao đến:</b>
+${order.address || ""}
+
+${
+order.note
+?
+`<br>
+📝 <b>Ghi chú:</b>
+${order.note}`
+:
+""
+}
+
+</div>
+
+
+<div class="items">
+
+${itemsHTML}
+
+</div>
+
+
+<div class="info">
+
+🍔 Tiền món:
+<b>${money(foodTotal)}</b>
+
+<br>
+
+🛵 Phí ship:
+<b>${money(shippingFee)}</b>
+
+</div>
+
+
+<div class="money">
+
+💰 Tổng:
+${money(total)}
+
+</div>
+
+
+<div class="actions">
+
+${action}
+
+</div>
+
+
+</div>
+
+`;
+
+});
+
+}
+
+
+/* =================================
+NHẬN ĐƠN
+================================= */
+
+async function acceptOrder(code){
+
+const name =
+document.getElementById(
+"shipperName"
+).value.trim();
+
+
+if(!name){
+
+alert(
+"⚠️ Hãy nhập tên shipper trước."
+);
+
+return;
+
+}
+
+
+if(!confirm(
+"Bạn muốn nhận đơn " +
+code +
+"?"
+)){
+
+return;
+
+}
+
+
+try{
+
+const response =
+await fetch(
+
+SUPABASE_URL +
+"/rest/v1/orders?code=eq." +
+encodeURIComponent(code) +
+"&status=eq.Đã%20xác%20nhận",
+
+{
+
+method:"PATCH",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+"apikey":
+SUPABASE_KEY,
+
+"Authorization":
+"Bearer " + SUPABASE_KEY,
+
+"Prefer":
+"return=minimal"
+
+},
+
+body:JSON.stringify({
+
+status:"Đang giao",
+
+shipper_name:name
+
+})
+
+}
+
+);
+
+
+const text =
+await response.text();
+
+
+if(!response.ok){
+
+throw new Error(text);
+
+}
+
+
+alert(
+"🛵 Đã nhận đơn " +
+code
+);
+
+
+loadOrders();
+
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"❌ Không nhận được đơn.\n\n" +
+error.message
+);
+
+}
+
+}
+
+
+/* =================================
+HOÀN THÀNH
+================================= */
+
+async function completeOrder(code){
+
+if(!confirm(
+"Xác nhận bạn đã giao đơn " +
+code +
+"?"
+)){
+
+return;
+
+}
+
+
+try{
+
+const response =
+await fetch(
+
+SUPABASE_URL +
+"/rest/v1/orders?code=eq." +
+encodeURIComponent(code),
+
+{
+
+method:"PATCH",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+"apikey":
+SUPABASE_KEY,
+
+"Authorization":
+"Bearer " + SUPABASE_KEY,
+
+"Prefer":
+"return=minimal"
+
+},
+
+body:JSON.stringify({
+
+status:"Hoàn thành"
+
+})
+
+}
+
+);
+
+
+const text =
+await response.text();
+
+
+if(!response.ok){
+
+throw new Error(text);
+
+}
+
+
+alert(
+"✅ Đã hoàn thành đơn " +
+code
+);
+
+
+loadOrders();
+
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"❌ Không cập nhật được.\n\n" +
+error.message
+);
+
+}
+
+}
+
+
+/* =================================
+MỞ GOOGLE MAPS
+================================= */
+
+function openMap(lat,lng){
+
+if(
+lat === null ||
+lng === null ||
+lat === undefined ||
+lng === undefined
+){
+
+alert(
+"⚠️ Đơn này chưa có vị trí GPS."
+);
+
+return;
+
+}
+
+
+window.open(
+
+"https://www.google.com/maps/dir/?api=1&destination=" +
+lat +
+"," +
+lng,
+
+"_blank"
+
+);
+
+}
+
+
+/* =================================
+KHỞI ĐỘNG
+================================= */
+
+loadOrders();
+
+
+/* TỰ ĐỘNG CẬP NHẬT */
+
+setInterval(
+loadOrders,
+10000
+);
+
+</script>
+
+</body>
+</html>
