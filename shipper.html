@@ -5,19 +5,14 @@
 
 <meta charset="UTF-8">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>CHOCO SHIPPER</title>
 
-<!-- LEAFLET -->
-
 <link
 rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 
@@ -28,534 +23,323 @@ padding:0;
 }
 
 body{
-
 font-family:Arial,sans-serif;
-
 background:#f3f4f6;
-
 color:#111827;
-
 padding-bottom:80px;
-
 }
 
-/* HEADER */
-
 header{
-
 background:#ff6b00;
-
 color:white;
-
 padding:15px;
-
 position:sticky;
-
 top:0;
-
 z-index:1000;
-
 box-shadow:0 2px 8px #ccc;
-
 }
 
 .header{
-
 max-width:750px;
-
 margin:auto;
-
 display:flex;
-
 justify-content:space-between;
-
 align-items:center;
-
 }
 
 .logo{
-
 font-size:21px;
-
 font-weight:bold;
-
 }
 
 .refresh{
-
 border:0;
-
 background:white;
-
 color:#ff6b00;
-
 padding:9px 12px;
-
 border-radius:9px;
-
 font-weight:bold;
-
 }
-
-/* CONTAINER */
 
 .container{
-
 max-width:750px;
-
 margin:auto;
-
 padding:15px;
-
 }
 
-/* STATUS */
-
 .status-box{
-
 background:white;
-
 border-radius:14px;
-
 padding:15px;
-
 margin-bottom:15px;
-
 box-shadow:0 2px 8px #ddd;
-
 }
 
 .status-title{
-
 font-size:18px;
-
 font-weight:bold;
-
-margin-bottom:5px;
-
+margin-bottom:6px;
 }
 
 .status-text{
-
 color:#16a34a;
-
 font-weight:bold;
-
 }
 
-/* MAP */
-
 .map-box{
-
 background:white;
-
 border-radius:15px;
-
 padding:10px;
-
 margin-bottom:15px;
-
 box-shadow:0 2px 8px #ddd;
-
 }
 
 .map-title{
-
 font-size:18px;
-
 font-weight:bold;
-
 padding:5px 5px 10px;
-
 }
 
 #map{
-
-height:320px;
-
+height:350px;
 width:100%;
-
 border-radius:12px;
-
 }
 
-/* ORDER */
+.map-help{
+font-size:13px;
+color:#6b7280;
+padding:8px 4px 2px;
+}
 
 .order{
-
 background:white;
-
 border-radius:16px;
-
 padding:16px;
-
 margin-bottom:15px;
-
 box-shadow:0 2px 10px #ddd;
-
 }
 
 .order-header{
-
 display:flex;
-
 justify-content:space-between;
-
 align-items:center;
-
-margin-bottom:12px;
-
 gap:10px;
-
+margin-bottom:12px;
 }
 
 .code{
-
 font-size:18px;
-
 font-weight:bold;
-
 color:#ff6b00;
-
 }
 
 .badge{
-
 padding:6px 9px;
-
 border-radius:20px;
-
 font-size:12px;
-
 font-weight:bold;
-
 white-space:nowrap;
-
 }
 
 .waiting{
-
 background:#fff7ed;
-
 color:#ea580c;
-
 }
 
 .accepted{
-
 background:#eff6ff;
-
 color:#2563eb;
-
 }
 
 .delivering{
-
 background:#fefce8;
-
 color:#ca8a04;
-
 }
 
 .done{
-
 background:#ecfdf5;
-
 color:#16a34a;
-
 }
 
 .customer{
-
 font-size:17px;
-
 font-weight:bold;
-
 margin-bottom:8px;
-
 }
 
 .info{
-
 margin:7px 0;
-
 font-size:14px;
-
 line-height:1.5;
-
 }
 
-/* ITEMS */
-
 .items{
-
 background:#f9fafb;
-
 border-radius:10px;
-
 padding:10px;
-
 margin-top:12px;
-
 }
 
 .item{
-
 display:flex;
-
 justify-content:space-between;
-
-padding:6px 0;
-
-font-size:14px;
-
 gap:10px;
-
+padding:6px 0;
+font-size:14px;
 }
 
-/* MONEY */
-
 .money{
-
 margin-top:12px;
-
 border-top:1px solid #eee;
-
 padding-top:10px;
-
 }
 
 .money-row{
-
 display:flex;
-
 justify-content:space-between;
-
 padding:5px 0;
-
 }
 
 .total{
-
 font-size:19px;
-
 font-weight:bold;
-
 color:#16a34a;
-
 }
 
-/* GPS */
-
 .gps-box{
-
 margin-top:12px;
-
 padding:10px;
-
 background:#eff6ff;
-
 border-radius:10px;
-
 font-size:13px;
-
+line-height:1.5;
 }
 
 .no-gps{
-
 background:#fff7ed;
-
 color:#c2410c;
-
 }
 
-/* BUTTONS */
-
 .buttons{
-
 display:grid;
-
 grid-template-columns:1fr 1fr;
-
 gap:8px;
-
 margin-top:14px;
-
 }
 
 .btn{
-
 border:0;
-
 padding:12px;
-
 border-radius:10px;
-
 font-weight:bold;
-
 font-size:14px;
-
 }
 
 .call{
-
 background:#16a34a;
-
 color:white;
-
 }
 
 .map-btn{
-
 background:#1677ff;
-
 color:white;
-
 }
 
 .accept{
-
 background:#ff6b00;
-
 color:white;
-
 grid-column:1/3;
-
 }
 
 .deliver{
-
 background:#eab308;
-
 color:white;
-
 grid-column:1/3;
-
 }
 
 .complete{
-
 background:#16a34a;
-
 color:white;
-
 grid-column:1/3;
-
 }
 
-/* EMPTY */
-
 .empty{
-
 background:white;
-
 padding:35px 15px;
-
 text-align:center;
-
 border-radius:15px;
-
 color:#6b7280;
-
 box-shadow:0 2px 8px #ddd;
-
 }
 
 .loading{
-
 text-align:center;
-
 padding:30px;
-
 }
-
-/* ERROR */
 
 .error{
-
 background:#fee2e2;
-
 color:#b91c1c;
-
 padding:15px;
-
 border-radius:12px;
-
 margin-bottom:15px;
-
 word-break:break-word;
-
 }
 
-/* BOTTOM */
+.new-order{
+background:#dcfce7;
+color:#166534;
+padding:12px;
+border-radius:12px;
+margin-bottom:15px;
+font-weight:bold;
+display:none;
+}
 
 .bottom{
-
 position:fixed;
-
 bottom:0;
-
 left:0;
-
 right:0;
-
 height:65px;
-
 background:white;
-
 border-top:1px solid #ddd;
-
 display:flex;
-
 justify-content:space-around;
-
 align-items:center;
-
 z-index:2000;
-
 }
 
 .bottom button{
-
 border:0;
-
 background:none;
-
 font-size:12px;
-
 }
 
 .bottom span{
-
 display:block;
-
 font-size:22px;
-
 }
 
 </style>
 
 </head>
 
-
 <body>
 
-
-<!-- HEADER -->
 
 <header>
 
 <div class="header">
 
 <div class="logo">
-
 🛵 CHOCO SHIPPER
-
 </div>
 
 <button
 class="refresh"
-onclick="loadOrders()"
+onclick="loadOrders(true)"
 >
 
 🔄 Làm mới
@@ -570,14 +354,10 @@ onclick="loadOrders()"
 <div class="container">
 
 
-<!-- STATUS -->
-
 <div class="status-box">
 
 <div class="status-title">
-
 📦 Đơn hàng
-
 </div>
 
 <div
@@ -585,9 +365,19 @@ class="status-text"
 id="statusText"
 >
 
-Đang tải đơn...
+Đang tải...
 
 </div>
+
+</div>
+
+
+<div
+class="new-order"
+id="newOrder"
+>
+
+🔔 CÓ ĐƠN HÀNG MỚI!
 
 </div>
 
@@ -595,22 +385,29 @@ id="statusText"
 <div id="message"></div>
 
 
-<!-- MAP -->
+<!-- BẢN ĐỒ -->
 
 <div class="map-box">
 
 <div class="map-title">
 
-🗺️ BẢN ĐỒ VỊ TRÍ KHÁCH
+🗺️ VỊ TRÍ KHÁCH
 
 </div>
 
 <div id="map"></div>
 
+<div class="map-help">
+
+📍 Các chấm trên bản đồ là vị trí GPS
+của khách trong đơn hàng.
+
+</div>
+
 </div>
 
 
-<!-- ORDERS -->
+<!-- DANH SÁCH ĐƠN -->
 
 <div id="orders">
 
@@ -626,52 +423,37 @@ id="statusText"
 </div>
 
 
-<!-- BOTTOM -->
-
 <div class="bottom">
 
-
-<button
-onclick="loadOrders()"
->
+<button onclick="loadOrders(true)">
 
 <span>📦</span>
-
 Đơn hàng
 
 </button>
 
 
-<button
-onclick="window.location.href='index.html'"
->
+<button onclick="window.location.href='index.html'">
 
 <span>🏠</span>
-
 Khách
 
 </button>
 
 
-<button
-onclick="window.scrollTo({top:0,behavior:'smooth'})"
->
+<button onclick="locateAllCustomers()">
 
-<span>⬆️</span>
-
-Đầu trang
+<span>📍</span>
+GPS
 
 </button>
-
 
 </div>
 
 
-<!-- LEAFLET -->
-
 <script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
 
 
 <script>
@@ -691,33 +473,27 @@ const SUPABASE_KEY =
 MAP
 ===================================================== */
 
-const map = L.map("map").setView(
-
+const map =
+L.map("map").setView(
 [10.2899,103.9840],
-
 12
-
 );
 
 
 L.tileLayer(
-
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
 {
-
 maxZoom:19,
-
 attribution:"© OpenStreetMap"
-
 }
-
 ).addTo(map);
 
 
-/* LƯU MARKER */
-
 let markers = [];
+
+let lastOrderCodes = new Set();
+
+let firstLoad = true;
 
 
 /* =====================================================
@@ -733,7 +509,7 @@ return Number(value || 0)
 
 
 /* =====================================================
-HTML SAFE
+HTML AN TOÀN
 ===================================================== */
 
 function escapeHTML(value){
@@ -741,13 +517,9 @@ function escapeHTML(value){
 return String(value ?? "")
 
 .replace(/&/g,"&amp;")
-
 .replace(/</g,"&lt;")
-
 .replace(/>/g,"&gt;")
-
 .replace(/"/g,"&quot;")
-
 .replace(/'/g,"&#039;");
 
 }
@@ -759,7 +531,7 @@ XÓA MARKER
 
 function clearMarkers(){
 
-markers.forEach(marker=>{
+markers.forEach(function(marker){
 
 map.removeLayer(marker);
 
@@ -774,7 +546,7 @@ markers = [];
 LOAD ORDERS
 ===================================================== */
 
-async function loadOrders(){
+async function loadOrders(manual=false){
 
 const box =
 document.getElementById("orders");
@@ -785,28 +557,22 @@ document.getElementById("statusText");
 const message =
 document.getElementById("message");
 
-
-box.innerHTML = `
-
-<div class="loading">
-
-⏳ Đang tải đơn...
-
-</div>
-
-`;
+const newOrderBox =
+document.getElementById("newOrder");
 
 
-message.innerHTML = "";
+if(manual){
 
 statusText.innerText =
-"Đang kết nối Supabase...";
+"🔄 Đang cập nhật...";
+
+}
 
 
 try{
 
-
-const response = await fetch(
+const response =
+await fetch(
 
 SUPABASE_URL +
 "/rest/v1/orders?select=*&order=time.desc",
@@ -848,20 +614,79 @@ throw new Error(result);
 }
 
 
-let orders = [];
+const orders =
+JSON.parse(result);
+
+
+/* =====================================================
+ĐƠN MỚI
+===================================================== */
+
+const currentCodes =
+new Set(
+
+orders.map(function(order){
+
+return order.code;
+
+})
+
+);
+
+
+if(!firstLoad){
+
+let hasNew = false;
+
+orders.forEach(function(order){
+
+if(
+order.code &&
+!lastOrderCodes.has(order.code)
+){
+
+hasNew = true;
+
+}
+
+});
+
+
+if(hasNew){
+
+newOrderBox.style.display =
+"block";
 
 try{
 
-orders =
-JSON.parse(result);
+if(
+navigator.vibrate
+){
 
-}catch(e){
-
-throw new Error(
-"Supabase trả dữ liệu không hợp lệ."
+navigator.vibrate(
+[200,100,200]
 );
 
 }
+
+}catch(e){}
+
+setTimeout(function(){
+
+newOrderBox.style.display =
+"none";
+
+},5000);
+
+}
+
+}
+
+
+lastOrderCodes =
+currentCodes;
+
+firstLoad = false;
 
 
 /* =====================================================
@@ -903,22 +728,23 @@ box.innerHTML = "";
 
 clearMarkers();
 
+
 let activeCount = 0;
 
-let firstGPS = null;
+let gpsLocations = [];
 
 
-orders.forEach(order=>{
+orders.forEach(function(order){
 
 
-if(order.status !== "Đã giao"){
+if(
+order.status !== "Đã giao"
+){
 
 activeCount++;
 
 }
 
-
-/* HIỂN THỊ ĐƠN */
 
 box.innerHTML +=
 createOrderHTML(order);
@@ -944,36 +770,36 @@ Number.isFinite(lng)
 ){
 
 
-if(!firstGPS){
+gpsLocations.push({
 
-firstGPS = {
 lat:lat,
-lng:lng
-};
 
-}
+lng:lng,
 
+order:order
 
-/* MARKER */
+});
+
 
 const marker =
 L.marker(
 [lat,lng]
 )
 
-.addTo(map)
+.addTo(map);
 
-.bindPopup(`
+
+marker.bindPopup(`
+
+<div style="min-width:190px">
 
 <strong>
-
 📦 ${escapeHTML(
 order.code || "Đơn hàng"
 )}
-
 </strong>
 
-<br>
+<br><br>
 
 👤 ${escapeHTML(
 order.name || ""
@@ -981,28 +807,55 @@ order.name || ""
 
 <br>
 
-📍 ${escapeHTML(
-order.address || ""
+📞 ${escapeHTML(
+order.phone || ""
 )}
+
+<br><br>
+
+📍 ${escapeHTML(
+order.address || "Không có địa chỉ"
+)}
+
+<br><br>
+
+<strong>
+${money(order.total)}
+</strong>
 
 <br><br>
 
 <button
 onclick="openMap(${lat},${lng})"
 style="
+width:100%;
 border:0;
 background:#1677ff;
 color:white;
-padding:8px 12px;
+padding:9px;
 border-radius:8px;
 font-weight:bold;
 ">
 
-🛵 Chỉ đường
+🧭 CHỈ ĐƯỜNG
 
 </button>
 
+</div>
+
 `);
+
+
+marker.on(
+"click",
+function(){
+
+map.setView(
+[lat,lng],
+17
+);
+
+});
 
 
 markers.push(marker);
@@ -1013,23 +866,50 @@ markers.push(marker);
 
 
 /* =====================================================
-ĐƯA MAP TỚI KHÁCH
+FIT TẤT CẢ VỊ TRÍ
 ===================================================== */
 
-if(firstGPS){
+if(
+gpsLocations.length > 0
+){
+
+if(
+gpsLocations.length === 1
+){
 
 map.setView(
+[
+gpsLocations[0].lat,
+gpsLocations[0].lng
+],
+16
+);
 
-[firstGPS.lat,firstGPS.lng],
+}else{
 
-15
+const bounds =
+L.latLngBounds(
+gpsLocations.map(function(x){
 
+return [
+x.lat,
+x.lng
+];
+
+})
+);
+
+map.fitBounds(
+bounds,
+{
+padding:[30,30]
+}
 );
 
 }
 
+}
 
-/* STATUS */
 
 statusText.innerText =
 activeCount +
@@ -1038,14 +918,7 @@ activeCount +
 
 }catch(error){
 
-
 console.error(error);
-
-
-clearMarkers();
-
-
-box.innerHTML = "";
 
 
 message.innerHTML = `
@@ -1056,12 +929,13 @@ message.innerHTML = `
 
 <br><br>
 
-${escapeHTML(error.message)}
+${escapeHTML(
+error.message
+)}
 
 </div>
 
 `;
-
 
 statusText.innerText =
 "Lỗi kết nối";
@@ -1072,7 +946,7 @@ statusText.innerText =
 
 
 /* =====================================================
-CREATE ORDER HTML
+CREATE ORDER
 ===================================================== */
 
 function createOrderHTML(order){
@@ -1086,21 +960,29 @@ let badgeClass =
 "waiting";
 
 
-if(status === "Đã nhận"){
+if(
+status === "Đã nhận"
+){
 
 badgeClass =
 "accepted";
 
 }
 
-if(status === "Đang giao"){
+
+if(
+status === "Đang giao"
+){
 
 badgeClass =
 "delivering";
 
 }
 
-if(status === "Đã giao"){
+
+if(
+status === "Đã giao"
+){
 
 badgeClass =
 "done";
@@ -1109,7 +991,7 @@ badgeClass =
 
 
 /* =====================================================
-ITEMS
+MÓN
 ===================================================== */
 
 let items = [];
@@ -1117,15 +999,14 @@ let items = [];
 
 try{
 
-
-if(Array.isArray(order.items)){
+if(
+Array.isArray(order.items)
+){
 
 items =
 order.items;
 
-}
-
-else if(
+}else if(
 typeof order.items === "string"
 ){
 
@@ -1134,13 +1015,9 @@ JSON.parse(order.items);
 
 }
 
-
 }catch(e){
 
-console.error(
-"ITEM ERROR:",
-e
-);
+console.error(e);
 
 }
 
@@ -1150,9 +1027,7 @@ let itemHTML = "";
 
 if(items.length){
 
-
-items.forEach(item=>{
-
+items.forEach(function(item){
 
 itemHTML += `
 
@@ -1169,11 +1044,8 @@ ${escapeHTML(item.name)}
 <strong>
 
 ${money(
-
 Number(item.price || 0) *
-
 Number(item.qty || 1)
-
 )}
 
 </strong>
@@ -1184,9 +1056,7 @@ Number(item.qty || 1)
 
 });
 
-
 }else{
-
 
 itemHTML = `
 
@@ -1202,19 +1072,19 @@ Không có thông tin món.
 
 
 /* =====================================================
-GPS BUTTON
+GPS
 ===================================================== */
-
-let gpsHTML = "";
-
-let mapButton = "";
-
 
 const lat =
 Number(order.latitude);
 
 const lng =
 Number(order.longitude);
+
+
+let gpsHTML = "";
+
+let mapButton = "";
 
 
 if(
@@ -1225,12 +1095,11 @@ Number.isFinite(lng)
 
 ){
 
-
 gpsHTML = `
 
 <div class="gps-box">
 
-📍 <strong>Vị trí GPS khách</strong>
+📍 <strong>GPS khách</strong>
 
 <br>
 
@@ -1241,7 +1110,6 @@ ${lng.toFixed(6)}
 
 `;
 
-
 mapButton = `
 
 <button
@@ -1249,7 +1117,7 @@ class="btn map-btn"
 onclick="openMap(${lat},${lng})"
 >
 
-📍 CHỈ ĐƯỜNG
+🧭 CHỈ ĐƯỜNG
 
 </button>
 
@@ -1257,17 +1125,16 @@ onclick="openMap(${lat},${lng})"
 
 }else{
 
-
 gpsHTML = `
 
 <div class="gps-box no-gps">
 
-⚠️ Đơn này chưa có vị trí GPS.
+⚠️ Đơn này chưa có GPS.
 
 <br>
 
-Khách cần cho phép truy cập vị trí
-và đặt lại đơn.
+Khách cần bật quyền vị trí
+khi đặt đơn.
 
 </div>
 
@@ -1277,13 +1144,15 @@ và đặt lại đơn.
 
 
 /* =====================================================
-ACTION BUTTON
+ACTION
 ===================================================== */
 
 let actionButton = "";
 
 
-if(status === "Chờ xác nhận"){
+if(
+status === "Chờ xác nhận"
+){
 
 actionButton = `
 
@@ -1304,7 +1173,9 @@ onclick="updateStatus(
 }
 
 
-else if(status === "Đã nhận"){
+else if(
+status === "Đã nhận"
+){
 
 actionButton = `
 
@@ -1325,7 +1196,9 @@ onclick="updateStatus(
 }
 
 
-else if(status === "Đang giao"){
+else if(
+status === "Đang giao"
+){
 
 actionButton = `
 
@@ -1408,7 +1281,10 @@ order.address || "Không có địa chỉ"
 </div>
 
 
-${order.note ? `
+${
+order.note
+?
+`
 
 <div class="info">
 
@@ -1418,7 +1294,10 @@ ${escapeHTML(order.note)}
 
 </div>
 
-` : ""}
+`
+:
+""
+}
 
 
 ${gpsHTML}
@@ -1428,7 +1307,7 @@ ${gpsHTML}
 
 <strong>
 
-🍔 Món đã đặt
+🍔 MÓN ĐÃ ĐẶT
 
 </strong>
 
@@ -1439,19 +1318,14 @@ ${itemHTML}
 
 <div class="money">
 
-
 <div class="money-row">
 
 <span>
-
 Tiền món
-
 </span>
 
 <strong>
-
 ${money(order.food_total)}
-
 </strong>
 
 </div>
@@ -1460,15 +1334,11 @@ ${money(order.food_total)}
 <div class="money-row">
 
 <span>
-
 🛵 Phí ship
-
 </span>
 
 <strong>
-
 ${money(order.shipping_fee)}
-
 </strong>
 
 </div>
@@ -1477,25 +1347,19 @@ ${money(order.shipping_fee)}
 <div class="money-row total">
 
 <span>
-
 TỔNG
-
 </span>
 
 <span>
-
 ${money(order.total)}
-
 </span>
 
 </div>
-
 
 </div>
 
 
 <div class="buttons">
-
 
 <button
 class="btn call"
@@ -1514,7 +1378,6 @@ ${mapButton}
 
 ${actionButton}
 
-
 </div>
 
 
@@ -1526,7 +1389,7 @@ ${actionButton}
 
 
 /* =====================================================
-CALL CUSTOMER
+GỌI KHÁCH
 ===================================================== */
 
 function callCustomer(phone){
@@ -1541,7 +1404,6 @@ return;
 
 }
 
-
 window.location.href =
 "tel:" + phone;
 
@@ -1549,14 +1411,16 @@ window.location.href =
 
 
 /* =====================================================
-OPEN GOOGLE MAP
+GOOGLE MAPS
 ===================================================== */
 
 function openMap(lat,lng){
 
-lat = Number(lat);
+lat =
+Number(lat);
 
-lng = Number(lng);
+lng =
+Number(lng);
 
 
 if(
@@ -1568,15 +1432,13 @@ if(
 ){
 
 alert(
-"❌ Vị trí GPS không hợp lệ."
+"❌ GPS không hợp lệ."
 );
 
 return;
 
 }
 
-
-/* Google Maps */
 
 const url =
 
@@ -1596,15 +1458,17 @@ url,
 
 
 /* =====================================================
-UPDATE STATUS
+ĐƯA MAP TỚI TẤT CẢ KHÁCH
 ===================================================== */
 
-async function updateStatus(code,status){
+function locateAllCustomers(){
 
-if(!code){
+if(
+markers.length === 0
+){
 
 alert(
-"❌ Không tìm thấy mã đơn."
+"📍 Chưa có đơn nào có GPS."
 );
 
 return;
@@ -1613,21 +1477,64 @@ return;
 
 
 if(
+markers.length === 1
+){
 
+map.setView(
+markers[0].getLatLng(),
+17
+);
+
+markers[0].openPopup();
+
+return;
+
+}
+
+
+const bounds =
+L.featureGroup(markers)
+.getBounds();
+
+
+map.fitBounds(
+bounds,
+{
+padding:[30,30]
+}
+);
+
+}
+
+
+/* =====================================================
+CẬP NHẬT TRẠNG THÁI
+===================================================== */
+
+async function updateStatus(
+code,
+status
+){
+
+if(!code){
+
+alert(
+"❌ Không có mã đơn."
+);
+
+return;
+
+}
+
+
+if(
 !confirm(
-
-"Bạn muốn chuyển đơn " +
-
+"Chuyển đơn " +
 code +
-
 " sang:\n\n" +
-
 status +
-
 "?"
-
 )
-
 ){
 
 return;
@@ -1637,13 +1544,11 @@ return;
 
 try{
 
-
-const response = await fetch(
+const response =
+await fetch(
 
 SUPABASE_URL +
-
 "/rest/v1/orders?code=eq." +
-
 encodeURIComponent(code),
 
 {
@@ -1683,7 +1588,7 @@ await response.text();
 
 
 console.log(
-"UPDATE STATUS:",
+"UPDATE:",
 result
 );
 
@@ -1691,30 +1596,23 @@ result
 if(!response.ok){
 
 throw new Error(
-
 result ||
-
-"Không cập nhật được đơn."
-
+"Không cập nhật được."
 );
 
 }
 
 
 alert(
-
-"✅ Đã cập nhật đơn:\n" +
-
+"✅ Đã cập nhật:\n" +
 status
-
 );
 
 
-loadOrders();
+await loadOrders(true);
 
 
 }catch(error){
-
 
 console.error(error);
 
@@ -1733,15 +1631,28 @@ error.message
 
 
 /* =====================================================
-TỰ ĐỘNG CẬP NHẬT
+TỰ ĐỘNG NHẬN ĐƠN
 ===================================================== */
 
+/*
+
+Kiểm tra Supabase mỗi 5 giây.
+
+Khi khách đặt đơn mới:
+→ shipper tự thấy đơn
+→ bản đồ tự thêm marker
+→ hiện thông báo đơn mới
+→ điện thoại có thể rung nếu trình duyệt cho phép.
+
+*/
+
 setInterval(
+function(){
 
-loadOrders,
+loadOrders(false);
 
-10000
-
+},
+5000
 );
 
 
@@ -1749,10 +1660,24 @@ loadOrders,
 KHỞI ĐỘNG
 ===================================================== */
 
-loadOrders();
+loadOrders(true);
 
+
+/* =====================================================
+SỬA KÍCH THƯỚC MAP
+===================================================== */
+
+setTimeout(
+function(){
+
+map.invalidateSize();
+
+},
+500
+);
 
 </script>
+
 
 </body>
 
