@@ -1213,6 +1213,308 @@ TẠO ĐƠN → SUPABASE
 
 async function createOrder(){
 
+    if(cart.length === 0){
+        alert("⚠️ Bạn chưa chọn món.");
+        return;
+    }
+
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const note = document.getElementById("note").value.trim();
+    const payment = document.getElementById("payment").value;
+
+    if(!name){
+        alert("⚠️ Vui lòng nhập họ tên.");
+        return;
+    }
+
+    if(!phone){
+        alert("⚠️ Vui lòng nhập số điện thoại.");
+        return;
+    }
+
+    if(!address){
+        alert("⚠️ Vui lòng nhập địa chỉ giao hàng.");
+        return;
+    }
+
+    /* =========================
+       TÍNH TIỀN MÓN
+    ========================= */
+
+    let foodTotal = 0;
+
+    cart.forEach(function(item){
+        foodTotal += Number(item.price) * Number(item.qty);
+    });
+
+
+    /* =========================
+       TÍNH PHÍ SHIP
+    ========================= */
+
+    const shippingFee = calculateShippingFee();
+
+
+    /* =========================
+       TỔNG THANH TOÁN
+    ========================= */
+
+    const total = foodTotal + shippingFee;
+
+
+    /* =========================
+       MÃ ĐƠN
+    ========================= */
+
+    const code =
+        "CS" +
+        Date.now().toString().slice(-6);
+
+
+    /* =========================
+       DỮ LIỆU ĐƠN
+    ========================= */
+
+    const order = {
+
+        code: code,
+
+        name: name,
+
+        phone: phone,
+
+        address: address,
+
+        note: note,
+
+        payment: payment,
+
+        items: JSON.stringify(cart),
+
+        food_total: foodTotal,
+
+        shipping_fee: shippingFee,
+
+        total: total,
+
+        status: "Chờ xác nhận",
+
+        time: new Date().toISOString(),
+
+        latitude: currentGPS.lat,
+
+        longitude: currentGPS.lng
+
+    };
+
+
+    /* =========================
+       KHÓA NÚT
+    ========================= */
+
+    const button =
+        document.getElementById("orderButton");
+
+    button.disabled = true;
+
+    button.innerText =
+        "⏳ ĐANG GỬI ĐƠN...";
+
+
+    try{
+
+        /* =========================
+           GỬI SUPABASE
+        ========================= */
+
+        const response = await fetch(
+
+            SUPABASE_URL + "/rest/v1/orders",
+
+            {
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json",
+
+                    "apikey":
+                        SUPABASE_KEY,
+
+                    "Authorization":
+                        "Bearer " + SUPABASE_KEY,
+
+                    "Prefer":
+                        "return=representation"
+
+                },
+
+                body: JSON.stringify(order)
+
+            }
+
+        );
+
+
+        const result =
+            await response.text();
+
+
+        console.log(
+            "SUPABASE STATUS:",
+            response.status
+        );
+
+        console.log(
+            "SUPABASE RESPONSE:",
+            result
+        );
+
+
+        /* =========================
+           KIỂM TRA LỖI
+        ========================= */
+
+        if(!response.ok){
+
+            throw new Error(
+                result ||
+                "Supabase từ chối đơn hàng."
+            );
+
+        }
+
+
+        /* =========================
+           LƯU ĐƠN TRÊN MÁY
+        ========================= */
+
+        localStorage.setItem(
+            "choco_ship_last_order",
+            JSON.stringify(order)
+        );
+
+
+        /* =========================
+           THÔNG BÁO THÀNH CÔNG
+        ========================= */
+
+        const successBox =
+            document.getElementById("successBox");
+
+        successBox.style.display = "block";
+
+        successBox.innerHTML = `
+
+            <strong>
+                🎉 ĐẶT ĐƠN THÀNH CÔNG
+            </strong>
+
+            <br><br>
+
+            Mã đơn:
+            <strong>${code}</strong>
+
+            <br>
+
+            Tiền món:
+            <strong>${money(foodTotal)}</strong>
+
+            <br>
+
+            Phí ship:
+            <strong>${money(shippingFee)}</strong>
+
+            <br>
+
+            Tổng tiền:
+            <strong>${money(total)}</strong>
+
+            <br><br>
+
+            🟢 Đơn hàng đang chờ
+            CHOCO SHIP xác nhận.
+
+        `;
+
+
+        alert(
+
+            "🎉 ĐẶT ĐƠN THÀNH CÔNG!\n\n" +
+
+            "Mã đơn: " +
+            code +
+
+            "\nTiền món: " +
+            money(foodTotal) +
+
+            "\nPhí ship: " +
+            money(shippingFee) +
+
+            "\nTổng tiền: " +
+            money(total)
+
+        );
+
+
+        /* =========================
+           XÓA GIỎ
+        ========================= */
+
+        cart = [];
+
+        updateCart();
+
+        renderCart();
+
+
+        /* =========================
+           XÓA FORM
+        ========================= */
+
+        document.getElementById("name").value = "";
+
+        document.getElementById("phone").value = "";
+
+        document.getElementById("address").value = "";
+
+        document.getElementById("note").value = "";
+
+        document.getElementById("payment").value = "cash";
+
+
+    }catch(error){
+
+        console.error(
+            "CHOCO SHIP ERROR:",
+            error
+        );
+
+
+        alert(
+
+            "❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n" +
+
+            "Lỗi Supabase:\n\n" +
+
+            error.message
+
+        );
+
+    }finally{
+
+        button.disabled = false;
+
+        button.innerText =
+            "🚀 ĐẶT ĐƠN";
+
+    }
+
+}
+
 if(cart.length === 0){
 
 alert(
