@@ -6,348 +6,331 @@
 <title>CHOCO SHIP - Shipper</title>
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f4f5f7;
-  color:#222;
+margin:0;
+font-family:Arial,sans-serif;
+background:#f4f5f7;
+color:#222
 }
 
 header{
-  background:#ff6b00;
-  color:#fff;
-  padding:14px;
-  position:sticky;
-  top:0;
-  z-index:20;
+background:#ff6b00;
+color:#fff;
+padding:14px;
+position:sticky;
+top:0;
+z-index:20
 }
 
 .header{
-  max-width:850px;
-  margin:auto;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+max-width:850px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center
 }
 
 .logo{
-  font-size:21px;
-  font-weight:bold;
+font-size:21px;
+font-weight:bold
 }
 
 .buttons{
-  display:flex;
-  gap:7px;
+display:flex;
+gap:7px
 }
 
 button{
-  border:0;
-  border-radius:10px;
-  padding:10px 13px;
-  font-weight:bold;
-  cursor:pointer;
+border:0;
+border-radius:10px;
+padding:10px 13px;
+font-weight:bold;
+cursor:pointer
 }
 
 .refresh{
-  background:white;
-  color:#ff6b00;
+background:white;
+color:#ff6b00
 }
 
 .logout{
-  background:#dc2626;
-  color:white;
+background:#dc2626;
+color:white
 }
 
 .container{
-  max-width:850px;
-  margin:auto;
-  padding:12px;
+max-width:850px;
+margin:auto;
+padding:12px
 }
 
-.welcome,
-.order,
-.stat{
-  background:white;
-  border-radius:16px;
-  box-shadow:0 2px 8px #ddd;
+.welcome,.order,.stat{
+background:white;
+border-radius:16px;
+box-shadow:0 2px 8px #ddd
 }
 
 .welcome{
-  padding:16px;
-  margin-bottom:12px;
+padding:16px;
+margin-bottom:12px
 }
 
 .welcome small{
-  display:block;
-  color:#777;
-  margin-top:5px;
+display:block;
+color:#777;
+margin-top:5px
 }
 
 .welcome b{
-  display:block;
-  font-size:22px;
-  margin-top:5px;
+display:block;
+font-size:22px;
+margin-top:5px
 }
 
 .profile-phone{
-  display:block;
-  color:#075bd8;
-  margin-top:6px;
-  font-weight:bold;
+display:block;
+color:#075bd8;
+margin-top:6px;
+font-weight:bold
 }
 
 .message{
-  margin-bottom:12px;
+margin-bottom:12px
 }
 
-.success,
-.error{
-  padding:13px;
-  border-radius:11px;
-  white-space:pre-line;
+.success,.error{
+padding:13px;
+border-radius:11px;
+white-space:pre-line
 }
 
 .success{
-  background:#dcfce7;
-  color:#166534;
+background:#dcfce7;
+color:#166534
 }
 
 .error{
-  background:#fee2e2;
-  color:#991b1b;
+background:#fee2e2;
+color:#991b1b
 }
 
 .stats{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin-bottom:12px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+margin-bottom:12px
 }
 
 .stat{
-  text-align:center;
-  padding:13px 5px;
-  font-size:13px;
+text-align:center;
+padding:13px 5px;
+font-size:13px
 }
 
 .stat b{
-  display:block;
-  font-size:23px;
-  margin-top:5px;
+display:block;
+font-size:23px;
+margin-top:5px
 }
 
 .orders{
-  display:flex;
-  flex-direction:column;
-  gap:13px;
+display:flex;
+flex-direction:column;
+gap:13px
 }
 
 .empty{
-  background:white;
-  border-radius:16px;
-  padding:38px 15px;
-  text-align:center;
-  color:#777;
+background:white;
+border-radius:16px;
+padding:38px 15px;
+text-align:center;
+color:#777
 }
 
 .order{
-  padding:15px;
+padding:15px
 }
 
 .order-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:10px;
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+gap:10px
 }
 
 .code{
-  font-size:19px;
-  font-weight:bold;
-  color:#ff6b00;
+font-size:19px;
+font-weight:bold;
+color:#ff6b00
 }
 
 .time{
-  font-size:12px;
-  color:#777;
-  margin-top:4px;
+font-size:12px;
+color:#777;
+margin-top:4px
 }
 
 .total-top{
-  font-weight:bold;
-  color:#e65100;
-  white-space:nowrap;
+font-weight:bold;
+color:#e65100;
+white-space:nowrap
 }
 
 .badge{
-  display:inline-block;
-  padding:5px 9px;
-  border-radius:999px;
-  background:#f3f4f6;
-  font-size:12px;
-  font-weight:bold;
-  margin-top:8px;
+display:inline-block;
+padding:5px 9px;
+border-radius:999px;
+background:#f3f4f6;
+font-size:12px;
+font-weight:bold;
+margin-top:8px
 }
 
 .new{
-  background:#dcfce7;
-  color:#166534;
+background:#dcfce7;
+color:#166534
 }
 
 .mine{
-  background:#dbeafe;
-  color:#1d4ed8;
+background:#dbeafe;
+color:#1d4ed8
 }
 
 .customer{
-  margin-top:12px;
-  line-height:1.75;
+margin-top:12px;
+line-height:1.75
 }
 
 .customer a{
-  color:#075bd8;
-  text-decoration:none;
+color:#075bd8;
+text-decoration:none
 }
 
 .box{
-  background:#f8f8f8;
-  border-radius:12px;
-  padding:12px;
-  margin-top:11px;
+background:#f8f8f8;
+border-radius:12px;
+padding:12px;
+margin-top:11px
 }
 
 .box-title{
-  font-weight:bold;
-  font-size:16px;
-  margin-bottom:8px;
+font-weight:bold;
+font-size:16px;
+margin-bottom:8px
 }
 
 .restaurant{
-  color:#666;
-  font-size:13px;
-  margin-bottom:6px;
+color:#666;
+font-size:13px;
+margin-bottom:6px
 }
 
 .food{
-  padding:8px 0;
-  border-bottom:1px solid #ddd;
+padding:8px 0;
+border-bottom:1px solid #ddd
 }
 
 .food:last-child{
-  border-bottom:0;
+border-bottom:0
 }
 
 .food-name{
-  font-weight:bold;
+font-weight:bold
 }
 
 .food-detail{
-  color:#555;
-  font-size:14px;
-  margin-top:3px;
+color:#555;
+font-size:14px;
+margin-top:3px
 }
 
 .money{
-  background:#fff7ed;
-  border:1px solid #fed7aa;
-  line-height:1.8;
+background:#fff7ed;
+border:1px solid #fed7aa;
+line-height:1.8
 }
 
 .money b{
-  color:#e65100;
+color:#e65100
 }
 
 .shipper-info{
-  background:#eff6ff;
-  color:#1d4ed8;
-  border-radius:10px;
-  padding:10px;
-  margin-top:11px;
-  font-size:14px;
+background:#eff6ff;
+color:#1d4ed8;
+border-radius:10px;
+padding:10px;
+margin-top:11px;
+font-size:14px
 }
 
 .actions{
-  margin-top:12px;
+margin-top:12px
 }
 
 .accept{
-  width:100%;
-  background:#16a34a;
-  color:white;
-  font-size:17px;
-  padding:14px;
+width:100%;
+background:#16a34a;
+color:white;
+font-size:17px;
+padding:14px
 }
 
 .accept:disabled{
-  opacity:.6;
+opacity:.6
 }
 
 .status-label{
-  font-weight:bold;
-  margin-bottom:6px;
+font-weight:bold;
+margin-bottom:6px
 }
 
 .status select{
-  width:100%;
-  padding:12px;
-  border:1px solid #ddd;
-  border-radius:10px;
-  background:white;
-  font-size:15px;
+width:100%;
+padding:12px;
+border:1px solid #ddd;
+border-radius:10px;
+background:white;
+font-size:15px
 }
 
-.map,
-.call{
-  display:block;
-  text-decoration:none;
-  text-align:center;
-  color:white;
-  padding:12px;
-  border-radius:10px;
-  margin-top:9px;
-  font-weight:bold;
+.map,.call{
+display:block;
+text-decoration:none;
+text-align:center;
+color:white;
+padding:12px;
+border-radius:10px;
+margin-top:9px;
+font-weight:bold
 }
 
 .map{
-  background:#1677ff;
+background:#1677ff
 }
 
 .call{
-  background:#16a34a;
-}
-
-.debug{
-  display:none;
-  margin-top:10px;
-  background:#111827;
-  color:#d1d5db;
-  padding:10px;
-  border-radius:10px;
-  font-size:11px;
-  overflow:auto;
+background:#16a34a
 }
 
 @media(max-width:500px){
 
-  .logo{
-    font-size:18px;
-  }
+.logo{
+font-size:18px
+}
 
-  .container{
-    padding:9px;
-  }
+.container{
+padding:9px
+}
 
-  .order{
-    padding:13px;
-  }
+.order{
+padding:13px
+}
 
-  .total-top{
-    font-size:14px;
-  }
+.total-top{
+font-size:14px
+}
 
 }
 </style>
@@ -356,7 +339,6 @@ button{
 <body>
 
 <header>
-
 <div class="header">
 
 <div class="logo">
@@ -365,22 +347,16 @@ button{
 
 <div class="buttons">
 
-<button
-class="refresh"
-onclick="loadOrders()">
+<button class="refresh" onclick="loadOrders()">
 🔄
 </button>
 
-<button
-class="logout"
-onclick="logout()">
+<button class="logout" onclick="logout()">
 🚪
 </button>
 
 </div>
-
 </div>
-
 </header>
 
 
@@ -430,9 +406,7 @@ Hoàn thành
 </div>
 
 
-<div
-id="orders"
-class="orders">
+<div id="orders" class="orders">
 
 <div class="empty">
 ⏳ Đang tải đơn...
@@ -445,9 +419,9 @@ class="orders">
 
 <script>
 
-/* ==================================================
+/* =====================================================
    SUPABASE
-================================================== */
+===================================================== */
 
 const SUPABASE_URL =
 "https://guwdswqaqnhzqapflvey.supabase.co";
@@ -456,9 +430,9 @@ const SUPABASE_KEY =
 "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-/* ==================================================
+/* =====================================================
    LOGIN
-================================================== */
+===================================================== */
 
 const TOKEN =
 localStorage.getItem("choco_access_token");
@@ -484,9 +458,9 @@ window.location.replace("login.html");
 }
 
 
-/* ==================================================
+/* =====================================================
    LOGOUT
-================================================== */
+===================================================== */
 
 function logout(){
 
@@ -500,40 +474,33 @@ window.location.replace("login.html");
 }
 
 
-/* ==================================================
+/* =====================================================
    API
-================================================== */
+===================================================== */
 
 async function api(path,options={}){
 
 const headers={
-
 "apikey":SUPABASE_KEY,
-
-"Authorization":
-"Bearer "+TOKEN,
-
-"Accept":
-"application/json",
-
+"Authorization":"Bearer "+TOKEN,
+"Accept":"application/json",
 ...(options.headers || {})
-
 };
 
 return fetch(
 SUPABASE_URL+path,
 {
 ...options,
-headers:headers
+headers
 }
 );
 
 }
 
 
-/* ==================================================
-   ESCAPE HTML
-================================================== */
+/* =====================================================
+   ESCAPE
+===================================================== */
 
 function esc(value){
 
@@ -547,9 +514,9 @@ return String(value ?? "")
 }
 
 
-/* ==================================================
+/* =====================================================
    MONEY
-================================================== */
+===================================================== */
 
 function money(value){
 
@@ -559,108 +526,66 @@ return Number(value || 0)
 }
 
 
-/* ==================================================
+/* =====================================================
    ITEMS
-================================================== */
+===================================================== */
 
 function getItems(raw){
 
+if(raw===null || raw===undefined){
+return [];
+}
+
 let data=raw;
-
-
-/*
-   items có thể bị JSON encode nhiều lớp
-*/
 
 for(
 let i=0;
-i<5 &&
-typeof data==="string";
+i<6 && typeof data==="string";
 i++
 ){
 
 try{
-
 data=JSON.parse(data);
-
-}catch(error){
-
+}catch(e){
 break;
-
 }
 
 }
-
 
 if(Array.isArray(data)){
-
 return data;
-
 }
 
-
-/*
-   Trường hợp object có items
-*/
-
-if(
-data &&
-Array.isArray(data.items)
-){
-
+if(data && Array.isArray(data.items)){
 return data.items;
-
 }
 
-
-/*
-   Trường hợp chỉ có 1 object món
-*/
-
-if(
-data &&
-typeof data==="object"
-){
-
+if(data && typeof data==="object"){
 return [data];
-
 }
 
-
-/*
-   Trường hợp text
-*/
-
-if(
-typeof data==="string" &&
-data.trim()
-){
-
+if(typeof data==="string" && data.trim()){
 return [{
 name:data,
 qty:1,
 price:0
 }];
-
 }
-
 
 return [];
 
 }
 
 
-/* ==================================================
+/* =====================================================
    RENDER ITEMS
-================================================== */
+===================================================== */
 
 function renderItems(raw){
 
-const list=
-getItems(raw);
+const items=getItems(raw);
 
-
-if(!list.length){
+if(!items.length){
 
 return `
 <div style="color:#777">
@@ -670,9 +595,10 @@ return `
 
 }
 
+let restaurants=[];
 
-return list.map(
-function(item,index){
+const html=items.map(
+(item,index)=>{
 
 if(typeof item==="string"){
 
@@ -684,7 +610,6 @@ price:0
 
 }
 
-
 const name=
 item.name ||
 item.title ||
@@ -692,15 +617,13 @@ item.product_name ||
 item.food_name ||
 ("Món "+(index+1));
 
-
 const qty=
 Number(
 item.qty ??
 item.quantity ??
 item.amount ??
 1
-) || 1;
-
+)||1;
 
 const price=
 Number(
@@ -708,132 +631,111 @@ item.price ??
 item.unit_price ??
 item.food_price ??
 0
-) || 0;
+)||0;
 
-
-const total=
+const subtotal=
 Number(
 item.total ??
 item.subtotal ??
 (price*qty)
-) ||
-(price*qty);
+)||price*qty;
 
+if(
+item.restaurant &&
+!restaurants.includes(item.restaurant)
+){
+restaurants.push(item.restaurant);
+}
 
 return `
-
 <div class="food">
 
 <div class="food-name">
-
-🍔 ${esc(name)}
-× ${qty}
-
+🍔 ${esc(name)} × ${qty}
 </div>
 
 <div class="food-detail">
 
-${
-price
-?
-money(price)+" / món"
-:
-""
-}
+${price ? money(price)+" / món" : ""}
 
-${
-price
-?
-"&nbsp; • &nbsp;"
-:
-""
-}
+${price ? "&nbsp; • &nbsp;" : ""}
 
 Thành tiền:
 
 <b>
-${money(total)}
+${money(subtotal)}
 </b>
 
 </div>
 
 </div>
+`;
 
+}).join("");
+
+let restaurantHtml="";
+
+if(restaurants.length){
+
+restaurantHtml=`
+<div class="restaurant">
+🏪 ${esc(restaurants.join(" • "))}
+</div>
 `;
 
 }
-).join("");
+
+return restaurantHtml+html;
 
 }
 
 
-/* ==================================================
-   PROFILE SHIPPER
-================================================== */
+/* =====================================================
+   PROFILE
+===================================================== */
 
 async function loadProfile(){
 
-const nameEl =
+const nameEl=
 document.getElementById("shipperName");
 
-const phoneEl =
+const phoneEl=
 document.getElementById("shipperPhone");
 
-const emailEl =
+const emailEl=
 document.getElementById("shipperEmail");
 
-
-emailEl.textContent =
+emailEl.textContent=
 EMAIL || "Không có email";
-
 
 try{
 
-/*
-   QUAN TRỌNG:
-
-   profiles của bạn chỉ có:
-   id
-   full_name
-   phone
-   role
-
-   Không select email ở đây.
-*/
-
 const response=
 await api(
-
 "/rest/v1/profiles"+
 "?id=eq."+
 encodeURIComponent(USER_ID)+
 "&select=id,full_name,phone,role"
-
 );
-
 
 if(!response.ok){
 
-const errorText=
-await response.text();
-
 throw new Error(
-"Không đọc được profile: "+
-errorText
+"HTTP "+
+response.status+
+": "+
+await response.text()
 );
 
 }
 
-
 const data=
 await response.json();
 
-
 console.log(
-"PROFILE SHIPPER:",
+"PROFILE:",
 data
 );
-
 
 if(!data.length){
 
@@ -847,20 +749,15 @@ return;
 
 }
 
-
-const profile=
-data[0];
-
+const profile=data[0];
 
 nameEl.textContent=
 profile.full_name ||
 "Shipper";
 
-
 if(profile.phone){
 
-phoneEl.innerHTML=
-`
+phoneEl.innerHTML=`
 📞
 <a
 href="tel:${esc(profile.phone)}"
@@ -878,97 +775,55 @@ phoneEl.textContent=
 
 }
 
-
-/*
-   Kiểm tra role
-*/
-
-if(
-profile.role &&
-profile.role !== "shipper"
-){
-
-console.warn(
-"Profile không phải shipper:",
-profile.role
-);
-
-}
-
 }catch(error){
 
-console.error(
-"Lỗi load profile:",
-error
-);
+console.error(error);
 
 nameEl.textContent=
 "Shipper";
 
 phoneEl.textContent=
-"📞 Không tải được số điện thoại";
+"📞 Không tải được thông tin";
 
 }
 
 }
 
 
-/* ==================================================
-   GOOGLE MAPS
-================================================== */
+/* =====================================================
+   MAP
+===================================================== */
+
+function gpsUrl(lat,lng){
+
+return "https://www.google.com/maps?q="+
+encodeURIComponent(lat)+
+","+encodeURIComponent(lng);
+
+}
 
 function mapUrl(address){
 
-if(!address){
-
-return "#";
-
-}
-
-
-return (
-"https://www.google.com/maps/search/?api=1&query="+
-encodeURIComponent(address)
-);
+return "https://www.google.com/maps/search/?api=1&query="+
+encodeURIComponent(address);
 
 }
 
 
-/* ==================================================
-   GPS GOOGLE MAPS
-================================================== */
-
-function gpsUrl(latitude,longitude){
-
-return (
-"https://www.google.com/maps?q="+
-encodeURIComponent(latitude)+
-","+
-encodeURIComponent(longitude)
-);
-
-}
-
-
-/* ==================================================
+/* =====================================================
    DATE
-================================================== */
+===================================================== */
 
 function dateText(value){
 
-if(!value){
-
-return "";
-
-}
-
+if(!value)return "";
 
 try{
 
 return new Date(value)
 .toLocaleString("vi-VN");
 
-}catch(error){
+}catch(e){
 
 return String(value);
 
@@ -977,19 +832,13 @@ return String(value);
 }
 
 
-/* ==================================================
+/* =====================================================
    MESSAGE
-================================================== */
+===================================================== */
 
-function showMessage(
-type,
-text
-){
+function showMessage(type,text){
 
-document
-.getElementById("message")
-.innerHTML=
-`
+document.getElementById("message").innerHTML=`
 <div class="${type}">
 ${esc(text)}
 </div>
@@ -998,78 +847,73 @@ ${esc(text)}
 }
 
 
-/* ==================================================
+/* =====================================================
    LOAD ORDERS
-================================================== */
+===================================================== */
 
 async function loadOrders(){
 
 const box=
 document.getElementById("orders");
 
-
-box.innerHTML=
-`
+box.innerHTML=`
 <div class="empty">
 ⏳ Đang tải đơn...
 </div>
 `;
 
-
-document
-.getElementById("message")
-.innerHTML="";
-
-
 try{
 
 const response=
 await api(
-
 "/rest/v1/orders"+
 "?select=*"+
 "&order=created_at.desc"
-
 );
 
-
 if(!response.ok){
+
+const text=
+await response.text();
+
+if(
+response.status===401 &&
+text.includes("JWT expired")
+){
+
+showMessage(
+"error",
+"❌ Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+);
+
+return;
+
+}
 
 throw new Error(
 "Supabase HTTP "+
 response.status+
 ": "+
-await response.text()
+text
 );
 
 }
 
-
 const orders=
 await response.json();
 
-
 console.log(
-"CHOCO SHIP - ORDERS:",
+"ORDERS:",
 orders
 );
 
-
-renderOrders(
-orders
-);
-
+renderOrders(orders);
 
 }catch(error){
 
-console.error(
-"Lỗi load orders:",
-error
-);
-
+console.error(error);
 
 box.innerHTML="";
-
 
 showMessage(
 "error",
@@ -1082,139 +926,74 @@ error.message
 }
 
 
-/* ==================================================
+/* =====================================================
    RENDER ORDERS
-================================================== */
+===================================================== */
 
 function renderOrders(orders){
 
 const box=
 document.getElementById("orders");
 
-
-/*
-   Đơn của shipper hiện tại
-*/
-
 const myOrders=
 orders.filter(
-function(order){
-
-return String(
-order.shipper_id || ""
-) === String(USER_ID);
-
-}
+order =>
+String(order.shipper_id || "") ===
+String(USER_ID)
 );
 
-
-/*
-   Đơn mới chưa có shipper
-   + đơn mà mình đang nhận
-*/
+const newOrders=
+orders.filter(
+order =>
+order.status==="Chờ xác nhận" &&
+!order.shipper_id
+);
 
 const visible=
 orders.filter(
-function(order){
+order =>
 
-const pending=
 (
-order.status ===
-"Chờ xác nhận"
-&&
+order.status==="Chờ xác nhận" &&
 !order.shipper_id
+)
+||
+String(order.shipper_id || "") ===
+String(USER_ID)
+
 );
-
-
-const mine=
-String(
-order.shipper_id || ""
-) === String(USER_ID);
-
-
-return pending || mine;
-
-}
-);
-
-
-/* ==================================================
-   THỐNG KÊ
-================================================== */
-
-const newCount=
-orders.filter(
-function(order){
-
-return (
-order.status ===
-"Chờ xác nhận"
-&&
-!order.shipper_id
-);
-
-}
-).length;
-
 
 const shippingCount=
 myOrders.filter(
-function(order){
-
-return [
-
+order =>
+[
 "Đã nhận",
 "Đang lấy hàng",
 "Đang giao",
 "Đã giao"
-
-].includes(
-order.status
-);
-
-}
+].includes(order.status)
 ).length;
-
 
 const doneCount=
 myOrders.filter(
-function(order){
-
-return (
-order.status ===
-"Hoàn thành"
-);
-
-}
+order =>
+order.status==="Hoàn thành"
 ).length;
 
+document.getElementById("newCount")
+.textContent=newOrders.length;
 
-document
-.getElementById("newCount")
-.textContent=
-newCount;
+document.getElementById("shippingCount")
+.textContent=shippingCount;
 
-
-document
-.getElementById("shippingCount")
-.textContent=
-shippingCount;
-
-
-document
-.getElementById("doneCount")
-.textContent=
-doneCount;
-
+document.getElementById("doneCount")
+.textContent=doneCount;
 
 if(!visible.length){
 
-box.innerHTML=
-`
+box.innerHTML=`
 <div class="empty">
-
 📭 Hiện chưa có đơn phù hợp.
-
 </div>
 `;
 
@@ -1222,70 +1001,46 @@ return;
 
 }
 
-
 box.innerHTML=
-visible
-.map(
-renderOrder
-)
-.join("");
+visible.map(renderOrder).join("");
 
 }
 
 
-/* ==================================================
-   ORDER CARD
-================================================== */
+/* =====================================================
+   ORDER
+===================================================== */
 
 function renderOrder(order){
 
 const pending=
-(
-order.status ===
-"Chờ xác nhận"
-&&
-!order.shipper_id
-);
-
+order.status==="Chờ xác nhận" &&
+!order.shipper_id;
 
 const mine=
-String(
-order.shipper_id || ""
-) === String(USER_ID);
-
+String(order.shipper_id || "") ===
+String(USER_ID);
 
 const customer=
 order.name ||
 order.customer_name ||
 "Khách hàng";
 
-
 const phone=
 order.phone ||
 order.customer_phone ||
 "";
-
 
 const pickup=
 order.pickup ||
 order.pickup_address ||
 "";
 
-
 const dropoff=
 order.dropoff ||
 order.dropoff_address ||
 order.address ||
 "";
-
-
-const fee=
-Number(
-order.fee ||
-order.delivery_fee ||
-0
-);
-
 
 const total=
 Number(
@@ -1295,23 +1050,23 @@ order.amount ||
 0
 );
 
-
-/* ==================================================
-   GPS
-================================================== */
+const fee=
+Number(
+order.fee ||
+order.delivery_fee ||
+0
+);
 
 let gpsHtml="";
 
-
 if(
-order.latitude !== null &&
-order.latitude !== undefined &&
-order.longitude !== null &&
-order.longitude !== undefined
+order.latitude!==null &&
+order.latitude!==undefined &&
+order.longitude!==null &&
+order.longitude!==undefined
 ){
 
-gpsHtml=
-`
+gpsHtml=`
 <a
 class="map"
 target="_blank"
@@ -1328,85 +1083,44 @@ order.longitude
 
 }
 
-
-/* ==================================================
-   STATUS BADGE
-================================================== */
-
 let badgeClass="";
 
-
 if(pending){
-
 badgeClass="new";
-
-}else if(mine){
-
-badgeClass="mine";
-
 }
 
+if(mine){
+badgeClass="mine";
+}
 
-/* ==================================================
-   CARD
-================================================== */
+return `
 
-let html=
-`
-
-<div
-class="order"
-id="order-${esc(order.id)}">
-
+<div class="order" id="order-${esc(order.id)}">
 
 <div class="order-top">
 
 <div>
 
 <div class="code">
-
-${esc(
-order.code ||
-("#"+order.id)
-)}
-
+Đơn ${esc(order.code || order.id)}
 </div>
-
 
 <div class="time">
-
-🕒
-${esc(
-dateText(
-order.created_at
-)
-)}
-
+🕒 ${esc(dateText(order.created_at))}
 </div>
 
-
-<span
-class="badge ${badgeClass}">
-
-${esc(
-order.status ||
-"Chờ xác nhận"
-)}
-
+<span class="badge ${badgeClass}">
+${esc(order.status || "Chờ xác nhận")}
 </span>
 
 </div>
-
 
 ${
 total
 ?
 `
 <div class="total-top">
-
-💰
-${money(total)}
-
+💰 ${money(total)}
 </div>
 `
 :
@@ -1418,15 +1132,9 @@ ${money(total)}
 
 <div class="customer">
 
-👤
-
-<b>
-${esc(customer)}
-</b>
-
+👤 <b>${esc(customer)}</b>
 
 <br>
-
 
 📞
 
@@ -1434,46 +1142,23 @@ ${
 phone
 ?
 `
-<a
-href="tel:${esc(phone)}">
-
+<a href="tel:${esc(phone)}">
 ${esc(phone)}
-
 </a>
 `
 :
 "Chưa có số điện thoại"
 }
 
+<br>
+
+📍 <b>Lấy:</b>
+${esc(pickup || "Chưa có địa chỉ")}
 
 <br>
 
-
-📍
-
-<b>
-Lấy:
-</b>
-
-${esc(
-pickup ||
-"Chưa có địa chỉ"
-)}
-
-
-<br>
-
-
-🏁
-
-<b>
-Giao:
-</b>
-
-${esc(
-dropoff ||
-"Chưa có địa chỉ"
-)}
+🏁 <b>Giao:</b>
+${esc(dropoff || "Chưa có địa chỉ")}
 
 </div>
 
@@ -1481,14 +1166,10 @@ dropoff ||
 <div class="box">
 
 <div class="box-title">
-
-🍔 MÓN TRONG ĐƠN
-
+🍽️ MÓN ĐÃ ĐẶT
 </div>
 
-${renderItems(
-order.items
-)}
+${renderItems(order.items)}
 
 </div>
 
@@ -1500,16 +1181,11 @@ fee
 <div class="box money">
 
 <div class="box-title">
-
 💰 PHÍ GIAO
-
 </div>
 
 Phí ship:
-
-<b>
-${money(fee)}
-</b>
+<b>${money(fee)}</b>
 
 </div>
 `
@@ -1524,13 +1200,11 @@ mine
 `
 <div class="shipper-info">
 
-👤
-<b>Bạn đang nhận đơn này.</b>
+🚚 <b>Bạn đang nhận đơn này.</b>
 
 <br>
 
-🔒
-Chỉ bạn mới có thể cập nhật trạng thái.
+🆔 ${esc(USER_ID)}
 
 </div>
 `
@@ -1547,7 +1221,7 @@ pending
 
 <button
 class="accept"
-onclick="acceptOrder(${JSON.stringify(order.id)})">
+onclick='acceptOrder(${JSON.stringify(order.id)})'>
 
 ✅ NHẬN ĐƠN
 
@@ -1567,104 +1241,50 @@ mine
 <div class="actions">
 
 <div class="status-label">
-
 🔄 Cập nhật trạng thái
-
 </div>
-
 
 <div class="status">
 
 <select
-onchange=
-"changeStatus(
-${JSON.stringify(order.id)},
-this.value
-)"
+onchange='changeStatus(${JSON.stringify(order.id)},this.value)'
 ${
-(
 order.status==="Hoàn thành" ||
 order.status==="Đã hủy"
-)
 ?
 "disabled"
 :
 ""
 }>
 
-
 <option
 value="Đã nhận"
-${
-order.status==="Đã nhận"
-?
-"selected"
-:
-""
-}>
-
+${order.status==="Đã nhận"?"selected":""}>
 Đã nhận
-
 </option>
-
 
 <option
 value="Đang lấy hàng"
-${
-order.status==="Đang lấy hàng"
-?
-"selected"
-:
-""
-}>
-
+${order.status==="Đang lấy hàng"?"selected":""}>
 Đang lấy hàng
-
 </option>
-
 
 <option
 value="Đang giao"
-${
-order.status==="Đang giao"
-?
-"selected"
-:
-""
-}>
-
+${order.status==="Đang giao"?"selected":""}>
 Đang giao
-
 </option>
-
 
 <option
 value="Đã giao"
-${
-order.status==="Đã giao"
-?
-"selected"
-:
-""
-}>
-
+${order.status==="Đã giao"?"selected":""}>
 Đã giao
-
 </option>
-
 
 <option
 value="Hoàn thành"
-${
-order.status==="Hoàn thành"
-?
-"selected"
-:
-""
-}>
-
+${order.status==="Hoàn thành"?"selected":""}>
 Hoàn thành
-
 </option>
 
 </select>
@@ -1735,79 +1355,35 @@ href="tel:${esc(phone)}">
 ""
 }
 
-
-<div class="debug">
-
-ORDER ID:
-${esc(order.id)}
-
-<br>
-
-SHIPPER ID:
-${esc(order.shipper_id)}
-
-<br>
-
-STATUS:
-${esc(order.status)}
-
-</div>
-
-
 </div>
 
 `;
 
-
-return html;
-
 }
 
 
-/* ==================================================
+/* =====================================================
    NHẬN ĐƠN
-================================================== */
+===================================================== */
 
 async function acceptOrder(id){
 
 const card=
-document.getElementById(
-"order-"+id
-);
-
+document.getElementById("order-"+id);
 
 const button=
-card
-?
-card.querySelector(".accept")
-:
+card ?
+card.querySelector(".accept") :
 null;
-
 
 if(button){
 
 button.disabled=true;
-
-button.textContent=
-"⏳ ĐANG NHẬN...";
+button.textContent="⏳ ĐANG NHẬN...";
 
 }
 
-
 try{
-
-/*
-   RẤT QUAN TRỌNG:
-
-   Chỉ PATCH khi:
-
-   id đúng
-   status = Chờ xác nhận
-   shipper_id IS NULL
-
-   Vì vậy 2 shipper bấm cùng lúc
-   thì chỉ 1 người cập nhật thành công.
-*/
 
 const response=
 await api(
@@ -1824,29 +1400,19 @@ encodeURIComponent("Chờ xác nhận")+
 method:"PATCH",
 
 headers:{
-
-"Content-Type":
-"application/json",
-
-"Prefer":
-"return=representation"
-
+"Content-Type":"application/json",
+"Prefer":"return=representation"
 },
 
 body:JSON.stringify({
 
-shipper_id:
-USER_ID,
-
-status:
-"Đã nhận"
+shipper_id:USER_ID,
+status:"Đã nhận"
 
 })
 
 }
-
 );
-
 
 if(!response.ok){
 
@@ -1859,23 +1425,15 @@ await response.text()
 
 }
 
-
 const result=
 await response.json();
-
-
-/*
-   Không có dòng nào được cập nhật
-   => shipper khác đã nhận.
-*/
 
 if(!result.length){
 
 showMessage(
 "error",
-"❌ Đơn này đã được shipper khác nhận trước."
+"❌ Đơn này đã được shipper khác nhận."
 );
-
 
 await loadOrders();
 
@@ -1883,23 +1441,16 @@ return;
 
 }
 
-
 showMessage(
 "success",
 "✅ Nhận đơn thành công!"
 );
 
-
 await loadOrders();
-
 
 }catch(error){
 
-console.error(
-"Lỗi nhận đơn:",
-error
-);
-
+console.error(error);
 
 showMessage(
 "error",
@@ -1907,13 +1458,10 @@ showMessage(
 error.message
 );
 
-
 if(button){
 
 button.disabled=false;
-
-button.textContent=
-"✅ NHẬN ĐƠN";
+button.textContent="✅ NHẬN ĐƠN";
 
 }
 
@@ -1922,39 +1470,25 @@ button.textContent=
 }
 
 
-/* ==================================================
-   CẬP NHẬT TRẠNG THÁI
-================================================== */
+/* =====================================================
+   ĐỔI TRẠNG THÁI
+===================================================== */
 
-async function changeStatus(
-id,
-newStatus
-){
+async function changeStatus(id,newStatus){
 
 const allowed=[
-
 "Đã nhận",
 "Đang lấy hàng",
 "Đang giao",
 "Đã giao",
 "Hoàn thành"
-
 ];
 
-
 if(!allowed.includes(newStatus)){
-
 return;
-
 }
 
-
 try{
-
-/*
-   Chỉ shipper đang sở hữu đơn
-   mới được cập nhật.
-*/
 
 const response=
 await api(
@@ -1970,26 +1504,16 @@ encodeURIComponent(USER_ID),
 method:"PATCH",
 
 headers:{
-
-"Content-Type":
-"application/json",
-
-"Prefer":
-"return=representation"
-
+"Content-Type":"application/json",
+"Prefer":"return=representation"
 },
 
 body:JSON.stringify({
-
-status:
-newStatus
-
+status:newStatus
 })
 
 }
-
 );
-
 
 if(!response.ok){
 
@@ -2002,44 +1526,33 @@ await response.text()
 
 }
 
-
 const result=
 await response.json();
-
 
 if(!result.length){
 
 throw new Error(
-"Đơn không thuộc shipper này hoặc đã thay đổi."
+"Không cập nhật được. Đơn không thuộc shipper này."
 );
 
 }
-
 
 showMessage(
 "success",
-"✅ Đã cập nhật: "+
-newStatus
+"✅ Đã cập nhật: "+newStatus
 );
 
-
 await loadOrders();
-
 
 }catch(error){
 
-console.error(
-"Lỗi cập nhật:",
-error
-);
-
+console.error(error);
 
 showMessage(
 "error",
-"❌ Không cập nhật được trạng thái.\n"+
+"❌ Không cập nhật được.\n"+
 error.message
 );
-
 
 await loadOrders();
 
@@ -2048,18 +1561,17 @@ await loadOrders();
 }
 
 
-/* ==================================================
+/* =====================================================
    START
-================================================== */
+===================================================== */
 
 loadProfile();
-
 loadOrders();
 
 
-/* ==================================================
-   TỰ ĐỘNG TẢI MỖI 15 GIÂY
-================================================== */
+/* =====================================================
+   AUTO REFRESH
+===================================================== */
 
 setInterval(
 loadOrders,
