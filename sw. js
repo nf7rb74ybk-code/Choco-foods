@@ -1,79 +1,188 @@
-self.addEventListener("install", function(event) {
+const CACHE_NAME = "choco-ship-v3";
+
+const APP_URL = "./shipper.html";
+
+self.addEventListener("install", event => {
     self.skipWaiting();
 });
 
-self.addEventListener("activate", function(event) {
+self.addEventListener("activate", event => {
     event.waitUntil(
         self.clients.claim()
     );
 });
 
-self.addEventListener("push", function(event) {
 
-    var title = "🚚 CHOCO SHIP";
-    var body = "Bạn có đơn hàng mới!";
+/* ===============================
+   PUSH NOTIFICATION
+================================ */
 
-    if (event.data) {
+self.addEventListener("push", event => {
+
+    let data = {};
+
+    try {
+
+        if (event.data) {
+            data = event.data.json();
+        }
+
+    } catch (error) {
+
         try {
-            var data = event.data.json();
 
-            if (data.title) {
-                title = data.title;
-            }
-
-            if (data.body) {
-                body = data.body;
-            }
+            data = {
+                body: event.data
+                    ? event.data.text()
+                    : "Bạn có đơn hàng mới!"
+            };
 
         } catch (e) {
-            body = event.data.text();
+
+            data = {};
+
         }
+
     }
 
+
+    const title =
+        data.title ||
+        "🚚 CHOCO SHIP - ĐƠN MỚI";
+
+
+    const body =
+        data.body ||
+        "🔔 Bạn có đơn hàng mới!";
+
+
+    const url =
+        data.url ||
+        APP_URL;
+
+
+    const options = {
+
+        body: body,
+
+        icon:
+            data.icon ||
+            "./icon-192.png",
+
+        badge:
+            data.badge ||
+            "./icon-192.png",
+
+        vibrate: [
+            300,
+            100,
+            300
+        ],
+
+        tag:
+            data.tag ||
+            "choco-ship-order",
+
+        renotify: true,
+
+        requireInteraction: true,
+
+        data: {
+            url: url
+        }
+
+    };
+
+
     event.waitUntil(
+
         self.registration.showNotification(
             title,
-            {
-                body: body,
-                vibrate: [200, 100, 200],
-                data: {
-                    url: "./shipper.html"
-                }
-            }
+            options
         )
+
     );
+
 });
 
-self.addEventListener("notificationclick", function(event) {
 
-    event.notification.close();
+/* ===============================
+   CLICK NOTIFICATION
+================================ */
 
-    var url = "./shipper.html";
+self.addEventListener(
+    "notificationclick",
+    event => {
 
-    event.waitUntil(
-        self.clients.matchAll({
-            type: "window",
-            includeUncontrolled: true
-        }).then(function(clients) {
+        event.notification.close();
 
-            for (var i = 0; i < clients.length; i++) {
 
-                var client = clients[i];
+        const url =
+            event.notification.data &&
+            event.notification.data.url
+                ? event.notification.data.url
+                : APP_URL;
 
-                if ("focus" in client) {
 
-                    client.navigate(url);
+        event.waitUntil(
 
-                    return client.focus();
+            self.clients
+                .matchAll({
+                    type: "window",
+                    includeUncontrolled: true
+                })
+                .then(clientList => {
 
-                }
+                    for (
+                        const client
+                        of clientList
+                    ) {
 
-            }
+                        if (
+                            "focus"
+                            in client
+                        ) {
 
-            if (self.clients.openWindow) {
-                return self.clients.openWindow(url);
-            }
+                            client.navigate(
+                                url
+                            );
 
-        })
-    );
-});
+                            return client.focus();
+
+                        }
+
+                    }
+
+
+                    if (
+                        self.clients.openWindow
+                    ) {
+
+                        return self.clients.openWindow(
+                            url
+                        );
+
+                    }
+
+                })
+
+        );
+
+    }
+);
+
+
+/* ===============================
+   CLOSE
+================================ */
+
+self.addEventListener(
+    "notificationclose",
+    event => {
+
+        console.log(
+            "CHOCO SHIP notification closed"
+        );
+
+    }
+);
