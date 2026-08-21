@@ -1,0 +1,79 @@
+self.addEventListener("install", function(event) {
+    self.skipWaiting();
+});
+
+self.addEventListener("activate", function(event) {
+    event.waitUntil(
+        self.clients.claim()
+    );
+});
+
+self.addEventListener("push", function(event) {
+
+    var title = "🚚 CHOCO SHIP";
+    var body = "Bạn có đơn hàng mới!";
+
+    if (event.data) {
+        try {
+            var data = event.data.json();
+
+            if (data.title) {
+                title = data.title;
+            }
+
+            if (data.body) {
+                body = data.body;
+            }
+
+        } catch (e) {
+            body = event.data.text();
+        }
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(
+            title,
+            {
+                body: body,
+                vibrate: [200, 100, 200],
+                data: {
+                    url: "./shipper.html"
+                }
+            }
+        )
+    );
+});
+
+self.addEventListener("notificationclick", function(event) {
+
+    event.notification.close();
+
+    var url = "./shipper.html";
+
+    event.waitUntil(
+        self.clients.matchAll({
+            type: "window",
+            includeUncontrolled: true
+        }).then(function(clients) {
+
+            for (var i = 0; i < clients.length; i++) {
+
+                var client = clients[i];
+
+                if ("focus" in client) {
+
+                    client.navigate(url);
+
+                    return client.focus();
+
+                }
+
+            }
+
+            if (self.clients.openWindow) {
+                return self.clients.openWindow(url);
+            }
+
+        })
+    );
+});
