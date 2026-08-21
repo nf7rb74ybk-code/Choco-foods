@@ -46,6 +46,7 @@ header{
   padding:10px 12px;
   font-weight:bold;
   margin-left:5px;
+  cursor:pointer;
 }
 
 .refresh{
@@ -177,6 +178,7 @@ header{
 
 .customer a{
   color:#075bd8;
+  text-decoration:none;
 }
 
 .food-box{
@@ -225,13 +227,44 @@ header{
   margin-top:13px;
 }
 
+/* =========================
+SHIPPER
+========================= */
+
 .shipper{
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  padding:13px;
+  border-radius:12px;
+  margin-top:12px;
+  line-height:1.8;
+}
+
+.shipper-title{
+  font-size:16px;
+  font-weight:bold;
+  color:#1d4ed8;
+  margin-bottom:5px;
+}
+
+.shipper-name{
+  font-weight:bold;
+  font-size:16px;
+}
+
+.shipper-phone{
+  color:#075bd8;
+  font-weight:bold;
+  text-decoration:none;
+}
+
+.no-shipper{
   background:#fff7ed;
   border:1px solid #fed7aa;
-  padding:11px;
-  border-radius:10px;
+  color:#9a3412;
+  padding:12px;
+  border-radius:11px;
   margin-top:12px;
-  line-height:1.7;
 }
 
 .status-box{
@@ -299,6 +332,14 @@ header{
 
   .order{
     padding:13px;
+  }
+
+  .stats{
+    gap:6px;
+  }
+
+  .stat{
+    font-size:12px;
   }
 }
 </style>
@@ -488,130 +529,245 @@ return Number(value || 0)
 
 
 /* =====================================
-ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT
 GIẢI MÃ ITEMS
 ===================================== */
 
 function decodeItems(value){
 
-  if(value === null || value === undefined){
-    return [];
-  }
+if(
+value === null ||
+value === undefined
+){
 
-  /*
-  Trường hợp Supabase trả Array
-  */
-  if(Array.isArray(value)){
-    return value;
-  }
+return [];
 
-  /*
-  Trường hợp items là String
-  */
-  if(typeof value === "string"){
+}
 
-    let data = value.trim();
 
-    /*
-    JSON có thể bị encode nhiều lần.
-    Parse từng lớp.
-    */
+if(Array.isArray(value)){
 
-    for(let i=0;i<5;i++){
+return value;
 
-      if(typeof data !== "string"){
-        break;
-      }
+}
 
-      try{
 
-        data = JSON.parse(data);
+if(typeof value === "string"){
 
-      }catch(error){
+let data=value.trim();
 
-        console.log(
-          "Không JSON.parse được:",
-          data
-        );
 
-        break;
+for(
+let i=0;
+i<5;
+i++
+){
 
-      }
+if(typeof data !== "string"){
 
-    }
+break;
 
-    if(Array.isArray(data)){
-      return data;
-    }
+}
 
-  }
 
-  return [];
+try{
+
+data=JSON.parse(data);
+
+}catch(error){
+
+console.log(
+"Không JSON.parse được:",
+data
+);
+
+break;
+
+}
+
+}
+
+
+if(Array.isArray(data)){
+
+return data;
+
+}
+
+}
+
+
+return [];
 
 }
 
 
 /* =====================================
-PROFILE
+LOAD ADMIN PROFILE
 ===================================== */
 
 async function loadAdmin(){
 
-  try{
+try{
 
-    const response =
-    await fetch(
+const response=
+await fetch(
 
-      SUPABASE_URL+
-      "/rest/v1/profiles?id=eq."+
-      encodeURIComponent(USER_ID)+
-      "&select=full_name,email,role",
+SUPABASE_URL+
+"/rest/v1/profiles?id=eq."+
+encodeURIComponent(USER_ID)+
+"&select=full_name,email,role",
 
-      {
-        headers:{
-          "apikey":SUPABASE_KEY,
-          "Authorization":"Bearer "+TOKEN
-        }
-      }
+{
 
-    );
+headers:{
+"apikey":SUPABASE_KEY,
+"Authorization":
+"Bearer "+TOKEN
+}
 
-    if(!response.ok){
+}
 
-      document.getElementById(
-        "adminName"
-      ).textContent =
-      EMAIL || "Admin";
+);
 
-      return;
 
-    }
+if(!response.ok){
 
-    const data =
-    await response.json();
+document
+.getElementById("adminName")
+.textContent=
+EMAIL ||
+"Admin";
 
-    if(data.length){
+return;
 
-      document.getElementById(
-        "adminName"
-      ).textContent =
-      data[0].full_name ||
-      data[0].email ||
-      EMAIL ||
-      "Admin";
+}
 
-    }
 
-  }catch(error){
+const data=
+await response.json();
 
-    console.log(error);
 
-    document.getElementById(
-      "adminName"
-    ).textContent =
-    EMAIL || "Admin";
+if(data.length){
 
-  }
+document
+.getElementById("adminName")
+.textContent=
+data[0].full_name ||
+data[0].email ||
+EMAIL ||
+"Admin";
+
+}
+
+}catch(error){
+
+console.log(error);
+
+document
+.getElementById("adminName")
+.textContent=
+EMAIL ||
+"Admin";
+
+}
+
+}
+
+
+/* =====================================
+LẤY DANH SÁCH SHIPPER
+===================================== */
+
+async function loadShippers(
+shipperIds
+){
+
+const shippers={};
+
+
+if(!shipperIds.length){
+
+return shippers;
+
+}
+
+
+const ids=
+shipperIds
+.map(
+id =>
+encodeURIComponent(id)
+)
+.join(",");
+
+
+const url=
+SUPABASE_URL+
+"/rest/v1/profiles"+
+"?id=in.("+ids+")"+
+"&select=id,full_name,phone,email,role";
+
+
+try{
+
+const response=
+await fetch(
+
+url,
+
+{
+
+headers:{
+"apikey":SUPABASE_KEY,
+"Authorization":
+"Bearer "+TOKEN,
+"Accept":
+"application/json"
+}
+
+}
+
+);
+
+
+if(!response.ok){
+
+console.error(
+"Không lấy được profiles:",
+await response.text()
+);
+
+return shippers;
+
+}
+
+
+const profiles=
+await response.json();
+
+
+profiles.forEach(
+profile => {
+
+shippers[
+String(profile.id)
+]=profile;
+
+}
+);
+
+
+}catch(error){
+
+console.error(
+"Lỗi load shipper:",
+error
+);
+
+}
+
+
+return shippers;
 
 }
 
@@ -622,700 +778,873 @@ LOAD ORDERS
 
 async function loadOrders(){
 
-  const box =
-  document.getElementById("orders");
+const box=
+document.getElementById("orders");
 
-  const message =
-  document.getElementById("message");
-
-  box.innerHTML =
-  '<div class="empty">⏳ Đang tải đơn...</div>';
-
-  message.innerHTML="";
+const message=
+document.getElementById("message");
 
 
-  try{
+box.innerHTML=
+'<div class="empty">⏳ Đang tải đơn...</div>';
 
-    /*
-    Lấy tất cả đơn
-    */
-
-    const url =
-    SUPABASE_URL+
-    "/rest/v1/orders"+
-    "?select=*"+
-    "&order=created_at.desc";
+message.innerHTML="";
 
 
-    const response =
-    await fetch(
+try{
 
-      url,
+/*
+LẤY ĐƠN
+*/
 
-      {
-        method:"GET",
+const response=
+await fetch(
 
-        headers:{
-          "apikey":SUPABASE_KEY,
-          "Authorization":"Bearer "+TOKEN,
-          "Accept":"application/json"
-        }
+SUPABASE_URL+
+"/rest/v1/orders"+
+"?select=*"+
+"&order=created_at.desc",
 
-      }
+{
 
-    );
+method:"GET",
 
+headers:{
+"apikey":SUPABASE_KEY,
+"Authorization":
+"Bearer "+TOKEN,
+"Accept":
+"application/json"
+}
 
-    if(!response.ok){
+}
 
-      const errorText =
-      await response.text();
-
-      throw new Error(
-        "Supabase HTTP "+
-        response.status+
-        ": "+
-        errorText
-      );
-
-    }
+);
 
 
-    const orders =
-    await response.json();
+if(!response.ok){
+
+throw new Error(
+"Supabase HTTP "+
+response.status+
+": "+
+await response.text()
+);
+
+}
 
 
-    /*
-    DEBUG
-    */
-
-    console.log(
-      "========== CHOCO SHIP =========="
-    );
-
-    console.log(
-      "Tổng số đơn:",
-      orders.length
-    );
-
-    console.log(
-      "Đơn đầu tiên:",
-      orders[0]
-    );
+const orders=
+await response.json();
 
 
-    renderOrders(orders);
+/*
+LẤY SHIPPER ID
+*/
+
+const shipperIds=[
+...new Set(
+
+orders
+.map(
+order =>
+order.shipper_id
+)
+.filter(
+id => id
+)
+
+)
+];
 
 
-  }catch(error){
+/*
+LẤY PROFILE SHIPPER
+*/
 
-    console.error(error);
+const shippers=
+await loadShippers(
+shipperIds
+);
 
-    message.innerHTML=
-    '<div class="error">'+
-    '❌ Không tải được đơn hàng.'+
-    '<br><br>'+
-    escapeHtml(error.message)+
-    '</div>';
 
-    box.innerHTML="";
+/*
+GẮN THÔNG TIN SHIPPER
+*/
 
-  }
+orders.forEach(
+order => {
+
+if(order.shipper_id){
+
+const shipper=
+shippers[
+String(order.shipper_id)
+];
+
+
+if(shipper){
+
+order.shipper_name=
+shipper.full_name ||
+shipper.email ||
+"Shipper";
+
+
+order.shipper_phone=
+shipper.phone ||
+"";
+
+}else{
+
+order.shipper_name=
+"Không tìm thấy";
+
+
+order.shipper_phone=
+"";
+
+}
+
+}
+
+});
+
+
+console.log(
+"Orders:",
+orders
+);
+
+console.log(
+"Shippers:",
+shippers
+);
+
+
+renderOrders(
+orders
+);
+
+
+}catch(error){
+
+console.error(error);
+
+message.innerHTML=
+'<div class="error">'+
+'❌ Không tải được đơn hàng.'+
+'<br><br>'+
+escapeHtml(
+error.message
+)+
+'</div>';
+
+box.innerHTML="";
+
+}
 
 }
 
 
 /* =====================================
-RENDER
+RENDER ORDERS
 ===================================== */
 
-function renderOrders(orders){
+function renderOrders(
+orders
+){
 
-  const box =
-  document.getElementById("orders");
+const box=
+document.getElementById(
+"orders"
+);
 
 
-  let newCount=0;
-  let shippingCount=0;
-  let doneCount=0;
+let newCount=0;
+let shippingCount=0;
+let doneCount=0;
 
 
-  orders.forEach(order=>{
+orders.forEach(
+order => {
 
-    if(order.status==="Chờ xác nhận"){
-      newCount++;
-    }
+if(
+order.status===
+"Chờ xác nhận"
+){
 
-    if(order.status==="Đang giao"){
-      shippingCount++;
-    }
+newCount++;
 
-    if(order.status==="Hoàn thành"){
-      doneCount++;
-    }
+}
 
-  });
 
+if(
+[
+"Đã nhận",
+"Đang lấy hàng",
+"Đang giao",
+"Đã giao"
+]
+.includes(
+order.status
+)
+){
 
-  document.getElementById(
-    "newCount"
-  ).textContent=newCount;
+shippingCount++;
 
-  document.getElementById(
-    "shippingCount"
-  ).textContent=shippingCount;
+}
 
-  document.getElementById(
-    "doneCount"
-  ).textContent=doneCount;
 
+if(
+order.status===
+"Hoàn thành"
+){
 
-  if(!orders.length){
+doneCount++;
 
-    box.innerHTML=
-    '<div class="empty">'+
-    '📭 Chưa có đơn hàng.'+
-    '</div>';
+}
 
-    return;
+}
+);
 
-  }
 
+document.getElementById(
+"newCount"
+).textContent=
+newCount;
 
-  box.innerHTML="";
+document.getElementById(
+"shippingCount"
+).textContent=
+shippingCount;
 
+document.getElementById(
+"doneCount"
+).textContent=
+doneCount;
 
-  orders.forEach(order=>{
 
+if(!orders.length){
 
-    /* =================================
-    GIẢI MÃ ITEMS
-    ================================= */
+box.innerHTML=
+`
+<div class="empty">
 
-    const items =
-    decodeItems(order.items);
+📭 Chưa có đơn hàng.
 
+</div>
+`;
 
-    console.log(
-      "Đơn "+order.code,
-      "items:",
-      items
-    );
+return;
 
+}
 
-    /* =================================
-    MÓN
-    ================================= */
 
-    let foodsHtml="";
+box.innerHTML="";
 
-    const restaurants=[];
 
+orders.forEach(
+order => {
 
-    if(items.length){
 
-      items.forEach(item=>{
+/* =================================
+ITEMS
+================================= */
 
-        const name =
-        item.name ||
-        "Món ăn";
+const items=
+decodeItems(
+order.items
+);
 
-        const qty =
-        Number(item.qty || 1);
 
-        const price =
-        Number(item.price || 0);
+let foodsHtml="";
 
-        const subtotal =
-        price * qty;
+const restaurants=[];
 
 
-        if(
-          item.restaurant &&
-          !restaurants.includes(
-            item.restaurant
-          )
-        ){
+if(items.length){
 
-          restaurants.push(
-            item.restaurant
-          );
+items.forEach(
+item => {
 
-        }
+const name=
+item.name ||
+item.title ||
+item.food_name ||
+"Món ăn";
 
 
-        foodsHtml += `
+const qty=
+Number(
+item.qty ??
+item.quantity ??
+1
+) || 1;
 
-        <div class="food">
 
-          <div class="food-name">
+const price=
+Number(
+item.price ??
+item.unit_price ??
+0
+) || 0;
 
-            🍔
-            ${escapeHtml(name)}
-            × ${qty}
 
-          </div>
+const subtotal=
+Number(
+item.total ??
+item.subtotal ??
+(price*qty)
+) ||
+(price*qty);
 
-          <div class="food-detail">
 
-            ${money(price)}
-            / món
+if(
+item.restaurant &&
+!restaurants.includes(
+item.restaurant
+)
+){
 
-            &nbsp; • &nbsp;
+restaurants.push(
+item.restaurant
+);
 
-            Thành tiền:
+}
 
-            <b>
-            ${money(subtotal)}
-            </b>
 
-          </div>
+foodsHtml+=
+`
 
-        </div>
+<div class="food">
 
-        `;
+<div class="food-name">
 
-      });
+🍔
+${escapeHtml(name)}
+× ${qty}
 
-    }else{
+</div>
 
-      foodsHtml=
-      '<div style="color:#777">'+
-      '⚠️ Không đọc được thông tin món'+
-      '</div>';
+<div class="food-detail">
 
-    }
+${money(price)}
+/ món
 
+&nbsp; • &nbsp;
 
-    /* =================================
-    NHÀ HÀNG
-    ================================= */
+Thành tiền:
 
-    let restaurantHtml="";
+<b>
+${money(subtotal)}
+</b>
 
+</div>
 
-    if(restaurants.length){
+</div>
 
-      restaurantHtml=
+`;
 
-      '<div class="restaurant">'+
-      '🏪 '+
-      escapeHtml(
-        restaurants.join(" • ")
-      )+
-      '</div>';
+}
+);
 
-    }
+}else{
 
+foodsHtml=
+`
+<div
+style="color:#777">
 
-    /* =================================
-    KHÁCH
-    ================================= */
+⚠️ Không đọc được
+thông tin món
 
-    let customerHtml=
+</div>
+`;
 
-    `
+}
 
-    👤
 
-    <b>
-    ${escapeHtml(
-      order.name || ""
-    )}
-    </b>
+/* =================================
+RESTAURANT
+================================= */
 
-    <br>
+let restaurantHtml="";
 
-    📞
 
-    <a
-    href="tel:${escapeHtml(
-      order.phone || ""
-    )}">
+if(restaurants.length){
 
-    ${escapeHtml(
-      order.phone || ""
-    )}
+restaurantHtml=
+`
+<div class="restaurant">
 
-    </a>
+🏪
+${escapeHtml(
+restaurants.join(" • ")
+)}
 
-    <br>
+</div>
+`;
 
-    📍
+}
 
-    ${escapeHtml(
-      order.address || ""
-    )}
 
-    `;
+/* =================================
+CUSTOMER
+================================= */
 
+let customerHtml=
+`
 
-    if(order.note){
+👤
 
-      customerHtml +=
+<b>
+${escapeHtml(
+order.name ||
+""
+)}
+</b>
 
-      `
+<br>
 
-      <br>
+📞
 
-      📝
+${
+order.phone
+?
+`
+<a
+href="tel:${escapeHtml(
+order.phone
+)}">
 
-      ${escapeHtml(
-        order.note
-      )}
+${escapeHtml(
+order.phone
+)}
 
-      `;
+</a>
+`
+:
+"Chưa có số điện thoại"
+}
 
-    }
+<br>
 
+📍
 
-    customerHtml +=
+${escapeHtml(
+order.address ||
+order.dropoff ||
+""
+)}
 
-    `
+`;
 
-    <br>
 
-    💳
+if(order.note){
 
-    ${
-      order.payment==="bank"
-      ?
-      "Chuyển khoản"
-      :
-      "Tiền mặt"
-    }
+customerHtml+=
+`
 
-    `;
+<br>
 
+📝
 
-    /* =================================
-    SHIPPER
-    ================================= */
+${escapeHtml(
+order.note
+)}
 
-    let shipperHtml="";
+`;
 
+}
 
-    if(order.shipper_id){
 
-      shipperHtml=
+customerHtml+=
+`
 
-      `
+<br>
 
-      <div class="shipper">
+💳
 
-      🚚 <b>Shipper nhận đơn</b>
+${
+order.payment==="bank"
+?
+"Chuyển khoản"
+:
+"Tiền mặt"
+}
 
-      <br>
+`;
 
-      👤
 
-      ${escapeHtml(
-        order.shipper_name ||
-        "Không có tên"
-      )}
+/* =================================
+SHIPPER
+================================= */
 
-      ${
-        order.shipper_phone
-        ?
-        `
-        <br>
-        📞
+let shipperHtml="";
 
-        <a
-        href="tel:${escapeHtml(
-          order.shipper_phone
-        )}">
 
-        ${escapeHtml(
-          order.shipper_phone
-        )}
+if(order.shipper_id){
 
-        </a>
-        `
-        :
-        ""
-      }
+const shipperName=
+order.shipper_name ||
+"Shipper";
 
-      <br>
 
-      🆔
+const shipperPhone=
+order.shipper_phone ||
+"";
 
-      ${escapeHtml(
-        order.shipper_id
-      )}
 
-      </div>
+shipperHtml=
+`
 
-      `;
+<div class="shipper">
 
-    }else{
+<div class="shipper-title">
 
-      shipperHtml=
+🚚 SHIPPER ĐANG NHẬN ĐƠN
 
-      `
+</div>
 
-      <div class="shipper">
+<div class="shipper-name">
 
-      🚚 <b>Shipper:</b>
+👤
+${escapeHtml(
+shipperName
+)}
 
-      Chưa có shipper nhận đơn
+</div>
 
-      </div>
+${
+shipperPhone
+?
+`
+<div>
 
-      `;
+📞
 
-    }
+<a
+class="shipper-phone"
+href="tel:${escapeHtml(
+shipperPhone
+)}">
 
+${escapeHtml(
+shipperPhone
+)}
 
-    /* =================================
-    GPS
-    ================================= */
+</a>
 
-    let gpsHtml="";
+</div>
+`
+:
+`
+<div>
+📞 Chưa có số điện thoại
+</div>
+`
+}
 
+<div>
 
-    if(
-      order.latitude !== null &&
-      order.latitude !== undefined &&
-      order.longitude !== null &&
-      order.longitude !== undefined
-    ){
+🆔
 
-      gpsHtml=
+${escapeHtml(
+String(
+order.shipper_id
+)
+)}
 
-      `
+</div>
 
-      <a
-      class="map"
-      target="_blank"
-      rel="noopener"
-      href="https://www.google.com/maps?q=${
-        encodeURIComponent(
-          order.latitude
-        )
-      },${
-        encodeURIComponent(
-          order.longitude
-        )
-      }">
+</div>
 
-      📍 XEM VỊ TRÍ KHÁCH
+`;
 
-      </a>
+}else{
 
-      `;
+shipperHtml=
+`
 
-    }
+<div class="no-shipper">
 
+🚚
 
-    /* =================================
-    THỜI GIAN
-    ================================= */
+<b>Chưa có shipper nhận đơn</b>
 
-    let time="";
+<br>
 
+Đơn này đang chờ shipper nhận.
 
-    if(order.created_at){
+</div>
 
-      time=
-      new Date(
-        order.created_at
-      ).toLocaleString(
-        "vi-VN"
-      );
+`;
 
-    }else if(order.time){
+}
 
-      time=
-      new Date(
-        order.time
-      ).toLocaleString(
-        "vi-VN"
-      );
 
-    }
+/* =================================
+GPS
+================================= */
 
+let gpsHtml="";
 
-    /* =================================
-    STATUS
-    ================================= */
 
-    const statuses=[
+if(
+order.latitude !== null &&
+order.latitude !== undefined &&
+order.longitude !== null &&
+order.longitude !== undefined
+){
 
-      "Chờ xác nhận",
-      "Đã nhận",
-      "Đang lấy hàng",
-      "Đang giao",
-      "Hoàn thành",
-      "Đã hủy"
+gpsHtml=
+`
 
-    ];
+<a
+class="map"
+target="_blank"
+rel="noopener"
 
+href=
+"https://www.google.com/maps?q=${
+encodeURIComponent(
+order.latitude
+)},${
+encodeURIComponent(
+order.longitude
+)}">
 
-    let options="";
+📍 XEM VỊ TRÍ KHÁCH
 
+</a>
 
-    statuses.forEach(status=>{
+`;
 
-      options +=
+}
 
-      `
 
-      <option
-      value="${escapeHtml(status)}"
-      ${
-        order.status===status
-        ?
-        "selected"
-        :
-        ""
-      }>
+/* =================================
+TIME
+================================= */
 
-      ${escapeHtml(status)}
+let time="";
 
-      </option>
 
-      `;
+if(order.created_at){
 
-    });
+time=
+new Date(
+order.created_at
+)
+.toLocaleString(
+"vi-VN"
+);
 
+}else if(order.time){
 
-    /* =================================
-    DEBUG DATA
-    ================================= */
+time=
+new Date(
+order.time
+)
+.toLocaleString(
+"vi-VN"
+);
 
-    const debugData =
-    JSON.stringify(
-      order.items,
-      null,
-      2
-    );
+}
 
 
-    /* =================================
-    CARD
-    ================================= */
+/* =================================
+STATUS
+================================= */
 
-    box.innerHTML +=
+const statuses=[
 
-    `
+"Chờ xác nhận",
+"Đã nhận",
+"Đang lấy hàng",
+"Đang giao",
+"Đã giao",
+"Hoàn thành",
+"Đã hủy"
 
-    <div class="order">
+];
 
 
-      <div class="order-header">
+let options="";
 
-        <div>
 
-          <div class="code">
+statuses.forEach(
+status => {
 
-          Đơn ${
-            escapeHtml(
-              order.code ||
-              order.id
-            )
-          }
+options+=
+`
 
-          </div>
+<option
+value="${escapeHtml(
+status
+)}"
 
-          <div class="time">
+${
+order.status===
+status
+?
+"selected"
+:
+""
+}>
 
-          ${escapeHtml(time)}
+${escapeHtml(
+status
+)}
 
-          </div>
+</option>
 
-        </div>
+`;
 
+});
 
-        <div class="order-total-top">
 
-        💰
+/* =================================
+DEBUG
+================================= */
 
-        ${money(
-          order.total
-        )}
+const debugData=
+JSON.stringify(
+order.items,
+null,
+2
+);
 
-        </div>
 
-      </div>
+/* =================================
+CARD
+================================= */
 
+box.innerHTML+=
+`
 
-      <div class="customer">
+<div class="order">
 
-      ${customerHtml}
+<div class="order-header">
 
-      </div>
+<div>
 
+<div class="code">
 
-      <div class="food-box">
+Đơn
+${escapeHtml(
+order.code ||
+order.id
+)}
 
-        <div class="food-title">
+</div>
 
-        🍽️ MÓN ĐÃ ĐẶT
+<div class="time">
 
-        </div>
+${escapeHtml(
+time
+)}
 
-        ${restaurantHtml}
+</div>
 
-        ${foodsHtml}
+</div>
 
-      </div>
 
+<div
+class="order-total-top">
 
-      <div class="total">
+💰
 
-      Tổng:
+${money(
+order.total
+)}
 
-      ${money(
-        order.total
-      )}
+</div>
 
-      </div>
+</div>
 
 
-      <div class="status-box">
+<div class="customer">
 
-        <label>
-        Trạng thái đơn
-        </label>
+${customerHtml}
 
-        <select
-        onchange="updateStatus(
-          ${Number(order.id)},
-          this.value
-        )">
+</div>
 
-        ${options}
 
-        </select>
+<div class="food-box">
 
-      </div>
+<div class="food-title">
 
+🍽️ MÓN ĐÃ ĐẶT
 
-      ${shipperHtml}
+</div>
 
+${restaurantHtml}
 
-      ${gpsHtml}
+${foodsHtml}
 
+</div>
 
-      <div class="debug">
 
-        <div class="debug-title">
-        DEBUG ITEMS
-        </div>
+<div class="total">
 
-        ${escapeHtml(
-          debugData
-        )}
+Tổng:
 
-      </div>
+${money(
+order.total
+)}
 
+</div>
 
-    </div>
 
-    `;
+<div class="status-box">
 
-  });
+<label>
+Trạng thái đơn
+</label>
+
+<select
+onchange=
+"updateStatus(
+${Number(order.id)},
+this.value
+)">
+
+${options}
+
+</select>
+
+</div>
+
+
+${shipperHtml}
+
+
+${gpsHtml}
+
+
+<div class="debug">
+
+<div class="debug-title">
+
+DEBUG ITEMS
+
+</div>
+
+${escapeHtml(
+debugData
+)}
+
+</div>
+
+
+</div>
+
+`;
+
+}
+);
 
 }
 
@@ -1325,79 +1654,83 @@ UPDATE STATUS
 ===================================== */
 
 async function updateStatus(
-  id,
-  status
+id,
+status
 ){
 
-  try{
+try{
 
-    const response =
-    await fetch(
+const response=
+await fetch(
 
-      SUPABASE_URL+
-      "/rest/v1/orders?id=eq."+
-      encodeURIComponent(id),
+SUPABASE_URL+
+"/rest/v1/orders?id=eq."+
+encodeURIComponent(id),
 
-      {
+{
 
-        method:"PATCH",
+method:"PATCH",
 
-        headers:{
+headers:{
 
-          "Content-Type":
-          "application/json",
+"Content-Type":
+"application/json",
 
-          "apikey":
-          SUPABASE_KEY,
+"apikey":
+SUPABASE_KEY,
 
-          "Authorization":
-          "Bearer "+TOKEN,
+"Authorization":
+"Bearer "+TOKEN,
 
-          "Prefer":
-          "return=minimal"
+"Prefer":
+"return=minimal"
 
-        },
+},
 
-        body:JSON.stringify({
+body:JSON.stringify({
 
-          status:status
+status:status
 
-        })
+})
 
-      }
+}
 
-    );
-
-
-    if(!response.ok){
-
-      throw new Error(
-        await response.text()
-      );
-
-    }
+);
 
 
-    document.getElementById(
-      "message"
-    ).innerHTML=
+if(!response.ok){
 
-    '<div class="success">'+
-    '✅ Đã cập nhật trạng thái đơn.'+
-    '</div>';
+throw new Error(
+await response.text()
+);
 
-
-    await loadOrders();
+}
 
 
-  }catch(error){
+document.getElementById(
+"message"
+).innerHTML=
 
-    alert(
-      "❌ Không cập nhật được:\n"+
-      error.message
-    );
+`
+<div class="success">
 
-  }
+✅ Đã cập nhật trạng thái đơn.
+
+</div>
+`;
+
+
+await loadOrders();
+
+
+}catch(error){
+
+alert(
+"❌ Không cập nhật được:\n"+
+error.message
+);
+
+}
 
 }
 
@@ -1412,12 +1745,12 @@ loadOrders();
 
 
 /* =====================================
-TỰ ĐỘNG TẢI
+TỰ ĐỘNG TẢI MỖI 15 GIÂY
 ===================================== */
 
 setInterval(
-  loadOrders,
-  15000
+loadOrders,
+15000
 );
 
 </script>
