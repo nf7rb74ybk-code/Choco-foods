@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>CHOCO SHIP - Quản lý đơn</title>
+<title>CHOCO SHIP - Admin</title>
 
 <style>
 *{
@@ -21,19 +21,19 @@ color:#222;
 header{
 background:#ff6b00;
 color:white;
-padding:16px;
+padding:15px;
 position:sticky;
 top:0;
 z-index:10;
 }
 
 .header{
-max-width:800px;
+max-width:850px;
 margin:auto;
 display:flex;
 justify-content:space-between;
 align-items:center;
-gap:8px;
+gap:10px;
 }
 
 .logo{
@@ -41,18 +41,17 @@ font-size:21px;
 font-weight:bold;
 }
 
-.header-buttons{
+.buttons{
 display:flex;
-gap:6px;
+gap:7px;
 }
 
-.refresh,
-.logout{
+button{
 border:0;
-padding:10px 14px;
 border-radius:10px;
+padding:11px 14px;
 font-weight:bold;
-cursor:pointer;
+font-size:14px;
 }
 
 .refresh{
@@ -66,9 +65,24 @@ color:white;
 }
 
 .container{
-max-width:800px;
+max-width:850px;
 margin:auto;
 padding:15px;
+}
+
+.welcome{
+background:white;
+padding:18px;
+border-radius:15px;
+margin-bottom:15px;
+box-shadow:0 2px 8px #ddd;
+font-size:18px;
+}
+
+.welcome b{
+display:block;
+margin-top:5px;
+font-size:22px;
 }
 
 .stats{
@@ -80,95 +94,157 @@ margin-bottom:15px;
 
 .stat{
 background:white;
-padding:14px;
-border-radius:12px;
+padding:15px 8px;
+border-radius:14px;
 text-align:center;
 box-shadow:0 2px 7px #ddd;
+font-size:14px;
 }
 
 .stat b{
 display:block;
-font-size:20px;
-margin-top:5px;
+font-size:25px;
+margin-top:6px;
 }
 
 .orders{
 display:flex;
 flex-direction:column;
-gap:12px;
+gap:13px;
 }
 
 .order{
 background:white;
-border-radius:15px;
-padding:15px;
+border-radius:17px;
+padding:16px;
 box-shadow:0 2px 8px #ddd;
 }
 
-.order-head{
+.order-top{
 display:flex;
 justify-content:space-between;
 gap:10px;
+align-items:flex-start;
 }
 
 .code{
+font-size:20px;
 font-weight:bold;
-font-size:18px;
 color:#ff6b00;
 }
 
 .time{
 font-size:12px;
 color:#777;
-margin-top:4px;
+margin-top:5px;
 }
 
-.customer{
-margin-top:12px;
-line-height:1.7;
-}
-
-.items{
-background:#f8f8f8;
-padding:10px;
-border-radius:10px;
-margin-top:10px;
-}
-
-.total{
+.price-top{
 font-size:18px;
 font-weight:bold;
 color:#e65100;
-margin-top:10px;
+white-space:nowrap;
+}
+
+.customer{
+margin-top:13px;
+line-height:1.8;
+font-size:16px;
+}
+
+.customer a{
+color:#0645d8;
+}
+
+.items{
+background:#f7f7f7;
+padding:13px;
+border-radius:12px;
+margin-top:12px;
+}
+
+.items-title{
+font-weight:bold;
+font-size:17px;
+margin-bottom:10px;
+}
+
+.restaurant{
+font-size:13px;
+color:#777;
+margin-bottom:7px;
+}
+
+.item{
+padding:8px 0;
+border-bottom:1px solid #e5e5e5;
+}
+
+.item:last-child{
+border-bottom:0;
+}
+
+.item-name{
+font-weight:bold;
+}
+
+.item-info{
+font-size:14px;
+color:#555;
+margin-top:3px;
+}
+
+.total{
+font-size:20px;
+font-weight:bold;
+color:#e65100;
+margin-top:13px;
 }
 
 .status{
-margin-top:12px;
+margin-top:13px;
+}
+
+.status label{
+display:block;
+font-size:13px;
+color:#666;
+margin-bottom:5px;
 }
 
 .status select{
 width:100%;
-padding:12px;
+padding:13px;
 border:1px solid #ddd;
-border-radius:9px;
-font-size:15px;
+border-radius:10px;
+font-size:16px;
+background:white;
 }
 
 .map{
 display:block;
 margin-top:10px;
 background:#1677ff;
-color:white;
+color:white !important;
 text-decoration:none;
 text-align:center;
-padding:11px;
-border-radius:9px;
+padding:12px;
+border-radius:10px;
 font-weight:bold;
+}
+
+.shipper{
+background:#fff7ed;
+border:1px solid #fed7aa;
+padding:11px;
+border-radius:10px;
+margin-top:12px;
+line-height:1.6;
 }
 
 .empty{
 background:white;
-padding:35px;
+padding:40px 20px;
 text-align:center;
 border-radius:15px;
 color:#777;
@@ -180,38 +256,54 @@ color:#991b1b;
 padding:15px;
 border-radius:12px;
 margin-bottom:15px;
+word-break:break-word;
 }
 
-.user-info{
-max-width:800px;
-margin:0 auto;
-padding:8px 15px 0;
-font-size:13px;
-opacity:.95;
+.success{
+background:#dcfce7;
+color:#166534;
+padding:15px;
+border-radius:12px;
+margin-bottom:15px;
 }
 
 @media(max-width:500px){
 
 .header{
-align-items:flex-start;
+align-items:center;
 }
 
 .logo{
-font-size:18px;
+font-size:19px;
 }
 
-.refresh,
-.logout{
-padding:9px 10px;
-font-size:12px;
+.buttons button{
+padding:10px;
+}
+
+.container{
+padding:12px;
+}
+
+.order{
+padding:14px;
 }
 
 .stats{
-grid-template-columns:1fr 1fr 1fr;
+gap:6px;
 }
 
 .stat{
-font-size:12px;
+font-size:13px;
+padding:13px 5px;
+}
+
+.stat b{
+font-size:23px;
+}
+
+.price-top{
+font-size:16px;
 }
 
 }
@@ -224,34 +316,22 @@ font-size:12px;
 
 <div class="header">
 
-<div>
-
 <div class="logo">
 🚚 CHOCO SHIP
 </div>
 
-<div class="user-info">
-👑 Admin
-</div>
-
-</div>
-
-<div class="header-buttons">
+<div class="buttons">
 
 <button
 class="refresh"
 onclick="loadOrders()">
-
 🔄 Làm mới
-
 </button>
 
 <button
 class="logout"
 onclick="logout()">
-
 🚪 Thoát
-
 </button>
 
 </div>
@@ -262,6 +342,20 @@ onclick="logout()">
 
 
 <div class="container">
+
+<div class="welcome">
+
+👑 Admin
+
+<b id="adminName">
+Đang tải...
+</b>
+
+</div>
+
+
+<div id="message"></div>
+
 
 <div class="stats">
 
@@ -283,12 +377,9 @@ Hoàn thành
 </div>
 
 
-<div id="message"></div>
-
-
 <div
-class="orders"
-id="orders">
+id="orders"
+class="orders">
 
 <div class="empty">
 ⏳ Đang tải đơn...
@@ -301,9 +392,9 @@ id="orders">
 
 <script>
 
-/* ==================================
-   SUPABASE
-================================== */
+/* ================================
+SUPABASE
+================================ */
 
 const SUPABASE_URL =
 "https://guwdswqaqnhzqapflvey.supabase.co";
@@ -312,81 +403,231 @@ const SUPABASE_KEY =
 "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-/* ==================================
-   KIỂM TRA ĐĂNG NHẬP
-================================== */
+/* ================================
+ĐĂNG NHẬP
+================================ */
 
-const ACCESS_TOKEN =
+const TOKEN =
 localStorage.getItem("choco_access_token");
 
 const USER_ID =
 localStorage.getItem("choco_user_id");
 
-const USER_ROLE =
+const ROLE =
 localStorage.getItem("choco_role");
 
-const USER_EMAIL =
+const EMAIL =
 localStorage.getItem("choco_email");
 
 
-/*
-   Không có phiên đăng nhập
-*/
-
-if(!ACCESS_TOKEN){
-
-window.location.replace("login.html");
-
-}
-
-
-/*
-   Không phải Admin
-*/
-
-if(USER_ROLE !== "admin"){
-
-localStorage.removeItem("choco_access_token");
-localStorage.removeItem("choco_user_id");
-localStorage.removeItem("choco_role");
-localStorage.removeItem("choco_email");
+if(
+!TOKEN ||
+!USER_ID ||
+ROLE !== "admin"
+){
 
 window.location.replace("login.html");
 
 }
 
 
-/* ==================================
-   ĐĂNG XUẤT
-================================== */
+/* ================================
+ĐĂNG XUẤT
+================================ */
 
 function logout(){
 
-localStorage.removeItem("choco_access_token");
-localStorage.removeItem("choco_user_id");
-localStorage.removeItem("choco_role");
-localStorage.removeItem("choco_email");
+localStorage.removeItem(
+"choco_access_token"
+);
 
-window.location.replace("login.html");
+localStorage.removeItem(
+"choco_user_id"
+);
+
+localStorage.removeItem(
+"choco_role"
+);
+
+localStorage.removeItem(
+"choco_email"
+);
+
+window.location.replace(
+"login.html"
+);
 
 }
 
 
-/* ==================================
-   TIỀN
-================================== */
+/* ================================
+TIỀN
+================================ */
 
-function money(number){
+function money(value){
 
-return Number(number || 0)
+return Number(value || 0)
 .toLocaleString("vi-VN")+"đ";
 
 }
 
 
-/* ==================================
-   LOAD ĐƠN
-================================== */
+/* ================================
+ESCAPE
+================================ */
+
+function escapeHtml(text){
+
+return String(text ?? "")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+}
+
+
+/* ================================
+ĐỌC ITEMS
+================================ */
+
+/*
+Supabase có thể trả items:
+
+1. Array
+2. JSON string
+
+Hàm này xử lý cả hai.
+*/
+
+function parseItems(value){
+
+if(
+Array.isArray(value)
+){
+
+return value;
+
+}
+
+if(
+typeof value === "string"
+){
+
+try{
+
+const parsed =
+JSON.parse(value);
+
+if(
+Array.isArray(parsed)
+){
+
+return parsed;
+
+}
+
+}catch(error){
+
+console.error(
+"Không parse được items:",
+error
+);
+
+}
+
+}
+
+return [];
+
+}
+
+
+/* ================================
+PROFILE ADMIN
+================================ */
+
+async function loadProfile(){
+
+try{
+
+const response =
+await fetch(
+
+SUPABASE_URL+
+"/rest/v1/profiles?id=eq."+
+encodeURIComponent(USER_ID)+
+"&select=full_name,phone,role",
+
+{
+
+headers:{
+
+"apikey":
+SUPABASE_KEY,
+
+"Authorization":
+"Bearer "+
+TOKEN
+
+}
+
+}
+
+);
+
+if(!response.ok){
+
+document
+.getElementById("adminName")
+.textContent =
+EMAIL || "Admin";
+
+return;
+
+}
+
+const data =
+await response.json();
+
+if(data.length){
+
+document
+.getElementById("adminName")
+.textContent =
+data[0].full_name ||
+EMAIL ||
+"Admin";
+
+}else{
+
+document
+.getElementById("adminName")
+.textContent =
+EMAIL ||
+"Admin";
+
+}
+
+}catch(error){
+
+console.error(error);
+
+document
+.getElementById("adminName")
+.textContent =
+EMAIL ||
+"Admin";
+
+}
+
+}
+
+
+/* ================================
+LOAD ORDERS
+================================ */
 
 async function loadOrders(){
 
@@ -419,7 +660,7 @@ SUPABASE_KEY,
 
 "Authorization":
 "Bearer "+
-ACCESS_TOKEN
+TOKEN
 
 }
 
@@ -440,7 +681,6 @@ await response.text()
 const orders =
 await response.json();
 
-
 renderOrders(orders);
 
 
@@ -448,19 +688,13 @@ renderOrders(orders);
 
 console.error(error);
 
-message.innerHTML = `
+message.innerHTML=
 
-<div class="error">
-
-❌ Không tải được đơn hàng.
-
-<br><br>
-
-${escapeHtml(error.message)}
-
-</div>
-
-`;
+'<div class="error">'+
+'❌ Không tải được đơn hàng.'+
+'<br><br>'+
+escapeHtml(error.message)+
+'</div>';
 
 box.innerHTML="";
 
@@ -469,9 +703,9 @@ box.innerHTML="";
 }
 
 
-/* ==================================
-   HIỂN THỊ ĐƠN
-================================== */
+/* ================================
+RENDER ORDERS
+================================ */
 
 function renderOrders(orders){
 
@@ -489,45 +723,53 @@ orders.forEach(order=>{
 if(
 order.status==="Chờ xác nhận"
 ){
+
 newCount++;
+
 }
 
 if(
 order.status==="Đang giao"
 ){
+
 shippingCount++;
+
 }
 
 if(
 order.status==="Hoàn thành"
 ){
+
 doneCount++;
+
 }
 
 });
 
 
-document.getElementById("newCount")
-.innerText=newCount;
+document
+.getElementById("newCount")
+.textContent =
+newCount;
 
-document.getElementById("shippingCount")
-.innerText=shippingCount;
+document
+.getElementById("shippingCount")
+.textContent =
+shippingCount;
 
-document.getElementById("doneCount")
-.innerText=doneCount;
+document
+.getElementById("doneCount")
+.textContent =
+doneCount;
 
 
-if(orders.length===0){
+if(!orders.length){
 
-box.innerHTML=`
+box.innerHTML=
 
-<div class="empty">
-
-📭 Chưa có đơn hàng.
-
-</div>
-
-`;
+'<div class="empty">'+
+'📭 Chưa có đơn hàng.'+
+'</div>';
 
 return;
 
@@ -539,28 +781,58 @@ box.innerHTML="";
 
 orders.forEach(order=>{
 
-let itemsText="";
+/* ============================
+ITEMS
+============================ */
+
+const items =
+parseItems(order.items);
 
 
-if(Array.isArray(order.items)){
+let itemsHtml="";
 
-order.items.forEach(item=>{
 
-const itemName =
-escapeHtml(item.name || "");
+if(items.length){
+
+items.forEach(item=>{
+
+const name =
+item.name ||
+"Món ăn";
 
 const qty =
-Number(item.qty || 0);
+Number(item.qty || 1);
 
 const price =
 Number(item.price || 0);
 
-itemsText += `
+const itemTotal =
+price * qty;
 
-<div>
-🍔 ${itemName}
+itemsHtml += `
+
+<div class="item">
+
+<div class="item-name">
+
+🍔 ${escapeHtml(name)}
+
 × ${qty}
-- ${money(price * qty)}
+
+</div>
+
+<div class="item-info">
+
+${money(price)}
+/ món
+
+&nbsp; • &nbsp;
+
+Thành tiền:
+<b>${money(itemTotal)}</b>
+
+</div>
+
 </div>
 
 `;
@@ -569,10 +841,59 @@ itemsText += `
 
 }else{
 
-itemsText="Không có thông tin món";
+itemsHtml=
+
+'<div style="color:#777">'+
+'Không có thông tin món'+
+'</div>';
 
 }
 
+
+/* ============================
+RESTAURANT
+============================ */
+
+let restaurantHtml="";
+
+const restaurants =
+[];
+
+items.forEach(item=>{
+
+if(
+item.restaurant &&
+!restaurants.includes(
+item.restaurant
+)
+){
+
+restaurants.push(
+item.restaurant
+);
+
+}
+
+});
+
+
+if(restaurants.length){
+
+restaurantHtml=
+
+'<div class="restaurant">'+
+'🏪 '+
+escapeHtml(
+restaurants.join(" • ")
+)+
+'</div>';
+
+}
+
+
+/* ============================
+GPS
+============================ */
 
 let gps="";
 
@@ -584,7 +905,7 @@ order.longitude !== null &&
 order.longitude !== undefined
 ){
 
-gps = `
+gps=`
 
 <a
 class="map"
@@ -601,39 +922,179 @@ href="https://www.google.com/maps?q=${encodeURIComponent(order.latitude)},${enco
 }
 
 
+/* ============================
+SHIPPER
+============================ */
+
+let shipperHtml="";
+
+
+if(
+order.shipper_id
+){
+
+shipperHtml=`
+
+<div class="shipper">
+
+🚚 <b>Shipper nhận đơn</b>
+
+<br>
+
+👤 ${
+escapeHtml(
+order.shipper_name ||
+"Chưa có tên"
+)
+}
+
+${
+order.shipper_phone
+?
+`
+<br>
+📞
+<a href="tel:${escapeHtml(order.shipper_phone)}">
+${escapeHtml(order.shipper_phone)}
+</a>
+`
+:
+""
+}
+
+<br>
+
+🆔 ${
+escapeHtml(
+order.shipper_id
+)
+}
+
+</div>
+
+`;
+
+}else{
+
+shipperHtml=`
+
+<div class="shipper">
+
+🚚 <b>Shipper:</b>
+Chưa có shipper nhận đơn
+
+</div>
+
+`;
+
+}
+
+
+/* ============================
+TIME
+============================ */
+
 const time =
 order.created_at
 ?
-new Date(order.created_at)
-.toLocaleString("vi-VN")
+new Date(
+order.created_at
+).toLocaleString(
+"vi-VN"
+)
 :
-"";
+(
+order.time
+?
+new Date(
+order.time
+).toLocaleString(
+"vi-VN"
+)
+:
+""
+);
 
 
-const orderId =
-Number(order.id);
+/* ============================
+STATUS
+============================ */
 
+const statuses=[
+
+"Chờ xác nhận",
+
+"Đã nhận",
+
+"Đang lấy hàng",
+
+"Đang giao",
+
+"Hoàn thành",
+
+"Đã hủy"
+
+];
+
+
+let statusOptions="";
+
+
+statuses.forEach(status=>{
+
+statusOptions += `
+
+<option
+value="${escapeHtml(status)}"
+${order.status===status?"selected":""}>
+
+${escapeHtml(status)}
+
+</option>
+
+`;
+
+});
+
+
+/* ============================
+ORDER CARD
+============================ */
 
 box.innerHTML += `
 
 <div class="order">
 
-<div class="order-head">
+<div class="order-top">
 
 <div>
 
 <div class="code">
-Đơn ${escapeHtml(order.code || order.id || "")}
+
+Đơn ${
+escapeHtml(
+order.code ||
+order.id
+)
+}
+
 </div>
 
 <div class="time">
+
 ${escapeHtml(time)}
-</div>
 
 </div>
 
-<div>
-💰 ${money(order.total)}
+</div>
+
+
+<div class="price-top">
+
+💰 ${
+money(order.total)
+}
+
 </div>
 
 </div>
@@ -642,25 +1103,48 @@ ${escapeHtml(time)}
 <div class="customer">
 
 👤 <b>
-${escapeHtml(order.name || "")}
+${escapeHtml(
+order.name || ""
+)}
 </b>
 
 <br>
 
 📞
-<a href="tel:${escapeHtml(order.phone || "")}">
-${escapeHtml(order.phone || "")}
+
+<a
+href="tel:${escapeHtml(
+order.phone || ""
+)}">
+
+${escapeHtml(
+order.phone || ""
+)}
+
 </a>
 
 <br>
 
-📍
-${escapeHtml(order.address || "")}
+📍 ${
+escapeHtml(
+order.address || ""
+)
+}
 
-${order.note ? `
+${
+order.note
+?
+`
 <br>
-📝 ${escapeHtml(order.note)}
-` : ""}
+📝 ${
+escapeHtml(
+order.note
+)
+}
+`
+:
+""
+}
 
 <br>
 
@@ -677,11 +1161,15 @@ order.payment==="bank"
 
 <div class="items">
 
-<strong>🍽️ Món đã đặt</strong>
+<div class="items-title">
 
-<br><br>
+🍽️ Món đã đặt
 
-${itemsText}
+</div>
+
+${restaurantHtml}
+
+${itemsHtml}
 
 </div>
 
@@ -696,42 +1184,24 @@ ${money(order.total)}
 
 <div class="status">
 
+<label>
+Trạng thái đơn hàng
+</label>
+
 <select
-onchange="updateStatus(${orderId},this.value)">
+onchange="updateStatus(
+${Number(order.id)},
+this.value
+)">
 
-<option
-${order.status==="Chờ xác nhận"?"selected":""}>
-Chờ xác nhận
-</option>
-
-<option
-${order.status==="Đã nhận"?"selected":""}>
-Đã nhận
-</option>
-
-<option
-${order.status==="Đang lấy hàng"?"selected":""}>
-Đang lấy hàng
-</option>
-
-<option
-${order.status==="Đang giao"?"selected":""}>
-Đang giao
-</option>
-
-<option
-${order.status==="Hoàn thành"?"selected":""}>
-Hoàn thành
-</option>
-
-<option
-${order.status==="Đã hủy"?"selected":""}>
-Đã hủy
-</option>
+${statusOptions}
 
 </select>
 
 </div>
+
+
+${shipperHtml}
 
 ${gps}
 
@@ -744,11 +1214,14 @@ ${gps}
 }
 
 
-/* ==================================
-   CẬP NHẬT TRẠNG THÁI
-================================== */
+/* ================================
+UPDATE STATUS
+================================ */
 
-async function updateStatus(id,status){
+async function updateStatus(
+id,
+status
+){
 
 try{
 
@@ -773,7 +1246,7 @@ SUPABASE_KEY,
 
 "Authorization":
 "Bearer "+
-ACCESS_TOKEN,
+TOKEN,
 
 "Prefer":
 "return=minimal"
@@ -781,7 +1254,9 @@ ACCESS_TOKEN,
 },
 
 body:JSON.stringify({
+
 status:status
+
 })
 
 }
@@ -798,10 +1273,21 @@ await response.text()
 }
 
 
-loadOrders();
+document
+.getElementById("message")
+.innerHTML=
+
+'<div class="success">'+
+'✅ Đã cập nhật trạng thái đơn.'+
+'</div>';
+
+
+await loadOrders();
 
 
 }catch(error){
+
+console.error(error);
 
 alert(
 "❌ Không cập nhật được trạng thái:\n"+
@@ -813,27 +1299,18 @@ error.message
 }
 
 
-/* ==================================
-   CHỐNG HTML
-================================== */
+/* ================================
+KHỞI ĐỘNG
+================================ */
 
-function escapeHtml(text){
-
-return String(text)
-.replace(/&/g,"&amp;")
-.replace(/</g,"&lt;")
-.replace(/>/g,"&gt;")
-.replace(/"/g,"&quot;")
-.replace(/'/g,"&#039;");
-
-}
-
-
-/* ==================================
-   TỰ ĐỘNG TẢI
-================================== */
+loadProfile();
 
 loadOrders();
+
+
+/* ================================
+TỰ ĐỘNG LÀM MỚI
+================================ */
 
 setInterval(
 loadOrders,
