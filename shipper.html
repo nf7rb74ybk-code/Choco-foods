@@ -882,10 +882,13 @@ navigator.userAgent
 );
 
 const isStandalone =
-window.matchMedia &&
-window.matchMedia(
-"(display-mode: standalone)"
-).matches;
+(
+  window.navigator.standalone === true
+) ||
+(
+  window.matchMedia &&
+  window.matchMedia("(display-mode: standalone)").matches
+);
 
 
 if(isIOS && !isStandalone){
