@@ -17,11 +17,11 @@ color:#222
 
 header{
 background:#ff6b00;
-color:#fff;
+color:white;
 padding:14px;
 position:sticky;
 top:0;
-z-index:20
+z-index:50
 }
 
 .header{
@@ -66,7 +66,9 @@ margin:auto;
 padding:12px
 }
 
-.welcome,.order,.stat{
+.welcome,
+.order,
+.stat{
 background:white;
 border-radius:16px;
 box-shadow:0 2px 8px #ddd
@@ -100,7 +102,8 @@ font-weight:bold
 margin-bottom:12px
 }
 
-.success,.error{
+.success,
+.error{
 padding:13px;
 border-radius:11px;
 white-space:pre-line
@@ -114,6 +117,24 @@ color:#166534
 .error{
 background:#fee2e2;
 color:#991b1b
+}
+
+.new-alert{
+background:#fff7ed;
+border:2px solid #ff6b00;
+color:#9a3412;
+padding:15px;
+border-radius:14px;
+margin-bottom:12px;
+font-weight:bold;
+text-align:center;
+animation:pulse 1s infinite
+}
+
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.02)}
+100%{transform:scale(1)}
 }
 
 .stats{
@@ -295,7 +316,8 @@ background:white;
 font-size:15px
 }
 
-.map,.call{
+.map,
+.call{
 display:block;
 text-decoration:none;
 text-align:center;
@@ -339,6 +361,7 @@ font-size:14px
 <body>
 
 <header>
+
 <div class="header">
 
 <div class="logo">
@@ -347,16 +370,22 @@ font-size:14px
 
 <div class="buttons">
 
-<button class="refresh" onclick="loadOrders()">
+<button
+class="refresh"
+onclick="manualRefresh()">
 🔄
 </button>
 
-<button class="logout" onclick="logout()">
+<button
+class="logout"
+onclick="logout()">
 🚪
 </button>
 
 </div>
+
 </div>
+
 </header>
 
 
@@ -368,7 +397,9 @@ font-size:14px
 
 <small>
 Tài khoản:
-<span id="shipperEmail">Đang tải...</span>
+<span id="shipperEmail">
+Đang tải...
+</span>
 </small>
 
 <b id="shipperName">
@@ -382,6 +413,8 @@ id="shipperPhone">
 
 </div>
 
+
+<div id="newAlert"></div>
 
 <div id="message"></div>
 
@@ -406,7 +439,9 @@ Hoàn thành
 </div>
 
 
-<div id="orders" class="orders">
+<div
+id="orders"
+class="orders">
 
 <div class="empty">
 ⏳ Đang tải đơn...
@@ -459,17 +494,367 @@ window.location.replace("login.html");
 
 
 /* =====================================================
+   NOTIFICATION
+===================================================== */
+
+let knownOrderIds =
+new Set();
+
+let firstLoad = true;
+
+let audioContext = null;
+
+
+/* =====================================================
+   AUDIO
+===================================================== */
+
+function playNotificationSound(){
+
+try{
+
+if(!audioContext){
+
+audioContext =
+new (
+window.AudioContext ||
+window.webkitAudioContext
+)();
+
+}
+
+if(
+audioContext.state === "suspended"
+){
+
+audioContext.resume();
+
+}
+
+const oscillator =
+audioContext.createOscillator();
+
+const gain =
+audioContext.createGain();
+
+oscillator.type="sine";
+
+oscillator.frequency.setValueAtTime(
+880,
+audioContext.currentTime
+);
+
+oscillator.frequency.setValueAtTime(
+1100,
+audioContext.currentTime+0.15
+);
+
+gain.gain.setValueAtTime(
+0.0001,
+audioContext.currentTime
+);
+
+gain.gain.exponentialRampToValueAtTime(
+0.25,
+audioContext.currentTime+0.02
+);
+
+gain.gain.exponentialRampToValueAtTime(
+0.0001,
+audioContext.currentTime+0.5
+);
+
+oscillator.connect(gain);
+
+gain.connect(audioContext.destination);
+
+oscillator.start();
+
+oscillator.stop(
+audioContext.currentTime+0.5
+);
+
+}catch(error){
+
+console.log(
+"Không phát được âm thanh:",
+error
+);
+
+}
+
+}
+
+
+/* =====================================================
+   VIBRATION
+===================================================== */
+
+function vibrate(){
+
+try{
+
+if(
+navigator.vibrate
+){
+
+navigator.vibrate([
+300,
+150,
+300,
+150,
+500
+]);
+
+}
+
+}catch(error){
+
+console.log(error);
+
+}
+
+}
+
+
+/* =====================================================
+   BROWSER NOTIFICATION
+===================================================== */
+
+async function browserNotification(count){
+
+try{
+
+if(
+!("Notification" in window)
+){
+
+return;
+
+}
+
+if(
+Notification.permission === "default"
+){
+
+await Notification.requestPermission();
+
+}
+
+if(
+Notification.permission === "granted"
+){
+
+new Notification(
+"🚚 CHOCO SHIP",
+{
+body:
+"🔔 Có "+
+count+
+" đơn mới đang chờ shipper nhận!",
+icon:""
+}
+);
+
+}
+
+}catch(error){
+
+console.log(
+"Notification lỗi:",
+error
+);
+
+}
+
+}
+
+
+/* =====================================================
+   NEW ORDER ALERT
+===================================================== */
+
+async function checkNewOrders(orders){
+
+const newOrders =
+orders.filter(
+order =>
+
+order.status ===
+"Chờ xác nhận"
+
+&&
+
+!order.shipper_id
+
+);
+
+const currentIds =
+new Set(
+newOrders.map(
+order =>
+String(order.id)
+)
+);
+
+
+/*
+   Lần đầu chỉ ghi nhớ,
+   không báo hàng loạt đơn cũ.
+*/
+
+if(firstLoad){
+
+knownOrderIds =
+currentIds;
+
+firstLoad=false;
+
+return;
+
+}
+
+
+/*
+   Tìm đơn mới thực sự
+*/
+
+const newlyAdded =
+newOrders.filter(
+order =>
+!knownOrderIds.has(
+String(order.id)
+)
+);
+
+
+if(newlyAdded.length){
+
+showNewOrderAlert(
+newlyAdded.length
+);
+
+playNotificationSound();
+
+vibrate();
+
+browserNotification(
+newlyAdded.length
+);
+
+}
+
+
+/*
+   Cập nhật danh sách đã biết
+*/
+
+knownOrderIds =
+currentIds;
+
+}
+
+
+/* =====================================================
+   SHOW ALERT
+===================================================== */
+
+function showNewOrderAlert(count){
+
+const alertBox =
+document.getElementById(
+"newAlert"
+);
+
+alertBox.innerHTML=
+`
+<div class="new-alert">
+
+🔔 CÓ ${count} ĐƠN MỚI!
+
+<br>
+
+<span style="
+font-size:13px;
+font-weight:normal">
+
+Có khách đang chờ shipper nhận đơn.
+
+</span>
+
+<br><br>
+
+<button
+onclick="closeNewAlert()"
+style="
+background:#ff6b00;
+color:white;
+padding:10px 18px">
+
+XEM ĐƠN
+
+</button>
+
+</div>
+`;
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+
+/* =====================================================
+   CLOSE ALERT
+===================================================== */
+
+function closeNewAlert(){
+
+document.getElementById(
+"newAlert"
+).innerHTML="";
+
+}
+
+
+/* =====================================================
+   MANUAL REFRESH
+===================================================== */
+
+function manualRefresh(){
+
+loadOrders();
+
+}
+
+
+/* =====================================================
    LOGOUT
 ===================================================== */
 
 function logout(){
 
-localStorage.removeItem("choco_access_token");
-localStorage.removeItem("choco_user_id");
-localStorage.removeItem("choco_role");
-localStorage.removeItem("choco_email");
+localStorage.removeItem(
+"choco_access_token"
+);
 
-window.location.replace("login.html");
+localStorage.removeItem(
+"choco_user_id"
+);
+
+localStorage.removeItem(
+"choco_role"
+);
+
+localStorage.removeItem(
+"choco_email"
+);
+
+window.location.replace(
+"login.html"
+);
 
 }
 
@@ -478,13 +863,24 @@ window.location.replace("login.html");
    API
 ===================================================== */
 
-async function api(path,options={}){
+async function api(
+path,
+options={}
+){
 
 const headers={
-"apikey":SUPABASE_KEY,
-"Authorization":"Bearer "+TOKEN,
-"Accept":"application/json",
+
+"apikey":
+SUPABASE_KEY,
+
+"Authorization":
+"Bearer "+TOKEN,
+
+"Accept":
+"application/json",
+
 ...(options.headers || {})
+
 };
 
 return fetch(
@@ -520,8 +916,12 @@ return String(value ?? "")
 
 function money(value){
 
-return Number(value || 0)
-.toLocaleString("vi-VN")+"đ";
+return Number(
+value || 0
+)
+.toLocaleString(
+"vi-VN"
+)+"đ";
 
 }
 
@@ -532,44 +932,73 @@ return Number(value || 0)
 
 function getItems(raw){
 
-if(raw===null || raw===undefined){
+if(
+raw === null ||
+raw === undefined
+){
+
 return [];
+
 }
 
 let data=raw;
 
 for(
 let i=0;
-i<6 && typeof data==="string";
+i<6 &&
+typeof data==="string";
 i++
 ){
 
 try{
+
 data=JSON.parse(data);
-}catch(e){
+
+}catch(error){
+
 break;
-}
 
 }
 
-if(Array.isArray(data)){
+}
+
+if(
+Array.isArray(data)
+){
+
 return data;
+
 }
 
-if(data && Array.isArray(data.items)){
+if(
+data &&
+Array.isArray(data.items)
+){
+
 return data.items;
+
 }
 
-if(data && typeof data==="object"){
+if(
+data &&
+typeof data==="object"
+){
+
 return [data];
+
 }
 
-if(typeof data==="string" && data.trim()){
+if(
+typeof data==="string" &&
+data.trim()
+){
+
 return [{
 name:data,
 qty:1,
 price:0
 }];
+
 }
 
 return [];
@@ -583,7 +1012,8 @@ return [];
 
 function renderItems(raw){
 
-const items=getItems(raw);
+const items =
+getItems(raw);
 
 if(!items.length){
 
@@ -597,10 +1027,13 @@ return `
 
 let restaurants=[];
 
-const html=items.map(
+const html =
+items.map(
 (item,index)=>{
 
-if(typeof item==="string"){
+if(
+typeof item === "string"
+){
 
 item={
 name:item,
@@ -610,55 +1043,77 @@ price:0
 
 }
 
-const name=
+const name =
 item.name ||
 item.title ||
 item.product_name ||
 item.food_name ||
 ("Món "+(index+1));
 
-const qty=
+const qty =
 Number(
 item.qty ??
 item.quantity ??
 item.amount ??
 1
-)||1;
+) || 1;
 
-const price=
+const price =
 Number(
 item.price ??
 item.unit_price ??
 item.food_price ??
 0
-)||0;
+) || 0;
 
-const subtotal=
+const subtotal =
 Number(
 item.total ??
 item.subtotal ??
 (price*qty)
-)||price*qty;
+) ||
+(price*qty);
 
 if(
 item.restaurant &&
-!restaurants.includes(item.restaurant)
+!restaurants.includes(
+item.restaurant
+)
 ){
-restaurants.push(item.restaurant);
+
+restaurants.push(
+item.restaurant
+);
+
 }
 
 return `
 <div class="food">
 
 <div class="food-name">
-🍔 ${esc(name)} × ${qty}
+
+🍔 ${esc(name)}
+× ${qty}
+
 </div>
 
 <div class="food-detail">
 
-${price ? money(price)+" / món" : ""}
+${
+price
+?
+money(price)+" / món"
+:
+""
+}
 
-${price ? "&nbsp; • &nbsp;" : ""}
+${
+price
+?
+"&nbsp; • &nbsp;"
+:
+""
+}
 
 Thành tiền:
 
@@ -671,7 +1126,8 @@ ${money(subtotal)}
 </div>
 `;
 
-}).join("");
+}
+).join("");
 
 let restaurantHtml="";
 
@@ -679,7 +1135,12 @@ if(restaurants.length){
 
 restaurantHtml=`
 <div class="restaurant">
-🏪 ${esc(restaurants.join(" • "))}
+
+🏪
+${esc(
+restaurants.join(" • ")
+)}
+
 </div>
 `;
 
@@ -696,26 +1157,35 @@ return restaurantHtml+html;
 
 async function loadProfile(){
 
-const nameEl=
-document.getElementById("shipperName");
+const nameEl =
+document.getElementById(
+"shipperName"
+);
 
-const phoneEl=
-document.getElementById("shipperPhone");
+const phoneEl =
+document.getElementById(
+"shipperPhone"
+);
 
-const emailEl=
-document.getElementById("shipperEmail");
+const emailEl =
+document.getElementById(
+"shipperEmail"
+);
 
-emailEl.textContent=
-EMAIL || "Không có email";
+emailEl.textContent =
+EMAIL ||
+"Không có email";
 
 try{
 
-const response=
+const response =
 await api(
+
 "/rest/v1/profiles"+
 "?id=eq."+
 encodeURIComponent(USER_ID)+
 "&select=id,full_name,phone,role"
+
 );
 
 if(!response.ok){
@@ -729,39 +1199,39 @@ await response.text()
 
 }
 
-const data=
+const data =
 await response.json();
-
-console.log(
-"PROFILE:",
-data
-);
 
 if(!data.length){
 
-nameEl.textContent=
+nameEl.textContent =
 "Không tìm thấy";
 
-phoneEl.textContent=
+phoneEl.textContent =
 "📞 Chưa có số điện thoại";
 
 return;
 
 }
 
-const profile=data[0];
+const profile =
+data[0];
 
-nameEl.textContent=
+nameEl.textContent =
 profile.full_name ||
 "Shipper";
 
 if(profile.phone){
 
-phoneEl.innerHTML=`
+phoneEl.innerHTML =
+`
 📞
+
 <a
 href="tel:${esc(profile.phone)}"
-style="color:#075bd8;text-decoration:none">
+style="
+color:#075bd8;
+text-decoration:none">
 
 ${esc(profile.phone)}
 
@@ -770,19 +1240,22 @@ ${esc(profile.phone)}
 
 }else{
 
-phoneEl.textContent=
+phoneEl.textContent =
 "📞 Chưa có số điện thoại";
 
 }
 
 }catch(error){
 
-console.error(error);
+console.error(
+"Lỗi profile:",
+error
+);
 
-nameEl.textContent=
+nameEl.textContent =
 "Shipper";
 
-phoneEl.textContent=
+phoneEl.textContent =
 "📞 Không tải được thông tin";
 
 }
@@ -791,21 +1264,29 @@ phoneEl.textContent=
 
 
 /* =====================================================
-   MAP
+   GOOGLE MAPS
 ===================================================== */
 
-function gpsUrl(lat,lng){
+function gpsUrl(
+latitude,
+longitude
+){
 
-return "https://www.google.com/maps?q="+
-encodeURIComponent(lat)+
-","+encodeURIComponent(lng);
+return (
+"https://www.google.com/maps?q="+
+encodeURIComponent(latitude)+
+","+
+encodeURIComponent(longitude)
+);
 
 }
 
 function mapUrl(address){
 
-return "https://www.google.com/maps/search/?api=1&query="+
-encodeURIComponent(address);
+return (
+"https://www.google.com/maps/search/?api=1&query="+
+encodeURIComponent(address)
+);
 
 }
 
@@ -816,14 +1297,18 @@ encodeURIComponent(address);
 
 function dateText(value){
 
-if(!value)return "";
+if(!value){
+
+return "";
+
+}
 
 try{
 
 return new Date(value)
 .toLocaleString("vi-VN");
 
-}catch(e){
+}catch(error){
 
 return String(value);
 
@@ -836,9 +1321,15 @@ return String(value);
    MESSAGE
 ===================================================== */
 
-function showMessage(type,text){
+function showMessage(
+type,
+text
+){
 
-document.getElementById("message").innerHTML=`
+document.getElementById(
+"message"
+).innerHTML =
+`
 <div class="${type}">
 ${esc(text)}
 </div>
@@ -853,32 +1344,27 @@ ${esc(text)}
 
 async function loadOrders(){
 
-const box=
-document.getElementById("orders");
-
-box.innerHTML=`
-<div class="empty">
-⏳ Đang tải đơn...
-</div>
-`;
-
 try{
 
-const response=
+const response =
 await api(
+
 "/rest/v1/orders"+
 "?select=*"+
 "&order=created_at.desc"
+
 );
 
 if(!response.ok){
 
-const text=
+const text =
 await response.text();
 
 if(
-response.status===401 &&
-text.includes("JWT expired")
+response.status === 401 &&
+text.includes(
+"JWT expired"
+)
 ){
 
 showMessage(
@@ -899,21 +1385,23 @@ text
 
 }
 
-const orders=
+const orders =
 await response.json();
 
-console.log(
-"ORDERS:",
+await checkNewOrders(
 orders
 );
 
-renderOrders(orders);
+renderOrders(
+orders
+);
 
 }catch(error){
 
-console.error(error);
-
-box.innerHTML="";
+console.error(
+"Lỗi load orders:",
+error
+);
 
 showMessage(
 "error",
@@ -932,38 +1420,50 @@ error.message
 
 function renderOrders(orders){
 
-const box=
-document.getElementById("orders");
+const box =
+document.getElementById(
+"orders"
+);
 
-const myOrders=
+const myOrders =
 orders.filter(
 order =>
-String(order.shipper_id || "") ===
+String(
+order.shipper_id || ""
+) ===
 String(USER_ID)
 );
 
-const newOrders=
+const newOrders =
 orders.filter(
 order =>
-order.status==="Chờ xác nhận" &&
+order.status ===
+"Chờ xác nhận"
+&&
 !order.shipper_id
 );
 
-const visible=
+const visible =
 orders.filter(
 order =>
 
 (
-order.status==="Chờ xác nhận" &&
+order.status ===
+"Chờ xác nhận"
+&&
 !order.shipper_id
 )
+
 ||
-String(order.shipper_id || "") ===
+
+String(
+order.shipper_id || ""
+) ===
 String(USER_ID)
 
 );
 
-const shippingCount=
+const shippingCount =
 myOrders.filter(
 order =>
 [
@@ -971,29 +1471,41 @@ order =>
 "Đang lấy hàng",
 "Đang giao",
 "Đã giao"
-].includes(order.status)
+].includes(
+order.status
+)
 ).length;
 
-const doneCount=
+const doneCount =
 myOrders.filter(
 order =>
-order.status==="Hoàn thành"
+order.status ===
+"Hoàn thành"
 ).length;
 
-document.getElementById("newCount")
-.textContent=newOrders.length;
+document.getElementById(
+"newCount"
+).textContent =
+newOrders.length;
 
-document.getElementById("shippingCount")
-.textContent=shippingCount;
+document.getElementById(
+"shippingCount"
+).textContent =
+shippingCount;
 
-document.getElementById("doneCount")
-.textContent=doneCount;
+document.getElementById(
+"doneCount"
+).textContent =
+doneCount;
 
 if(!visible.length){
 
-box.innerHTML=`
+box.innerHTML =
+`
 <div class="empty">
+
 📭 Hiện chưa có đơn phù hợp.
+
 </div>
 `;
 
@@ -1001,48 +1513,54 @@ return;
 
 }
 
-box.innerHTML=
-visible.map(renderOrder).join("");
+box.innerHTML =
+visible
+.map(renderOrder)
+.join("");
 
 }
 
 
 /* =====================================================
-   ORDER
+   ORDER CARD
 ===================================================== */
 
 function renderOrder(order){
 
-const pending=
-order.status==="Chờ xác nhận" &&
+const pending =
+order.status ===
+"Chờ xác nhận"
+&&
 !order.shipper_id;
 
-const mine=
-String(order.shipper_id || "") ===
+const mine =
+String(
+order.shipper_id || ""
+) ===
 String(USER_ID);
 
-const customer=
+const customer =
 order.name ||
 order.customer_name ||
 "Khách hàng";
 
-const phone=
+const phone =
 order.phone ||
 order.customer_phone ||
 "";
 
-const pickup=
+const pickup =
 order.pickup ||
 order.pickup_address ||
 "";
 
-const dropoff=
+const dropoff =
 order.dropoff ||
 order.dropoff_address ||
 order.address ||
 "";
 
-const total=
+const total =
 Number(
 order.total ||
 order.total_amount ||
@@ -1050,7 +1568,7 @@ order.amount ||
 0
 );
 
-const fee=
+const fee =
 Number(
 order.fee ||
 order.delivery_fee ||
@@ -1060,13 +1578,14 @@ order.delivery_fee ||
 let gpsHtml="";
 
 if(
-order.latitude!==null &&
-order.latitude!==undefined &&
-order.longitude!==null &&
-order.longitude!==undefined
+order.latitude !== null &&
+order.latitude !== undefined &&
+order.longitude !== null &&
+order.longitude !== undefined
 ){
 
-gpsHtml=`
+gpsHtml =
+`
 <a
 class="map"
 target="_blank"
@@ -1086,41 +1605,71 @@ order.longitude
 let badgeClass="";
 
 if(pending){
+
 badgeClass="new";
+
 }
 
 if(mine){
+
 badgeClass="mine";
+
 }
 
 return `
 
-<div class="order" id="order-${esc(order.id)}">
+<div
+class="order"
+id="order-${esc(order.id)}">
+
 
 <div class="order-top">
 
 <div>
 
 <div class="code">
-Đơn ${esc(order.code || order.id)}
+
+Đơn
+${esc(
+order.code ||
+order.id
+)}
+
 </div>
 
 <div class="time">
-🕒 ${esc(dateText(order.created_at))}
+
+🕒
+${esc(
+dateText(
+order.created_at
+)
+)}
+
 </div>
 
-<span class="badge ${badgeClass}">
-${esc(order.status || "Chờ xác nhận")}
+<span
+class="badge ${badgeClass}">
+
+${esc(
+order.status ||
+"Chờ xác nhận"
+)}
+
 </span>
 
 </div>
+
 
 ${
 total
 ?
 `
 <div class="total-top">
-💰 ${money(total)}
+
+💰
+${money(total)}
+
 </div>
 `
 :
@@ -1132,7 +1681,10 @@ total
 
 <div class="customer">
 
-👤 <b>${esc(customer)}</b>
+👤
+<b>
+${esc(customer)}
+</b>
 
 <br>
 
@@ -1142,8 +1694,11 @@ ${
 phone
 ?
 `
-<a href="tel:${esc(phone)}">
+<a
+href="tel:${esc(phone)}">
+
 ${esc(phone)}
+
 </a>
 `
 :
@@ -1152,13 +1707,23 @@ ${esc(phone)}
 
 <br>
 
-📍 <b>Lấy:</b>
-${esc(pickup || "Chưa có địa chỉ")}
+📍
+<b>Lấy:</b>
+
+${esc(
+pickup ||
+"Chưa có địa chỉ"
+)}
 
 <br>
 
-🏁 <b>Giao:</b>
-${esc(dropoff || "Chưa có địa chỉ")}
+🏁
+<b>Giao:</b>
+
+${esc(
+dropoff ||
+"Chưa có địa chỉ"
+)}
 
 </div>
 
@@ -1166,10 +1731,14 @@ ${esc(dropoff || "Chưa có địa chỉ")}
 <div class="box">
 
 <div class="box-title">
+
 🍽️ MÓN ĐÃ ĐẶT
+
 </div>
 
-${renderItems(order.items)}
+${renderItems(
+order.items
+)}
 
 </div>
 
@@ -1181,11 +1750,16 @@ fee
 <div class="box money">
 
 <div class="box-title">
+
 💰 PHÍ GIAO
+
 </div>
 
 Phí ship:
-<b>${money(fee)}</b>
+
+<b>
+${money(fee)}
+</b>
 
 </div>
 `
@@ -1200,11 +1774,15 @@ mine
 `
 <div class="shipper-info">
 
-🚚 <b>Bạn đang nhận đơn này.</b>
+🚚
+<b>
+Bạn đang nhận đơn này.
+</b>
 
 <br>
 
-🆔 ${esc(USER_ID)}
+🆔
+${esc(USER_ID)}
 
 </div>
 `
@@ -1241,7 +1819,10 @@ mine
 <div class="actions">
 
 <div class="status-label">
-🔄 Cập nhật trạng thái
+
+🔄
+Cập nhật trạng thái
+
 </div>
 
 <div class="status">
@@ -1249,8 +1830,10 @@ mine
 <select
 onchange='changeStatus(${JSON.stringify(order.id)},this.value)'
 ${
-order.status==="Hoàn thành" ||
-order.status==="Đã hủy"
+order.status ===
+"Hoàn thành" ||
+order.status ===
+"Đã hủy"
 ?
 "disabled"
 :
@@ -1260,31 +1843,41 @@ order.status==="Đã hủy"
 <option
 value="Đã nhận"
 ${order.status==="Đã nhận"?"selected":""}>
+
 Đã nhận
+
 </option>
 
 <option
 value="Đang lấy hàng"
 ${order.status==="Đang lấy hàng"?"selected":""}>
+
 Đang lấy hàng
+
 </option>
 
 <option
 value="Đang giao"
 ${order.status==="Đang giao"?"selected":""}>
+
 Đang giao
+
 </option>
 
 <option
 value="Đã giao"
 ${order.status==="Đã giao"?"selected":""}>
+
 Đã giao
+
 </option>
 
 <option
 value="Hoàn thành"
 ${order.status==="Hoàn thành"?"selected":""}>
+
 Hoàn thành
+
 </option>
 
 </select>
@@ -1355,6 +1948,7 @@ href="tel:${esc(phone)}">
 ""
 }
 
+
 </div>
 
 `;
@@ -1368,31 +1962,41 @@ href="tel:${esc(phone)}">
 
 async function acceptOrder(id){
 
-const card=
-document.getElementById("order-"+id);
+const card =
+document.getElementById(
+"order-"+id
+);
 
-const button=
-card ?
-card.querySelector(".accept") :
+const button =
+card
+?
+card.querySelector(
+".accept"
+)
+:
 null;
 
 if(button){
 
 button.disabled=true;
-button.textContent="⏳ ĐANG NHẬN...";
+
+button.textContent =
+"⏳ ĐANG NHẬN...";
 
 }
 
 try{
 
-const response=
+const response =
 await api(
 
 "/rest/v1/orders"+
 "?id=eq."+
 encodeURIComponent(id)+
 "&status=eq."+
-encodeURIComponent("Chờ xác nhận")+
+encodeURIComponent(
+"Chờ xác nhận"
+)+
 "&shipper_id=is.null",
 
 {
@@ -1400,18 +2004,25 @@ encodeURIComponent("Chờ xác nhận")+
 method:"PATCH",
 
 headers:{
-"Content-Type":"application/json",
-"Prefer":"return=representation"
+"Content-Type":
+"application/json",
+
+"Prefer":
+"return=representation"
 },
 
 body:JSON.stringify({
 
-shipper_id:USER_ID,
-status:"Đã nhận"
+shipper_id:
+USER_ID,
+
+status:
+"Đã nhận"
 
 })
 
 }
+
 );
 
 if(!response.ok){
@@ -1425,7 +2036,7 @@ await response.text()
 
 }
 
-const result=
+const result =
 await response.json();
 
 if(!result.length){
@@ -1450,7 +2061,10 @@ await loadOrders();
 
 }catch(error){
 
-console.error(error);
+console.error(
+"Lỗi nhận đơn:",
+error
+);
 
 showMessage(
 "error",
@@ -1461,7 +2075,9 @@ error.message
 if(button){
 
 button.disabled=false;
-button.textContent="✅ NHẬN ĐƠN";
+
+button.textContent =
+"✅ NHẬN ĐƠN";
 
 }
 
@@ -1471,10 +2087,13 @@ button.textContent="✅ NHẬN ĐƠN";
 
 
 /* =====================================================
-   ĐỔI TRẠNG THÁI
+   CẬP NHẬT TRẠNG THÁI
 ===================================================== */
 
-async function changeStatus(id,newStatus){
+async function changeStatus(
+id,
+newStatus
+){
 
 const allowed=[
 "Đã nhận",
@@ -1484,13 +2103,19 @@ const allowed=[
 "Hoàn thành"
 ];
 
-if(!allowed.includes(newStatus)){
+if(
+!allowed.includes(
+newStatus
+)
+){
+
 return;
+
 }
 
 try{
 
-const response=
+const response =
 await api(
 
 "/rest/v1/orders"+
@@ -1504,15 +2129,22 @@ encodeURIComponent(USER_ID),
 method:"PATCH",
 
 headers:{
-"Content-Type":"application/json",
-"Prefer":"return=representation"
+"Content-Type":
+"application/json",
+
+"Prefer":
+"return=representation"
 },
 
 body:JSON.stringify({
-status:newStatus
+
+status:
+newStatus
+
 })
 
 }
+
 );
 
 if(!response.ok){
@@ -1526,20 +2158,21 @@ await response.text()
 
 }
 
-const result=
+const result =
 await response.json();
 
 if(!result.length){
 
 throw new Error(
-"Không cập nhật được. Đơn không thuộc shipper này."
+"Đơn không thuộc shipper này."
 );
 
 }
 
 showMessage(
 "success",
-"✅ Đã cập nhật: "+newStatus
+"✅ Đã cập nhật: "+
+newStatus
 );
 
 await loadOrders();
@@ -1562,20 +2195,59 @@ await loadOrders();
 
 
 /* =====================================================
-   START
+   KHỞI ĐỘNG
 ===================================================== */
 
 loadProfile();
+
 loadOrders();
 
 
 /* =====================================================
-   AUTO REFRESH
+   KIỂM TRA ĐƠN MỚI MỖI 5 GIÂY
 ===================================================== */
 
 setInterval(
 loadOrders,
-15000
+5000
+);
+
+
+/* =====================================================
+   KÍCH HOẠT ÂM THANH KHI CHẠM MÀN HÌNH
+===================================================== */
+
+document.addEventListener(
+"click",
+function(){
+
+try{
+
+if(!audioContext){
+
+audioContext =
+new (
+window.AudioContext ||
+window.webkitAudioContext
+)();
+
+}
+
+if(
+audioContext.state ===
+"suspended"
+){
+
+audioContext.resume();
+
+}
+
+}catch(error){}
+
+},
+{
+once:true
+}
 );
 
 </script>
