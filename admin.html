@@ -7,6 +7,7 @@
 <title>CHOCO SHIP - Admin</title>
 
 <style>
+
 *{
 box-sizing:border-box;
 }
@@ -49,9 +50,8 @@ gap:7px;
 button{
 border:0;
 border-radius:10px;
-padding:11px 14px;
+padding:10px 13px;
 font-weight:bold;
-font-size:14px;
 }
 
 .refresh{
@@ -72,17 +72,16 @@ padding:15px;
 
 .welcome{
 background:white;
-padding:18px;
+padding:17px;
 border-radius:15px;
 margin-bottom:15px;
 box-shadow:0 2px 8px #ddd;
-font-size:18px;
 }
 
 .welcome b{
 display:block;
+font-size:20px;
 margin-top:5px;
-font-size:22px;
 }
 
 .stats{
@@ -94,17 +93,17 @@ margin-bottom:15px;
 
 .stat{
 background:white;
-padding:15px 8px;
-border-radius:14px;
+padding:14px 5px;
+border-radius:12px;
 text-align:center;
 box-shadow:0 2px 7px #ddd;
-font-size:14px;
+font-size:13px;
 }
 
 .stat b{
 display:block;
-font-size:25px;
-margin-top:6px;
+font-size:23px;
+margin-top:5px;
 }
 
 .orders{
@@ -115,20 +114,20 @@ gap:13px;
 
 .order{
 background:white;
-border-radius:17px;
-padding:16px;
+border-radius:16px;
+padding:15px;
 box-shadow:0 2px 8px #ddd;
 }
 
 .order-top{
 display:flex;
 justify-content:space-between;
-gap:10px;
 align-items:flex-start;
+gap:10px;
 }
 
 .code{
-font-size:20px;
+font-size:19px;
 font-weight:bold;
 color:#ff6b00;
 }
@@ -136,48 +135,47 @@ color:#ff6b00;
 .time{
 font-size:12px;
 color:#777;
-margin-top:5px;
+margin-top:4px;
 }
 
 .price-top{
-font-size:18px;
+font-size:17px;
 font-weight:bold;
 color:#e65100;
 white-space:nowrap;
 }
 
 .customer{
-margin-top:13px;
+margin-top:12px;
 line-height:1.8;
-font-size:16px;
 }
 
 .customer a{
-color:#0645d8;
+color:#0655d6;
 }
 
 .items{
-background:#f7f7f7;
-padding:13px;
-border-radius:12px;
+background:#f8f8f8;
+padding:12px;
+border-radius:11px;
 margin-top:12px;
 }
 
 .items-title{
-font-weight:bold;
 font-size:17px;
-margin-bottom:10px;
+font-weight:bold;
+margin-bottom:9px;
 }
 
 .restaurant{
 font-size:13px;
-color:#777;
+color:#666;
 margin-bottom:7px;
 }
 
 .item{
-padding:8px 0;
-border-bottom:1px solid #e5e5e5;
+padding:9px 0;
+border-bottom:1px solid #ddd;
 }
 
 .item:last-child{
@@ -186,23 +184,24 @@ border-bottom:0;
 
 .item-name{
 font-weight:bold;
+font-size:16px;
 }
 
 .item-info{
 font-size:14px;
 color:#555;
-margin-top:3px;
+margin-top:4px;
 }
 
 .total{
-font-size:20px;
+font-size:19px;
 font-weight:bold;
 color:#e65100;
-margin-top:13px;
+margin-top:12px;
 }
 
 .status{
-margin-top:13px;
+margin-top:12px;
 }
 
 .status label{
@@ -214,46 +213,46 @@ margin-bottom:5px;
 
 .status select{
 width:100%;
-padding:13px;
+padding:12px;
 border:1px solid #ddd;
-border-radius:10px;
-font-size:16px;
+border-radius:9px;
+font-size:15px;
 background:white;
+}
+
+.shipper{
+margin-top:12px;
+padding:11px;
+background:#fff7ed;
+border:1px solid #fed7aa;
+border-radius:10px;
+line-height:1.7;
 }
 
 .map{
 display:block;
 margin-top:10px;
+padding:11px;
+border-radius:9px;
 background:#1677ff;
 color:white !important;
 text-decoration:none;
 text-align:center;
-padding:12px;
-border-radius:10px;
 font-weight:bold;
-}
-
-.shipper{
-background:#fff7ed;
-border:1px solid #fed7aa;
-padding:11px;
-border-radius:10px;
-margin-top:12px;
-line-height:1.6;
 }
 
 .empty{
 background:white;
-padding:40px 20px;
-text-align:center;
+padding:35px 15px;
 border-radius:15px;
+text-align:center;
 color:#777;
 }
 
 .error{
 background:#fee2e2;
 color:#991b1b;
-padding:15px;
+padding:14px;
 border-radius:12px;
 margin-bottom:15px;
 word-break:break-word;
@@ -262,23 +261,19 @@ word-break:break-word;
 .success{
 background:#dcfce7;
 color:#166534;
-padding:15px;
+padding:14px;
 border-radius:12px;
 margin-bottom:15px;
 }
 
 @media(max-width:500px){
 
-.header{
-align-items:center;
-}
-
 .logo{
 font-size:19px;
 }
 
 .buttons button{
-padding:10px;
+padding:9px 10px;
 }
 
 .container{
@@ -286,27 +281,11 @@ padding:12px;
 }
 
 .order{
-padding:14px;
-}
-
-.stats{
-gap:6px;
-}
-
-.stat{
-font-size:13px;
-padding:13px 5px;
-}
-
-.stat b{
-font-size:23px;
-}
-
-.price-top{
-font-size:16px;
+padding:13px;
 }
 
 }
+
 </style>
 </head>
 
@@ -325,13 +304,17 @@ font-size:16px;
 <button
 class="refresh"
 onclick="loadOrders()">
+
 🔄 Làm mới
+
 </button>
 
 <button
 class="logout"
 onclick="logout()">
-🚪 Thoát
+
+🚪
+
 </button>
 
 </div>
@@ -360,18 +343,33 @@ onclick="logout()">
 <div class="stats">
 
 <div class="stat">
+
 Đơn mới
-<b id="newCount">0</b>
+
+<b id="newCount">
+0
+</b>
+
 </div>
 
 <div class="stat">
+
 Đang giao
-<b id="shippingCount">0</b>
+
+<b id="shippingCount">
+0
+</b>
+
 </div>
 
 <div class="stat">
+
 Hoàn thành
-<b id="doneCount">0</b>
+
+<b id="doneCount">
+0
+</b>
+
 </div>
 
 </div>
@@ -382,7 +380,9 @@ id="orders"
 class="orders">
 
 <div class="empty">
+
 ⏳ Đang tải đơn...
+
 </div>
 
 </div>
@@ -392,9 +392,9 @@ class="orders">
 
 <script>
 
-/* ================================
+/* =================================
 SUPABASE
-================================ */
+================================= */
 
 const SUPABASE_URL =
 "https://guwdswqaqnhzqapflvey.supabase.co";
@@ -403,9 +403,9 @@ const SUPABASE_KEY =
 "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-/* ================================
-ĐĂNG NHẬP
-================================ */
+/* =================================
+LOGIN
+================================= */
 
 const TOKEN =
 localStorage.getItem("choco_access_token");
@@ -431,9 +431,9 @@ window.location.replace("login.html");
 }
 
 
-/* ================================
-ĐĂNG XUẤT
-================================ */
+/* =================================
+LOGOUT
+================================= */
 
 function logout(){
 
@@ -460,21 +460,22 @@ window.location.replace(
 }
 
 
-/* ================================
-TIỀN
-================================ */
+/* =================================
+MONEY
+================================= */
 
 function money(value){
 
 return Number(value || 0)
-.toLocaleString("vi-VN")+"đ";
+.toLocaleString("vi-VN")
++"đ";
 
 }
 
 
-/* ================================
+/* =================================
 ESCAPE
-================================ */
+================================= */
 
 function escapeHtml(text){
 
@@ -488,20 +489,24 @@ return String(text ?? "")
 }
 
 
-/* ================================
+/* =================================
+QUAN TRỌNG:
 ĐỌC ITEMS
-================================ */
-
-/*
-Supabase có thể trả items:
-
-1. Array
-2. JSON string
-
-Hàm này xử lý cả hai.
-*/
+================================= */
 
 function parseItems(value){
+
+if(
+value === null ||
+value === undefined
+){
+
+return [];
+
+}
+
+
+/* Nếu đã là Array */
 
 if(
 Array.isArray(value)
@@ -511,14 +516,55 @@ return value;
 
 }
 
+
+/* Nếu là String */
+
 if(
 typeof value === "string"
 ){
 
+let parsed = value;
+
+
+/*
+Có thể bị encode nhiều lớp.
+Parse tối đa 4 lần.
+*/
+
+for(
+let i=0;
+i<4;
+i++
+){
+
+if(
+typeof parsed !== "string"
+){
+
+break;
+
+}
+
 try{
 
-const parsed =
-JSON.parse(value);
+parsed =
+JSON.parse(parsed);
+
+}catch(error){
+
+console.error(
+"Không parse được items:",
+error
+);
+
+return [];
+
+}
+
+}
+
+
+/* Sau khi parse */
 
 if(
 Array.isArray(parsed)
@@ -528,25 +574,19 @@ return parsed;
 
 }
 
-}catch(error){
-
-console.error(
-"Không parse được items:",
-error
-);
-
 }
 
-}
+
+/* Không hợp lệ */
 
 return [];
 
 }
 
 
-/* ================================
-PROFILE ADMIN
-================================ */
+/* =================================
+PROFILE
+================================= */
 
 async function loadProfile(){
 
@@ -625,9 +665,9 @@ EMAIL ||
 }
 
 
-/* ================================
+/* =================================
 LOAD ORDERS
-================================ */
+================================= */
 
 async function loadOrders(){
 
@@ -681,6 +721,13 @@ await response.text()
 const orders =
 await response.json();
 
+
+console.log(
+"ORDERS:",
+orders
+);
+
+
 renderOrders(orders);
 
 
@@ -691,9 +738,19 @@ console.error(error);
 message.innerHTML=
 
 '<div class="error">'+
-'❌ Không tải được đơn hàng.'+
+
+'❌ Không tải được đơn hàng.'
+
++
+
 '<br><br>'+
-escapeHtml(error.message)+
+
+escapeHtml(
+error.message
+)
+
++
+
 '</div>';
 
 box.innerHTML="";
@@ -703,9 +760,9 @@ box.innerHTML="";
 }
 
 
-/* ================================
+/* =================================
 RENDER ORDERS
-================================ */
+================================= */
 
 function renderOrders(orders){
 
@@ -714,14 +771,17 @@ document.getElementById("orders");
 
 
 let newCount=0;
+
 let shippingCount=0;
+
 let doneCount=0;
 
 
 orders.forEach(order=>{
 
 if(
-order.status==="Chờ xác nhận"
+order.status ===
+"Chờ xác nhận"
 ){
 
 newCount++;
@@ -729,7 +789,8 @@ newCount++;
 }
 
 if(
-order.status==="Đang giao"
+order.status ===
+"Đang giao"
 ){
 
 shippingCount++;
@@ -737,7 +798,8 @@ shippingCount++;
 }
 
 if(
-order.status==="Hoàn thành"
+order.status ===
+"Hoàn thành"
 ){
 
 doneCount++;
@@ -781,18 +843,31 @@ box.innerHTML="";
 
 orders.forEach(order=>{
 
-/* ============================
+
+/* =================================
 ITEMS
-============================ */
+================================= */
 
 const items =
-parseItems(order.items);
+parseItems(
+order.items
+);
+
+
+console.log(
+"Đơn",
+order.code,
+"items:",
+items
+);
 
 
 let itemsHtml="";
 
 
-if(items.length){
+if(
+items.length > 0
+){
 
 items.forEach(item=>{
 
@@ -801,13 +876,18 @@ item.name ||
 "Món ăn";
 
 const qty =
-Number(item.qty || 1);
+Number(
+item.qty || 1
+);
 
 const price =
-Number(item.price || 0);
+Number(
+item.price || 0
+);
 
 const itemTotal =
 price * qty;
+
 
 itemsHtml += `
 
@@ -815,7 +895,9 @@ itemsHtml += `
 
 <div class="item-name">
 
-🍔 ${escapeHtml(name)}
+🍔 ${
+escapeHtml(name)
+}
 
 × ${qty}
 
@@ -829,7 +911,10 @@ ${money(price)}
 &nbsp; • &nbsp;
 
 Thành tiền:
-<b>${money(itemTotal)}</b>
+
+<b>
+${money(itemTotal)}
+</b>
 
 </div>
 
@@ -844,20 +929,20 @@ Thành tiền:
 itemsHtml=
 
 '<div style="color:#777">'+
+
 'Không có thông tin món'+
+
 '</div>';
 
 }
 
 
-/* ============================
+/* =================================
 RESTAURANT
-============================ */
+================================= */
 
-let restaurantHtml="";
+const restaurants=[];
 
-const restaurants =
-[];
 
 items.forEach(item=>{
 
@@ -877,7 +962,12 @@ item.restaurant
 });
 
 
-if(restaurants.length){
+let restaurantHtml="";
+
+
+if(
+restaurants.length
+){
 
 restaurantHtml=
 
@@ -891,9 +981,9 @@ restaurants.join(" • ")
 }
 
 
-/* ============================
+/* =================================
 GPS
-============================ */
+================================= */
 
 let gps="";
 
@@ -922,9 +1012,9 @@ href="https://www.google.com/maps?q=${encodeURIComponent(order.latitude)},${enco
 }
 
 
-/* ============================
+/* =================================
 SHIPPER
-============================ */
+================================= */
 
 let shipperHtml="";
 
@@ -952,22 +1042,25 @@ ${
 order.shipper_phone
 ?
 `
+
 <br>
+
 📞
-<a href="tel:${escapeHtml(order.shipper_phone)}">
-${escapeHtml(order.shipper_phone)}
+
+<a
+href="tel:${escapeHtml(
+order.shipper_phone
+)}">
+
+${escapeHtml(
+order.shipper_phone
+)}
+
 </a>
+
 `
 :
 ""
-}
-
-<br>
-
-🆔 ${
-escapeHtml(
-order.shipper_id
-)
 }
 
 </div>
@@ -981,6 +1074,7 @@ shipperHtml=`
 <div class="shipper">
 
 🚚 <b>Shipper:</b>
+
 Chưa có shipper nhận đơn
 
 </div>
@@ -990,9 +1084,9 @@ Chưa có shipper nhận đơn
 }
 
 
-/* ============================
+/* =================================
 TIME
-============================ */
+================================= */
 
 const time =
 order.created_at
@@ -1016,9 +1110,9 @@ order.time
 );
 
 
-/* ============================
+/* =================================
 STATUS
-============================ */
+================================= */
 
 const statuses=[
 
@@ -1046,7 +1140,13 @@ statusOptions += `
 
 <option
 value="${escapeHtml(status)}"
-${order.status===status?"selected":""}>
+${
+order.status === status
+?
+"selected"
+:
+""
+}>
 
 ${escapeHtml(status)}
 
@@ -1057,9 +1157,9 @@ ${escapeHtml(status)}
 });
 
 
-/* ============================
-ORDER CARD
-============================ */
+/* =================================
+CARD
+================================= */
 
 box.innerHTML += `
 
@@ -1082,7 +1182,9 @@ order.id
 
 <div class="time">
 
-${escapeHtml(time)}
+${escapeHtml(
+time
+)}
 
 </div>
 
@@ -1091,9 +1193,9 @@ ${escapeHtml(time)}
 
 <div class="price-top">
 
-💰 ${
-money(order.total)
-}
+💰 ${money(
+order.total
+)}
 
 </div>
 
@@ -1102,7 +1204,9 @@ money(order.total)
 
 <div class="customer">
 
-👤 <b>
+👤
+
+<b>
 ${escapeHtml(
 order.name || ""
 )}
@@ -1125,22 +1229,25 @@ order.phone || ""
 
 <br>
 
-📍 ${
-escapeHtml(
+📍
+
+${escapeHtml(
 order.address || ""
-)
-}
+)}
 
 ${
 order.note
 ?
 `
+
 <br>
+
 📝 ${
 escapeHtml(
 order.note
 )
 }
+
 `
 :
 ""
@@ -1148,8 +1255,10 @@ order.note
 
 <br>
 
-💳 ${
-order.payment==="bank"
+💳
+
+${
+order.payment === "bank"
 ?
 "Chuyển khoản"
 :
@@ -1177,7 +1286,10 @@ ${itemsHtml}
 <div class="total">
 
 Tổng:
-${money(order.total)}
+
+${money(
+order.total
+)}
 
 </div>
 
@@ -1203,6 +1315,7 @@ ${statusOptions}
 
 ${shipperHtml}
 
+
 ${gps}
 
 </div>
@@ -1214,9 +1327,9 @@ ${gps}
 }
 
 
-/* ================================
+/* =================================
 UPDATE STATUS
-================================ */
+================================= */
 
 async function updateStatus(
 id,
@@ -1278,7 +1391,7 @@ document
 .innerHTML=
 
 '<div class="success">'+
-'✅ Đã cập nhật trạng thái đơn.'+
+'✅ Đã cập nhật trạng thái.'+
 '</div>';
 
 
@@ -1287,10 +1400,8 @@ await loadOrders();
 
 }catch(error){
 
-console.error(error);
-
 alert(
-"❌ Không cập nhật được trạng thái:\n"+
+"❌ Không cập nhật được:\n"+
 error.message
 );
 
@@ -1299,18 +1410,16 @@ error.message
 }
 
 
-/* ================================
-KHỞI ĐỘNG
-================================ */
+/* =================================
+START
+================================= */
 
 loadProfile();
 
 loadOrders();
 
 
-/* ================================
-TỰ ĐỘNG LÀM MỚI
-================================ */
+/* Tự động cập nhật mỗi 15 giây */
 
 setInterval(
 loadOrders,
