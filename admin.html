@@ -227,9 +227,7 @@ header{
   margin-top:13px;
 }
 
-/* =========================
-SHIPPER
-========================= */
+/* SHIPPER */
 
 .shipper{
   background:#eff6ff;
@@ -310,12 +308,6 @@ SHIPPER
   display:none;
 }
 
-.debug-title{
-  color:#fbbf24;
-  font-weight:bold;
-  margin-bottom:5px;
-}
-
 @media(max-width:500px){
 
   .logo{
@@ -341,6 +333,7 @@ SHIPPER
   .stat{
     font-size:12px;
   }
+
 }
 </style>
 </head>
@@ -479,21 +472,10 @@ LOGOUT
 
 function logout(){
 
-localStorage.removeItem(
-"choco_access_token"
-);
-
-localStorage.removeItem(
-"choco_user_id"
-);
-
-localStorage.removeItem(
-"choco_role"
-);
-
-localStorage.removeItem(
-"choco_email"
-);
+localStorage.removeItem("choco_access_token");
+localStorage.removeItem("choco_user_id");
+localStorage.removeItem("choco_role");
+localStorage.removeItem("choco_email");
 
 window.location.href="login.html";
 
@@ -501,7 +483,7 @@ window.location.href="login.html";
 
 
 /* =====================================
-ESCAPE HTML
+ESCAPE
 ===================================== */
 
 function escapeHtml(value){
@@ -529,7 +511,7 @@ return Number(value || 0)
 
 
 /* =====================================
-GIẢI MÃ ITEMS
+ITEMS
 ===================================== */
 
 function decodeItems(value){
@@ -556,29 +538,17 @@ if(typeof value === "string"){
 let data=value.trim();
 
 
-for(
-let i=0;
-i<5;
-i++
-){
+for(let i=0;i<5;i++){
 
 if(typeof data !== "string"){
-
 break;
-
 }
-
 
 try{
 
 data=JSON.parse(data);
 
 }catch(error){
-
-console.log(
-"Không JSON.parse được:",
-data
-);
 
 break;
 
@@ -596,33 +566,43 @@ return data;
 }
 
 
+if(
+typeof value === "object" &&
+Array.isArray(value.items)
+){
+
+return value.items;
+
+}
+
+
 return [];
 
 }
 
 
 /* =====================================
-LOAD ADMIN PROFILE
+ADMIN PROFILE
 ===================================== */
 
 async function loadAdmin(){
 
 try{
 
-const response=
+const response =
 await fetch(
 
 SUPABASE_URL+
 "/rest/v1/profiles?id=eq."+
 encodeURIComponent(USER_ID)+
-"&select=full_name,email,role",
+"&select=full_name,phone,role",
 
 {
 
 headers:{
 "apikey":SUPABASE_KEY,
-"Authorization":
-"Bearer "+TOKEN
+"Authorization":"Bearer "+TOKEN,
+"Accept":"application/json"
 }
 
 }
@@ -632,9 +612,9 @@ headers:{
 
 if(!response.ok){
 
-document
-.getElementById("adminName")
-.textContent=
+document.getElementById(
+"adminName"
+).textContent =
 EMAIL ||
 "Admin";
 
@@ -643,17 +623,16 @@ return;
 }
 
 
-const data=
+const data =
 await response.json();
 
 
 if(data.length){
 
-document
-.getElementById("adminName")
-.textContent=
+document.getElementById(
+"adminName"
+).textContent =
 data[0].full_name ||
-data[0].email ||
 EMAIL ||
 "Admin";
 
@@ -661,11 +640,11 @@ EMAIL ||
 
 }catch(error){
 
-console.log(error);
+console.error(error);
 
-document
-.getElementById("adminName")
-.textContent=
+document.getElementById(
+"adminName"
+).textContent =
 EMAIL ||
 "Admin";
 
@@ -675,94 +654,108 @@ EMAIL ||
 
 
 /* =====================================
-LẤY DANH SÁCH SHIPPER
+LOAD SHIPPERS
 ===================================== */
 
-async function loadShippers(
-shipperIds
-){
+async function loadShippers(shipperIds){
 
 const shippers={};
 
 
-if(!shipperIds.length){
+if(
+!shipperIds ||
+!shipperIds.length
+){
 
 return shippers;
 
 }
 
 
-const ids=
-shipperIds
-.map(
-id =>
-encodeURIComponent(id)
-)
-.join(",");
+/*
+Mỗi shipper được lấy riêng.
+Không dùng email.
+*/
 
-
-const url=
-SUPABASE_URL+
-"/rest/v1/profiles"+
-"?id=in.("+ids+")"+
-"&select=id,full_name,phone,email,role";
-
+for(
+const shipperId of shipperIds
+){
 
 try{
 
-const response=
+const url =
+SUPABASE_URL+
+"/rest/v1/profiles"+
+"?id=eq."+
+encodeURIComponent(shipperId)+
+"&select=id,full_name,phone,role";
+
+
+const response =
 await fetch(
 
 url,
 
 {
 
+method:"GET",
+
 headers:{
 "apikey":SUPABASE_KEY,
-"Authorization":
-"Bearer "+TOKEN,
-"Accept":
-"application/json"
+"Authorization":"Bearer "+TOKEN,
+"Accept":"application/json"
 }
 
 }
 
+);
+
+
+const text =
+await response.text();
+
+
+console.log(
+"SHIPPER PROFILE:",
+shipperId,
+text
 );
 
 
 if(!response.ok){
 
 console.error(
-"Không lấy được profiles:",
-await response.text()
+"Không đọc được profile shipper:",
+response.status,
+text
 );
 
-return shippers;
+continue;
 
 }
 
 
-const profiles=
-await response.json();
+const data =
+JSON.parse(text);
 
 
-profiles.forEach(
-profile => {
+if(data.length){
 
 shippers[
-String(profile.id)
-]=profile;
+String(shipperId)
+]=data[0];
 
 }
-);
-
 
 }catch(error){
 
 console.error(
-"Lỗi load shipper:",
+"Lỗi lấy profile shipper:",
+shipperId,
 error
 );
+
+}
 
 }
 
@@ -778,14 +771,14 @@ LOAD ORDERS
 
 async function loadOrders(){
 
-const box=
+const box =
 document.getElementById("orders");
 
-const message=
+const message =
 document.getElementById("message");
 
 
-box.innerHTML=
+box.innerHTML =
 '<div class="empty">⏳ Đang tải đơn...</div>';
 
 message.innerHTML="";
@@ -793,11 +786,7 @@ message.innerHTML="";
 
 try{
 
-/*
-LẤY ĐƠN
-*/
-
-const response=
+const response =
 await fetch(
 
 SUPABASE_URL+
@@ -811,10 +800,8 @@ method:"GET",
 
 headers:{
 "apikey":SUPABASE_KEY,
-"Authorization":
-"Bearer "+TOKEN,
-"Accept":
-"application/json"
+"Authorization":"Bearer "+TOKEN,
+"Accept":"application/json"
 }
 
 }
@@ -834,21 +821,21 @@ await response.text()
 }
 
 
-const orders=
+const orders =
 await response.json();
 
 
-/*
-LẤY SHIPPER ID
-*/
+/* =====================================
+LẤY ID SHIPPER
+===================================== */
 
-const shipperIds=[
+const shipperIds =
+[
 ...new Set(
 
 orders
 .map(
-order =>
-order.shipper_id
+order => order.shipper_id
 )
 .filter(
 id => id
@@ -858,26 +845,31 @@ id => id
 ];
 
 
-/*
-LẤY PROFILE SHIPPER
-*/
+/* =====================================
+LẤY PROFILE
+===================================== */
 
-const shippers=
+const shippers =
 await loadShippers(
 shipperIds
 );
 
 
-/*
-GẮN THÔNG TIN SHIPPER
-*/
+/* =====================================
+GHÉP PROFILE VÀO ĐƠN
+===================================== */
 
 orders.forEach(
 order => {
 
-if(order.shipper_id){
+if(!order.shipper_id){
 
-const shipper=
+return;
+
+}
+
+
+const shipper =
 shippers[
 String(order.shipper_id)
 ];
@@ -885,26 +877,23 @@ String(order.shipper_id)
 
 if(shipper){
 
-order.shipper_name=
+order.shipper_name =
 shipper.full_name ||
-shipper.email ||
-"Shipper";
+"Không có tên";
 
 
-order.shipper_phone=
+order.shipper_phone =
 shipper.phone ||
 "";
 
 }else{
 
-order.shipper_name=
+order.shipper_name =
 "Không tìm thấy";
 
 
-order.shipper_phone=
+order.shipper_phone =
 "";
-
-}
 
 }
 
@@ -912,32 +901,28 @@ order.shipper_phone=
 
 
 console.log(
-"Orders:",
+"ORDERS:",
 orders
 );
 
 console.log(
-"Shippers:",
+"SHIPPERS:",
 shippers
 );
 
 
-renderOrders(
-orders
-);
+renderOrders(orders);
 
 
 }catch(error){
 
 console.error(error);
 
-message.innerHTML=
+message.innerHTML =
 '<div class="error">'+
 '❌ Không tải được đơn hàng.'+
 '<br><br>'+
-escapeHtml(
-error.message
-)+
+escapeHtml(error.message)+
 '</div>';
 
 box.innerHTML="";
@@ -948,17 +933,13 @@ box.innerHTML="";
 
 
 /* =====================================
-RENDER ORDERS
+RENDER
 ===================================== */
 
-function renderOrders(
-orders
-){
+function renderOrders(orders){
 
-const box=
-document.getElementById(
-"orders"
-);
+const box =
+document.getElementById("orders");
 
 
 let newCount=0;
@@ -970,7 +951,7 @@ orders.forEach(
 order => {
 
 if(
-order.status===
+order.status ===
 "Chờ xác nhận"
 ){
 
@@ -985,8 +966,7 @@ if(
 "Đang lấy hàng",
 "Đang giao",
 "Đã giao"
-]
-.includes(
+].includes(
 order.status
 )
 ){
@@ -997,7 +977,7 @@ shippingCount++;
 
 
 if(
-order.status===
+order.status ===
 "Hoàn thành"
 ){
 
@@ -1011,28 +991,26 @@ doneCount++;
 
 document.getElementById(
 "newCount"
-).textContent=
+).textContent =
 newCount;
 
 document.getElementById(
 "shippingCount"
-).textContent=
+).textContent =
 shippingCount;
 
 document.getElementById(
 "doneCount"
-).textContent=
+).textContent =
 doneCount;
 
 
 if(!orders.length){
 
-box.innerHTML=
+box.innerHTML =
 `
 <div class="empty">
-
 📭 Chưa có đơn hàng.
-
 </div>
 `;
 
@@ -1052,7 +1030,7 @@ order => {
 ITEMS
 ================================= */
 
-const items=
+const items =
 decodeItems(
 order.items
 );
@@ -1068,14 +1046,14 @@ if(items.length){
 items.forEach(
 item => {
 
-const name=
+const name =
 item.name ||
 item.title ||
 item.food_name ||
 "Món ăn";
 
 
-const qty=
+const qty =
 Number(
 item.qty ??
 item.quantity ??
@@ -1083,7 +1061,7 @@ item.quantity ??
 ) || 1;
 
 
-const price=
+const price =
 Number(
 item.price ??
 item.unit_price ??
@@ -1091,13 +1069,13 @@ item.unit_price ??
 ) || 0;
 
 
-const subtotal=
+const subtotal =
 Number(
 item.total ??
 item.subtotal ??
-(price*qty)
+(price * qty)
 ) ||
-(price*qty);
+(price * qty);
 
 
 if(
@@ -1114,7 +1092,7 @@ item.restaurant
 }
 
 
-foodsHtml+=
+foodsHtml +=
 `
 
 <div class="food">
@@ -1151,14 +1129,10 @@ ${money(subtotal)}
 
 }else{
 
-foodsHtml=
+foodsHtml =
 `
-<div
-style="color:#777">
-
-⚠️ Không đọc được
-thông tin món
-
+<div style="color:#777">
+⚠️ Không đọc được thông tin món
 </div>
 `;
 
@@ -1174,7 +1148,7 @@ let restaurantHtml="";
 
 if(restaurants.length){
 
-restaurantHtml=
+restaurantHtml =
 `
 <div class="restaurant">
 
@@ -1193,7 +1167,7 @@ restaurants.join(" • ")
 CUSTOMER
 ================================= */
 
-let customerHtml=
+let customerHtml =
 `
 
 👤
@@ -1243,7 +1217,7 @@ order.dropoff ||
 
 if(order.note){
 
-customerHtml+=
+customerHtml +=
 `
 
 <br>
@@ -1259,7 +1233,7 @@ order.note
 }
 
 
-customerHtml+=
+customerHtml +=
 `
 
 <br>
@@ -1267,7 +1241,7 @@ customerHtml+=
 💳
 
 ${
-order.payment==="bank"
+order.payment === "bank"
 ?
 "Chuyển khoản"
 :
@@ -1286,17 +1260,17 @@ let shipperHtml="";
 
 if(order.shipper_id){
 
-const shipperName=
+const shipperName =
 order.shipper_name ||
-"Shipper";
+"Không tìm thấy";
 
 
-const shipperPhone=
+const shipperPhone =
 order.shipper_phone ||
 "";
 
 
-shipperHtml=
+shipperHtml =
 `
 
 <div class="shipper">
@@ -1364,7 +1338,7 @@ order.shipper_id
 
 }else{
 
-shipperHtml=
+shipperHtml =
 `
 
 <div class="no-shipper">
@@ -1398,7 +1372,7 @@ order.longitude !== null &&
 order.longitude !== undefined
 ){
 
-gpsHtml=
+gpsHtml =
 `
 
 <a
@@ -1406,8 +1380,7 @@ class="map"
 target="_blank"
 rel="noopener"
 
-href=
-"https://www.google.com/maps?q=${
+href="https://www.google.com/maps?q=${
 encodeURIComponent(
 order.latitude
 )},${
@@ -1433,21 +1406,19 @@ let time="";
 
 if(order.created_at){
 
-time=
+time =
 new Date(
 order.created_at
-)
-.toLocaleString(
+).toLocaleString(
 "vi-VN"
 );
 
 }else if(order.time){
 
-time=
+time =
 new Date(
 order.time
-)
-.toLocaleString(
+).toLocaleString(
 "vi-VN"
 );
 
@@ -1458,7 +1429,7 @@ order.time
 STATUS
 ================================= */
 
-const statuses=[
+const statuses = [
 
 "Chờ xác nhận",
 "Đã nhận",
@@ -1477,26 +1448,21 @@ let options="";
 statuses.forEach(
 status => {
 
-options+=
+options +=
 `
 
 <option
-value="${escapeHtml(
-status
-)}"
+value="${escapeHtml(status)}"
 
 ${
-order.status===
-status
+order.status === status
 ?
 "selected"
 :
 ""
 }>
 
-${escapeHtml(
-status
-)}
+${escapeHtml(status)}
 
 </option>
 
@@ -1506,22 +1472,10 @@ status
 
 
 /* =================================
-DEBUG
-================================= */
-
-const debugData=
-JSON.stringify(
-order.items,
-null,
-2
-);
-
-
-/* =================================
 CARD
 ================================= */
 
-box.innerHTML+=
+box.innerHTML +=
 `
 
 <div class="order">
@@ -1555,7 +1509,6 @@ time
 class="order-total-top">
 
 💰
-
 ${money(
 order.total
 )}
@@ -1590,7 +1543,6 @@ ${foodsHtml}
 <div class="total">
 
 Tổng:
-
 ${money(
 order.total
 )}
@@ -1607,7 +1559,7 @@ Trạng thái đơn
 <select
 onchange=
 "updateStatus(
-${Number(order.id)},
+${JSON.stringify(order.id)},
 this.value
 )">
 
@@ -1622,21 +1574,6 @@ ${shipperHtml}
 
 
 ${gpsHtml}
-
-
-<div class="debug">
-
-<div class="debug-title">
-
-DEBUG ITEMS
-
-</div>
-
-${escapeHtml(
-debugData
-)}
-
-</div>
 
 
 </div>
@@ -1660,7 +1597,7 @@ status
 
 try{
 
-const response=
+const response =
 await fetch(
 
 SUPABASE_URL+
@@ -1709,13 +1646,10 @@ await response.text()
 
 document.getElementById(
 "message"
-).innerHTML=
-
+).innerHTML =
 `
 <div class="success">
-
 ✅ Đã cập nhật trạng thái đơn.
-
 </div>
 `;
 
@@ -1745,7 +1679,7 @@ loadOrders();
 
 
 /* =====================================
-TỰ ĐỘNG TẢI MỖI 15 GIÂY
+AUTO REFRESH
 ===================================== */
 
 setInterval(
