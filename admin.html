@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>CHOCO SHIP - ADMIN</title>
 
 <style>
@@ -225,6 +224,8 @@ font-weight:bold;
 margin-top:13px
 }
 
+/* SHIPPER */
+
 .shipper{
 background:#eff6ff;
 border:1px solid #bfdbfe;
@@ -243,13 +244,19 @@ margin-bottom:5px
 
 .shipper-name{
 font-weight:bold;
-font-size:16px
+font-size:17px
 }
 
 .shipper-phone{
 color:#075bd8;
 font-weight:bold;
 text-decoration:none
+}
+
+.shipper-id{
+font-size:12px;
+color:#64748b;
+word-break:break-all
 }
 
 .no-shipper{
@@ -427,7 +434,7 @@ const SUPABASE_KEY =
 LOGIN
 ===================================== */
 
-const TOKEN =
+let TOKEN =
 localStorage.getItem("choco_access_token");
 
 const USER_ID =
@@ -452,7 +459,7 @@ window.location.href="login.html";
 
 
 /* =====================================
-ADMIN
+ADMIN NAME
 ===================================== */
 
 document.getElementById(
@@ -467,21 +474,16 @@ LOGOUT
 
 function logout(){
 
-localStorage.removeItem(
-"choco_access_token"
-);
-
-localStorage.removeItem(
-"choco_user_id"
-);
-
-localStorage.removeItem(
-"choco_role"
-);
-
-localStorage.removeItem(
+[
+"choco_access_token",
+"choco_user_id",
+"choco_role",
 "choco_email"
-);
+].forEach(function(key){
+
+localStorage.removeItem(key);
+
+});
 
 window.location.href="login.html";
 
@@ -489,7 +491,7 @@ window.location.href="login.html";
 
 
 /* =====================================
-ESCAPE
+ESCAPE HTML
 ===================================== */
 
 function escapeHtml(value){
@@ -582,6 +584,165 @@ return [];
 
 
 /* =====================================
+API
+===================================== */
+
+async function api(
+path,
+options={}
+){
+
+const headers={
+
+"apikey":SUPABASE_KEY,
+
+"Authorization":
+"Bearer "+TOKEN,
+
+"Accept":
+"application/json",
+
+...(options.headers || {})
+
+};
+
+return fetch(
+SUPABASE_URL+path,
+{
+...options,
+headers:headers
+}
+);
+
+}
+
+
+/* =====================================
+KIỂM TRA JWT
+===================================== */
+
+function checkJWT(response){
+
+if(response.status === 401){
+
+localStorage.removeItem(
+"choco_access_token"
+);
+
+alert(
+"⚠️ Phiên đăng nhập đã hết hạn.\n\nVui lòng đăng nhập lại."
+);
+
+window.location.href="login.html";
+
+return true;
+
+}
+
+return false;
+
+}
+
+
+/* =====================================
+LẤY THÔNG TIN SHIPPER
+===================================== */
+
+async function loadShippers(
+shipperIds
+){
+
+const result={};
+
+
+if(!shipperIds.length){
+
+return result;
+
+}
+
+
+/*
+BẢNG PROFILES CỦA BẠN:
+
+id
+full_name
+phone
+role
+
+KHÔNG CÓ EMAIL
+*/
+
+const ids =
+shipperIds
+.map(function(id){
+
+return encodeURIComponent(id);
+
+})
+.join(",");
+
+
+try{
+
+const response =
+await api(
+
+"/rest/v1/profiles"+
+"?id=in.("+ids+")"+
+"&select=id,full_name,phone,role"
+
+);
+
+
+if(checkJWT(response)){
+
+return result;
+
+}
+
+
+if(!response.ok){
+
+console.error(
+"PROFILE ERROR:",
+await response.text()
+);
+
+return result;
+
+}
+
+
+const profiles =
+await response.json();
+
+
+profiles.forEach(function(profile){
+
+result[
+String(profile.id)
+]=profile;
+
+});
+
+
+}catch(error){
+
+console.error(
+"LOAD SHIPPERS ERROR:",
+error
+);
+
+}
+
+
+return result;
+
+}
+
+
+/* =====================================
 LOAD ORDERS
 ===================================== */
 
@@ -607,28 +768,20 @@ message.innerHTML="";
 try{
 
 const response =
-await fetch(
+await api(
 
-SUPABASE_URL+
 "/rest/v1/orders"+
 "?select=*"+
-"&order=created_at.desc",
-
-{
-
-method:"GET",
-
-headers:{
-"apikey":SUPABASE_KEY,
-"Authorization":
-"Bearer "+TOKEN,
-"Accept":
-"application/json"
-}
-
-}
+"&order=created_at.desc"
 
 );
+
+
+if(checkJWT(response)){
+
+return;
+
+}
 
 
 if(!response.ok){
@@ -653,7 +806,91 @@ orders
 );
 
 
-renderOrders(orders);
+/*
+LẤY TOÀN BỘ SHIPPER ID
+*/
+
+const shipperIds=[
+...new Set(
+
+orders
+.map(function(order){
+
+return order.shipper_id;
+
+})
+.filter(function(id){
+
+return id !== null &&
+id !== undefined &&
+String(id).trim() !== "";
+
+})
+
+)
+];
+
+
+/*
+LẤY PROFILES
+*/
+
+const shippers =
+await loadShippers(
+shipperIds
+);
+
+
+/*
+GẮN THÔNG TIN SHIPPER
+*/
+
+orders.forEach(function(order){
+
+if(order.shipper_id){
+
+const profile =
+shippers[
+String(order.shipper_id)
+];
+
+
+if(profile){
+
+order.shipper_name =
+profile.full_name ||
+"Chưa có tên";
+
+
+order.shipper_phone =
+profile.phone ||
+"";
+
+}else{
+
+order.shipper_name =
+"Không tìm thấy";
+
+
+order.shipper_phone =
+"";
+
+}
+
+}
+
+});
+
+
+console.log(
+"CHOCO SHIP - SHIPPERS:",
+shippers
+);
+
+
+renderOrders(
+orders
+);
 
 
 }catch(error){
@@ -683,10 +920,12 @@ box.innerHTML="";
 
 
 /* =====================================
-RENDER
+RENDER ORDERS
 ===================================== */
 
-function renderOrders(orders){
+function renderOrders(
+orders
+){
 
 const box =
 document.getElementById("orders");
@@ -697,7 +936,7 @@ let shippingCount=0;
 let doneCount=0;
 
 
-orders.forEach(order=>{
+orders.forEach(function(order){
 
 if(
 order.status ===
@@ -770,7 +1009,7 @@ return;
 box.innerHTML="";
 
 
-orders.forEach(order=>{
+orders.forEach(function(order){
 
 /* =================================
 ITEMS
@@ -786,7 +1025,7 @@ const restaurants=[];
 
 if(items.length){
 
-items.forEach(item=>{
+items.forEach(function(item){
 
 const name =
 item.name ||
@@ -963,7 +1202,9 @@ if(order.note){
 customerHtml +=
 `
 <br>
+
 📝
+
 ${escapeHtml(
 order.note
 )}
@@ -975,7 +1216,9 @@ order.note
 customerHtml +=
 `
 <br>
+
 💳
+
 ${
 order.payment === "bank"
 ?
@@ -997,7 +1240,7 @@ if(order.shipper_id){
 
 const shipperName =
 order.shipper_name ||
-"Chưa cập nhật tên";
+"Không tìm thấy";
 
 
 const shipperPhone =
@@ -1015,6 +1258,7 @@ shipperHtml =
 
 </div>
 
+
 <div class="shipper-name">
 
 👤
@@ -1023,6 +1267,7 @@ shipperName
 )}
 
 </div>
+
 
 ${
 shipperPhone
@@ -1054,14 +1299,17 @@ shipperPhone
 `
 }
 
-<div>
+
+<div class="shipper-id">
 
 🆔
+
 ${escapeHtml(
 String(order.shipper_id)
 )}
 
 </div>
+
 
 </div>
 `;
@@ -1073,7 +1321,10 @@ shipperHtml =
 <div class="no-shipper">
 
 🚚
-<b>Chưa có shipper nhận đơn</b>
+
+<b>
+Chưa có shipper nhận đơn
+</b>
 
 <br>
 
@@ -1105,6 +1356,7 @@ gpsHtml =
 class="map"
 target="_blank"
 rel="noopener"
+
 href="https://www.google.com/maps?q=${
 encodeURIComponent(
 order.latitude
@@ -1144,7 +1396,7 @@ order.created_at
 STATUS
 ================================= */
 
-const statuses = [
+const statuses=[
 
 "Chờ xác nhận",
 "Đã nhận",
@@ -1160,7 +1412,7 @@ const statuses = [
 let options="";
 
 
-statuses.forEach(status=>{
+statuses.forEach(function(status){
 
 options +=
 `
@@ -1211,6 +1463,7 @@ ${escapeHtml(time)}
 </div>
 
 </div>
+
 
 <div class="order-total-top">
 
@@ -1298,9 +1551,8 @@ status
 try{
 
 const response =
-await fetch(
+await api(
 
-SUPABASE_URL+
 "/rest/v1/orders?id=eq."+
 encodeURIComponent(id),
 
@@ -1312,12 +1564,6 @@ headers:{
 
 "Content-Type":
 "application/json",
-
-"apikey":
-SUPABASE_KEY,
-
-"Authorization":
-"Bearer "+TOKEN,
 
 "Prefer":
 "return=minimal"
@@ -1333,6 +1579,13 @@ status:status
 }
 
 );
+
+
+if(checkJWT(response)){
+
+return;
+
+}
 
 
 if(!response.ok){
@@ -1360,6 +1613,8 @@ await loadOrders();
 
 
 }catch(error){
+
+console.error(error);
 
 alert(
 "❌ Không cập nhật được:\n"+
