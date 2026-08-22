@@ -24,16 +24,6 @@
   content="default"
 >
 
-<meta
-  name="mobile-web-app-capable"
-  content="yes"
->
-
-<link
-  rel="manifest"
-  href="manifest.json"
->
-
 <title>CHOCO SHIP - Shipper</title>
 
 <style>
@@ -391,10 +381,6 @@ button{
 
 @media(max-width:600px){
 
-  .header{
-    align-items:center;
-  }
-
   .logo{
     font-size:17px;
   }
@@ -462,7 +448,9 @@ onclick="logout()">
 
 </header>
 
+
 <div class="container">
+
 
 <div class="welcome">
 
@@ -547,11 +535,12 @@ class="orders">
 
 </div>
 
+
 </div>
 
 
 <!-- ==================================================
-     ONESIGNAL WEB SDK v16
+     ONESIGNAL WEB SDK
 ================================================== -->
 
 <script
@@ -564,7 +553,8 @@ defer>
 
 /* ==================================================
    CHOCO SHIP
-   ONESIGNAL + SUPABASE
+   SHIPPER
+   SUPABASE + ONESIGNAL
 ================================================== */
 
 
@@ -604,6 +594,10 @@ localStorage.getItem(
 ) || "";
 
 
+/* ==================================================
+   CHECK LOGIN
+================================================== */
+
 if(
 !TOKEN ||
 !USER_ID ||
@@ -632,7 +626,7 @@ let oneSignalPromise = null;
 
 
 /* ==================================================
-   INIT ONESIGNAL
+   ONESIGNAL INIT
 ================================================== */
 
 function initOneSignal(){
@@ -646,27 +640,40 @@ return oneSignalPromise;
 oneSignalPromise =
 new Promise(function(resolve,reject){
 
-const timeout =
+let finished = false;
+
+let timeout =
 setTimeout(function(){
+
+if(finished){
+return;
+}
+
+finished = true;
 
 reject(
 new Error(
-"OneSignal SDK không tải được. Kiểm tra kết nối Internet."
+"OneSignal SDK không tải được."
 )
 );
 
-},15000);
+},20000);
 
 
-OneSignalDeferred.push(
+window.OneSignalDeferred.push(
 async function(OS){
+
+if(finished){
+return;
+}
 
 try{
 
-clearTimeout(timeout);
+/*
+   Worker phải nằm ở:
 
-
-/* INIT */
+   /Choco-foods/OneSignalSDKWorker.js
+*/
 
 await OS.init({
 
@@ -677,7 +684,15 @@ notifyButton:{
 enable:false
 },
 
-allowLocalhostAsSecureOrigin:false
+allowLocalhostAsSecureOrigin:false,
+
+serviceWorkerPath:
+"OneSignalSDKWorker.js",
+
+serviceWorkerParam:{
+scope:
+"/Choco-foods/"
+}
 
 });
 
@@ -689,7 +704,9 @@ oneSignalReady =
 true;
 
 
-/* LOGIN USER */
+/* ==================================================
+   LOGIN ONESIGNAL
+================================================== */
 
 if(USER_ID){
 
@@ -716,16 +733,25 @@ error
 }
 
 
-/* PUSH LISTENER */
+/* ==================================================
+   SUBSCRIPTION LISTENER
+================================================== */
 
 try{
+
+if(
+OS.User &&
+OS.User.PushSubscription &&
+typeof OS.User.PushSubscription.addEventListener ===
+"function"
+){
 
 OS.User.PushSubscription.addEventListener(
 "change",
 function(event){
 
 console.log(
-"🔄 OneSignal Push changed:",
+"🔄 OneSignal subscription changed:",
 event
 );
 
@@ -733,18 +759,38 @@ updateNotificationStatus();
 
 });
 
+}
+
 }catch(error){
 
 console.warn(
-"Push listener:",
+"Subscription listener:",
 error
 );
 
 }
 
 
+clearTimeout(timeout);
+
+finished = true;
+
+
 console.log(
-"✅ CHOCO SHIP - OneSignal READY"
+"================================"
+);
+
+console.log(
+"✅ CHOCO SHIP - ONESIGNAL READY"
+);
+
+console.log(
+"Shipper:",
+USER_ID
+);
+
+console.log(
+"================================"
 );
 
 
@@ -753,13 +799,15 @@ resolve(OS);
 
 setTimeout(
 updateNotificationStatus,
-300
+500
 );
 
 
 }catch(error){
 
 clearTimeout(timeout);
+
+finished = true;
 
 console.error(
 "❌ ONESIGNAL INIT ERROR:",
@@ -774,14 +822,13 @@ reject(error);
 
 });
 
-
 return oneSignalPromise;
 
 }
 
 
 /* ==================================================
-   IOS
+   DEVICE CHECK
 ================================================== */
 
 function isIOSDevice(){
@@ -814,31 +861,7 @@ window.matchMedia(
 
 
 /* ==================================================
-   PUSH SUPPORT
-================================================== */
-
-async function checkPushSupport(OS){
-
-try{
-
-return await OS.Notifications.isPushSupported();
-
-}catch(error){
-
-console.warn(
-"Push support check:",
-error
-);
-
-return false;
-
-}
-
-}
-
-
-/* ==================================================
-   PUSH STATUS
+   GET SUBSCRIPTION
 ================================================== */
 
 function getPushStatus(OS){
@@ -851,13 +874,13 @@ OS.User.PushSubscription;
 return {
 
 optedIn:
+subscription &&
 subscription.optedIn === true,
 
 id:
-subscription.id || null,
-
-token:
-subscription.token || null
+subscription ?
+subscription.id || null :
+null
 
 };
 
@@ -872,9 +895,7 @@ return {
 
 optedIn:false,
 
-id:null,
-
-token:null
+id:null
 
 };
 
@@ -884,7 +905,7 @@ token:null
 
 
 /* ==================================================
-   NOTIFICATION UI
+   UPDATE NOTIFICATION STATUS
 ================================================== */
 
 async function updateNotificationStatus(){
@@ -908,37 +929,9 @@ return;
 
 try{
 
-const OS =
-await initOneSignal();
-
-
-/* PUSH SUPPORT */
-
-const supported =
-await checkPushSupport(OS);
-
-
-if(!supported){
-
-status.innerHTML =
-"❌ <b>Thiết bị/trình duyệt này không hỗ trợ Web Push.</b>";
-
-button.disabled =
-true;
-
-button.textContent =
-"❌ KHÔNG HỖ TRỢ";
-
-button.classList.add(
-"off"
-);
-
-return;
-
-}
-
-
-/* IOS PWA */
+/*
+   iPhone Safari cần PWA
+*/
 
 if(
 isIOSDevice() &&
@@ -947,7 +940,11 @@ isIOSDevice() &&
 
 status.innerHTML =
 "⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br><br>"+
-"Safari → Chia sẻ → <b>Thêm vào Màn hình chính</b> → mở CHOCO SHIP.";
+"1. Mở CHOCO SHIP bằng Safari<br>"+
+"2. Bấm nút Chia sẻ<br>"+
+"3. Chọn <b>Thêm vào Màn hình chính</b><br>"+
+"4. Mở CHOCO SHIP từ biểu tượng ngoài màn hình<br>"+
+"5. Bấm BẬT THÔNG BÁO.";
 
 button.disabled =
 false;
@@ -964,7 +961,17 @@ return;
 }
 
 
-/* BROWSER PERMISSION */
+/*
+   INIT
+*/
+
+const OS =
+await initOneSignal();
+
+
+/*
+   Browser notification permission
+*/
 
 if(
 typeof Notification !== "undefined" &&
@@ -973,7 +980,7 @@ Notification.permission === "denied"
 
 status.innerHTML =
 "❌ <b>Thông báo đang bị chặn.</b><br>"+
-"Hãy vào Cài đặt trình duyệt và cho phép thông báo.";
+"Vào phần cài đặt của trình duyệt/PWA và cho phép thông báo.";
 
 button.disabled =
 false;
@@ -990,13 +997,17 @@ return;
 }
 
 
-/* ONESIGNAL */
+/*
+   OneSignal permission
+*/
 
 const permission =
 OS.Notifications.permission;
 
 
-/* SUBSCRIPTION */
+/*
+   Subscription
+*/
 
 const push =
 getPushStatus(OS);
@@ -1007,13 +1018,14 @@ console.log(
 {
 permission:permission,
 optedIn:push.optedIn,
-subscriptionId:push.id,
-token:push.token
+subscriptionId:push.id
 }
 );
 
 
-/* READY */
+/*
+   READY
+*/
 
 if(
 permission === true &&
@@ -1022,7 +1034,7 @@ push.optedIn === true
 
 status.innerHTML =
 "✅ <b>Thông báo đã được bật.</b><br>"+
-"Thiết bị đã đăng ký nhận đơn mới.";
+"Thiết bị này đã đăng ký nhận đơn mới.";
 
 button.textContent =
 "✅ THÔNG BÁO ĐÃ BẬT";
@@ -1039,7 +1051,9 @@ return;
 }
 
 
-/* NOT READY */
+/*
+   CHƯA BẬT
+*/
 
 button.disabled =
 false;
@@ -1055,14 +1069,14 @@ button.classList.add(
 if(permission === true){
 
 status.innerHTML =
-"⚠️ Quyền thông báo đã cấp nhưng Push chưa đăng ký.<br>"+
+"⚠️ Quyền thông báo đã được cấp nhưng thiết bị chưa đăng ký Push.<br>"+
 "Bấm <b>BẬT THÔNG BÁO</b> để đăng ký.";
 
 }else{
 
 status.innerHTML =
 "⚠️ <b>Thông báo chưa được bật.</b><br>"+
-"Bấm nút bên dưới để bật.";
+"Bấm nút bên dưới để đăng ký thiết bị.";
 
 }
 
@@ -1127,8 +1141,9 @@ button.textContent =
 
 try{
 
-
-/* IOS */
+/*
+   iOS PWA
+*/
 
 if(
 isIOSDevice() &&
@@ -1136,7 +1151,7 @@ isIOSDevice() &&
 ){
 
 status.innerHTML =
-"⚠️ <b>Trước tiên hãy thêm CHOCO SHIP vào Màn hình chính.</b><br><br>"+
+"⚠️ <b>Cần thêm CHOCO SHIP vào Màn hình chính.</b><br><br>"+
 "Safari → Chia sẻ → Thêm vào Màn hình chính.";
 
 button.disabled =
@@ -1154,7 +1169,9 @@ return;
 }
 
 
-/* INIT */
+/*
+   INIT
+*/
 
 status.innerHTML =
 "⏳ Đang kết nối OneSignal...";
@@ -1163,24 +1180,13 @@ const OS =
 await initOneSignal();
 
 
-/* PUSH SUPPORT */
-
-const supported =
-await checkPushSupport(OS);
-
-
-if(!supported){
-
-throw new Error(
-"Thiết bị hoặc trình duyệt không hỗ trợ Web Push."
-);
-
-}
-
-
-/* LOGIN */
+/*
+   LOGIN
+*/
 
 if(USER_ID){
+
+try{
 
 await OS.login(
 String(USER_ID)
@@ -1191,14 +1197,21 @@ console.log(
 USER_ID
 );
 
+}catch(error){
+
+console.warn(
+"OneSignal login:",
+error
+);
+
+}
+
 }
 
 
-/* PERMISSION */
-
-status.innerHTML =
-"🔔 Đang xin quyền thông báo...";
-
+/*
+   Browser permission
+*/
 
 if(
 typeof Notification !== "undefined" &&
@@ -1212,6 +1225,10 @@ throw new Error(
 }
 
 
+status.innerHTML =
+"🔔 Đang xin quyền thông báo...";
+
+
 if(
 OS.Notifications.permission !== true
 ){
@@ -1221,7 +1238,9 @@ await OS.Notifications.requestPermission();
 }
 
 
-/* CHECK PERMISSION */
+/*
+   CHECK PERMISSION
+*/
 
 if(
 OS.Notifications.permission !== true
@@ -1234,13 +1253,17 @@ throw new Error(
 }
 
 
-/* CURRENT PUSH */
+/*
+   GET SUBSCRIPTION
+*/
 
 let push =
 getPushStatus(OS);
 
 
-/* OPT IN */
+/*
+   OPT IN
+*/
 
 if(
 !push.optedIn
@@ -1249,16 +1272,29 @@ if(
 status.innerHTML =
 "⏳ Đang đăng ký thiết bị nhận thông báo...";
 
+
+try{
+
 await OS.User.PushSubscription.optIn();
+
+}catch(error){
+
+console.warn(
+"Push optIn:",
+error
+);
+
+}
 
 }
 
 
-/* WAIT */
+/*
+   WAIT
+*/
 
 let success =
 false;
-
 
 for(
 let i=0;
@@ -1276,10 +1312,8 @@ resolve,
 
 });
 
-
 push =
 getPushStatus(OS);
-
 
 console.log(
 "Push check:",
@@ -1287,10 +1321,8 @@ i+1,
 push
 );
 
-
 if(
-push.optedIn === true &&
-push.id
+push.optedIn === true
 ){
 
 success =
@@ -1303,18 +1335,22 @@ break;
 }
 
 
-/* FAIL */
+/*
+   FAIL
+*/
 
 if(!success){
 
 throw new Error(
-"OneSignal chưa tạo được Push Subscription. Hãy kiểm tra Service Worker và thử lại."
+"OneSignal chưa đăng ký được thiết bị Push. Hãy thử lại."
 );
 
 }
 
 
-/* SUCCESS */
+/*
+   SUCCESS
+*/
 
 status.innerHTML =
 "✅ <b>Thông báo đã được bật!</b><br>"+
@@ -1348,11 +1384,6 @@ console.log(
 console.log(
 "Shipper:",
 USER_ID
-);
-
-console.log(
-"OneSignal User:",
-OS.User.onesignalId
 );
 
 console.log(
@@ -1407,14 +1438,25 @@ oneSignal &&
 USER_ID
 ){
 
+try{
+
 await oneSignal.logout();
+
+}catch(error){
+
+console.warn(
+"OneSignal logout:",
+error
+);
+
+}
 
 }
 
 }catch(error){
 
 console.warn(
-"OneSignal logout:",
+"Logout notification:",
 error
 );
 
@@ -1469,7 +1511,6 @@ TOKEN,
 ...(options.headers || {})
 
 };
-
 
 return fetch(
 
@@ -1664,7 +1705,8 @@ phoneEl.textContent =
 
 function getItems(raw){
 
-let data=raw;
+let data =
+raw;
 
 
 for(
@@ -1676,7 +1718,8 @@ i++
 
 try{
 
-data=JSON.parse(data);
+data =
+JSON.parse(data);
 
 }catch(e){
 
@@ -1924,9 +1967,18 @@ type,
 text
 ){
 
+const message =
 document.getElementById(
 "message"
-).innerHTML =
+);
+
+if(!message){
+
+return;
+
+}
+
+message.innerHTML =
 `
 <div class="${type}">
 ${esc(text)}
@@ -1983,6 +2035,10 @@ const orders =
 await response.json();
 
 
+/*
+   Phát hiện đơn mới khi polling.
+*/
+
 if(!firstOrderLoad){
 
 const newOrders =
@@ -2035,7 +2091,8 @@ order.id
 );
 
 
-firstOrderLoad=false;
+firstOrderLoad =
+false;
 
 
 renderOrders(
@@ -2070,19 +2127,43 @@ ${esc(error.message)}
 
 
 /* ==================================================
-   NEW ORDER
+   NEW ORDER CHECK
 ================================================== */
 
-async function notifyNewOrders(
+function notifyNewOrders(
 orders
 ){
 
 try{
 
 console.log(
-"🔔 ĐƠN MỚI:",
+"🔔 PHÁT HIỆN ĐƠN MỚI:",
 orders
 );
+
+
+/*
+   LƯU Ý:
+
+   Push notification cho tất cả shipper
+   phải được gửi từ server / Edge Function /
+   Admin thông qua OneSignal REST API.
+
+   shipper.html KHÔNG tự gửi push cho
+   shipper khác.
+*/
+
+
+if(
+oneSignalReady &&
+oneSignal
+){
+
+console.log(
+"OneSignal đang sẵn sàng."
+);
+
+}
 
 }catch(error){
 
@@ -2301,7 +2382,8 @@ order.amount ||
 );
 
 
-let gpsHtml="";
+let gpsHtml =
+"";
 
 
 if(
@@ -2330,16 +2412,19 @@ order.longitude
 }
 
 
-let badgeClass="";
+let badgeClass =
+"";
 
 
 if(pending){
 
-badgeClass="new";
+badgeClass =
+"new";
 
 }else if(mine){
 
-badgeClass="mine";
+badgeClass =
+"mine";
 
 }
 
@@ -2733,7 +2818,8 @@ null;
 
 if(button){
 
-button.disabled=true;
+button.disabled =
+true;
 
 button.textContent =
 "⏳ ĐANG NHẬN...";
@@ -2840,7 +2926,8 @@ error.message
 
 if(button){
 
-button.disabled=false;
+button.disabled =
+false;
 
 button.textContent =
 "✅ NHẬN ĐƠN";
@@ -2983,25 +3070,72 @@ await loadOrders();
 
 async function start(){
 
+/*
+   Tải profile và đơn trước.
+*/
+
 await loadProfile();
 
 await loadOrders();
 
 
+/*
+   OneSignal chạy riêng,
+   không làm kẹt giao diện.
+*/
+
 initOneSignal()
-.then(function(){
+.then(
+function(){
 
 console.log(
 "✅ OneSignal startup hoàn tất"
 );
 
-})
-.catch(function(error){
+}
+)
+.catch(
+function(error){
 
 console.error(
 "OneSignal startup:",
 error
 );
+
+const status =
+document.getElementById(
+"notificationStatus"
+);
+
+const button =
+document.getElementById(
+"notificationButton"
+);
+
+if(status){
+
+status.innerHTML =
+"❌ <b>OneSignal chưa khởi động.</b><br>"+
+esc(
+error.message ||
+String(error)
+);
+
+}
+
+if(button){
+
+button.disabled =
+false;
+
+button.textContent =
+"🔄 THỬ LẠI";
+
+button.classList.add(
+"off"
+);
+
+}
 
 });
 
