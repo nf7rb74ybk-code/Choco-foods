@@ -924,7 +924,7 @@ status.innerHTML =
 
 const saveResponse =
 await api(
-"/rest/v1/subscriptions",
+"/rest/v1/subscriptions?on_conflict=user_id,endpoint",
 {
 
 method:"POST",
