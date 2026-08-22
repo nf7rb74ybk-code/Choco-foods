@@ -26,7 +26,6 @@
 
 <title>CHOCO SHIP - Shipper</title>
 
-
 <style>
 
 *{
@@ -423,9 +422,7 @@ button{
 </style>
 </head>
 
-
 <body>
-
 
 <header>
 
@@ -455,9 +452,7 @@ onclick="logout()">
 
 </header>
 
-
 <div class="container">
-
 
 <div class="welcome">
 
@@ -481,7 +476,6 @@ id="shipperPhone">
 
 </div>
 
-
 <div class="notification-box">
 
 <div class="notification-title">
@@ -492,24 +486,23 @@ id="shipperPhone">
 class="notification-status"
 id="notificationStatus">
 
-⏳ Đang kiểm tra OneSignal...
+⏳ Đang tải OneSignal...
 
 </div>
 
 <button
 id="notificationButton"
 class="notification-button"
-onclick="enableNotifications()">
+onclick="enableNotifications()"
+disabled>
 
-🔔 BẬT THÔNG BÁO
+⏳ ĐANG TẢI...
 
 </button>
 
 </div>
 
-
 <div id="message"></div>
-
 
 <div class="stats">
 
@@ -530,7 +523,6 @@ Hoàn thành
 
 </div>
 
-
 <div
 id="orders"
 class="orders">
@@ -541,12 +533,11 @@ class="orders">
 
 </div>
 
-
 </div>
 
 
 <!-- ==================================================
-     ONESIGNAL
+     ONESIGNAL WEB SDK
 ================================================== -->
 
 <script
@@ -554,19 +545,35 @@ src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
 defer>
 </script>
 
-
 <script>
 
 window.OneSignalDeferred =
 window.OneSignalDeferred || [];
 
+let oneSignalReady = false;
+let oneSignal = null;
+let oneSignalPromise = null;
+
+
+/* ==================================================
+   KHỞI TẠO ONESIGNAL
+================================================== */
+
+function initOneSignal(){
+
+if(oneSignalPromise){
+return oneSignalPromise;
+}
+
+oneSignalPromise =
+new Promise(function(resolve,reject){
 
 OneSignalDeferred.push(
-async function(OneSignal){
+async function(OS){
 
 try{
 
-await OneSignal.init({
+await OS.init({
 
 appId:
 "66bec449-f15b-4d0e-90fc-3dc470fef20c",
@@ -579,53 +586,45 @@ allowLocalhostAsSecureOrigin:false
 
 });
 
+oneSignal =
+OS;
+
+oneSignalReady =
+true;
 
 console.log(
-"OneSignal initialized"
+"✅ CHOCO SHIP - OneSignal READY"
 );
 
+resolve(OS);
 
 updateNotificationStatus();
-
 
 }catch(error){
 
 console.error(
-"OneSignal INIT ERROR:",
+"❌ ONESIGNAL INIT ERROR",
 error
 );
 
-document.getElementById(
-"notificationStatus"
-).innerHTML =
-"❌ Không khởi động được OneSignal.";
+reject(error);
 
 }
 
 });
 
+});
 
-/* ==================================================
-   ONESIGNAL STATUS
-================================================== */
-
-async function updateNotificationStatus(){
-
-try{
-
-const OneSignal =
-window.OneSignal;
-
-if(!OneSignal){
-
-return;
+return oneSignalPromise;
 
 }
 
 
-const permission =
-OneSignal.Notifications.permission;
+/* ==================================================
+   STATUS ONESIGNAL
+================================================== */
 
+async function updateNotificationStatus(){
 
 const status =
 document.getElementById(
@@ -637,18 +636,30 @@ document.getElementById(
 "notificationButton"
 );
 
+if(!status || !button){
+return;
+}
 
-if(permission){
+try{
+
+const OS =
+await initOneSignal();
+
+const permission =
+OS.Notifications.permission;
+
+button.disabled =
+false;
+
+if(permission === true){
 
 status.innerHTML =
-"✅ <b>Thông báo OneSignal đã được cấp quyền.</b>";
+"✅ <b>Thông báo đã được cấp quyền.</b>";
 
 button.textContent =
 "✅ THÔNG BÁO ĐÃ BẬT";
 
-button.classList.remove(
-"off"
-);
+button.classList.remove("off");
 
 }else{
 
@@ -659,18 +670,29 @@ status.innerHTML =
 button.textContent =
 "🔔 BẬT THÔNG BÁO";
 
-button.classList.add(
-"off"
-);
+button.classList.add("off");
 
 }
 
 }catch(error){
 
 console.error(
-"ONESIGNAL STATUS ERROR:",
+"STATUS ERROR",
 error
 );
+
+status.innerHTML =
+"❌ Không tải được OneSignal.<br>"+
+esc(
+error.message ||
+String(error)
+);
+
+button.disabled =
+true;
+
+button.textContent =
+"❌ ONESIGNAL LỖI";
 
 }
 
@@ -678,7 +700,7 @@ error
 
 
 /* ==================================================
-   ENABLE NOTIFICATIONS
+   BẬT THÔNG BÁO
 ================================================== */
 
 async function enableNotifications(){
@@ -693,30 +715,27 @@ document.getElementById(
 "notificationStatus"
 );
 
-
-button.disabled=true;
+button.disabled =
+true;
 
 button.textContent =
 "⏳ ĐANG BẬT...";
 
-
 try{
 
-const OneSignal =
-window.OneSignal;
+/*
+   CHỜ ONESIGNAL THẬT SỰ SẴN SÀNG
+*/
 
+status.innerHTML =
+"⏳ Đang kết nối OneSignal...";
 
-if(!OneSignal){
-
-throw new Error(
-"OneSignal chưa tải xong."
-);
-
-}
+const OS =
+await initOneSignal();
 
 
 /*
-   iPhone phải chạy PWA
+   KIỂM TRA iPHONE
 */
 
 const isIOS =
@@ -724,11 +743,8 @@ const isIOS =
 navigator.userAgent
 );
 
-
 const isStandalone =
-(
-window.navigator.standalone === true
-) ||
+window.navigator.standalone === true ||
 (
 window.matchMedia &&
 window.matchMedia(
@@ -737,19 +753,17 @@ window.matchMedia(
 );
 
 
-if(
-isIOS &&
-!isStandalone
-){
+if(isIOS && !isStandalone){
 
 status.innerHTML =
-"⚠️ <b>iPhone cần thêm CHOCO SHIP vào Màn hình chính.</b><br><br>"+
+"⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br><br>"+
 "1. Bấm nút Chia sẻ trong Safari<br>"+
 "2. Chọn <b>Thêm vào Màn hình chính</b><br>"+
 "3. Mở CHOCO SHIP từ biểu tượng ngoài màn hình<br>"+
 "4. Bấm lại BẬT THÔNG BÁO.";
 
-button.disabled=false;
+button.disabled =
+false;
 
 button.textContent =
 "🔔 BẬT THÔNG BÁO";
@@ -760,52 +774,54 @@ return;
 
 
 /*
-   Xin quyền OneSignal
+   XIN QUYỀN
 */
 
-await OneSignal.Notifications.requestPermission();
+status.innerHTML =
+"🔔 Đang xin quyền thông báo...";
+
+await OS.Notifications.requestPermission();
 
 
 /*
-   Kiểm tra
+   KIỂM TRA QUYỀN
 */
 
 if(
-!OneSignal.Notifications.permission
+OS.Notifications.permission !== true
 ){
 
 throw new Error(
-"Bạn chưa cấp quyền thông báo."
+"Bạn chưa cho phép thông báo."
 );
 
 }
 
 
-status.innerHTML =
-"⏳ Đang đăng ký thiết bị với OneSignal...";
-
-
 /*
-   Login OneSignal với user Supabase
+   LIÊN KẾT SHIPPER VỚI ONESIGNAL
 */
 
-if(USER_ID){
+if(
+typeof USER_ID !== "undefined" &&
+USER_ID
+){
 
 try{
 
-await OneSignal.login(
+await OS.login(
 String(USER_ID)
 );
 
 console.log(
-"OneSignal user linked:",
+"✅ OneSignal User ID:",
 USER_ID
 );
 
 }catch(error){
 
 console.warn(
-"OneSignal login warning:",
+"OneSignal login:",
 error
 );
 
@@ -814,10 +830,40 @@ error
 }
 
 
+/*
+   KIỂM TRA SUBSCRIPTION
+*/
+
+status.innerHTML =
+"⏳ Đang đăng ký thiết bị...";
+
+try{
+
+const subscription =
+OS.User.PushSubscription;
+
+console.log(
+"OneSignal subscription:",
+subscription
+);
+
+}catch(error){
+
+console.warn(
+"Subscription check:",
+error
+);
+
+}
+
+
+/*
+   THÀNH CÔNG
+*/
+
 status.innerHTML =
 "✅ <b>Thông báo đã được bật!</b><br>"+
-"Thiết bị này đã được đăng ký nhận thông báo đơn hàng.";
-
+"Thiết bị đã đăng ký với OneSignal.";
 
 button.textContent =
 "✅ THÔNG BÁO ĐÃ BẬT";
@@ -826,20 +872,21 @@ button.classList.remove(
 "off"
 );
 
+button.disabled =
+false;
 
 showMessage(
 "success",
-"🔔 Đã bật thông báo OneSignal cho thiết bị này."
+"🔔 Đã bật thông báo OneSignal."
 );
 
 
 }catch(error){
 
 console.error(
-"ONESIGNAL ENABLE ERROR:",
+"❌ ENABLE NOTIFICATION ERROR:",
 error
 );
-
 
 status.innerHTML =
 "❌ <b>Không bật được thông báo.</b><br>"+
@@ -848,11 +895,11 @@ error.message ||
 String(error)
 );
 
-
-button.disabled=false;
+button.disabled =
+false;
 
 button.textContent =
-"🔔 THỬ BẬT LẠI";
+"🔔 THỬ LẠI";
 
 button.classList.add(
 "off"
@@ -870,7 +917,6 @@ button.classList.add(
 const SUPABASE_URL =
 "https://guwdswqaqnhzqapflvey.supabase.co";
 
-
 const SUPABASE_KEY =
 "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
@@ -884,18 +930,15 @@ localStorage.getItem(
 "choco_access_token"
 );
 
-
 const USER_ID =
 localStorage.getItem(
 "choco_user_id"
 );
 
-
 const ROLE =
 localStorage.getItem(
 "choco_role"
 );
-
 
 const EMAIL =
 localStorage.getItem(
@@ -925,11 +968,11 @@ async function logout(){
 try{
 
 if(
-window.OneSignal &&
+oneSignal &&
 USER_ID
 ){
 
-await OneSignal.logout();
+await oneSignal.logout();
 
 }
 
@@ -941,7 +984,6 @@ error
 );
 
 }
-
 
 localStorage.removeItem(
 "choco_access_token"
@@ -958,7 +1000,6 @@ localStorage.removeItem(
 localStorage.removeItem(
 "choco_email"
 );
-
 
 window.location.replace(
 "login.html"
@@ -991,7 +1032,6 @@ TOKEN,
 ...(options.headers || {})
 
 };
-
 
 return fetch(
 
@@ -1088,11 +1128,9 @@ document.getElementById(
 "shipperEmail"
 );
 
-
 emailEl.textContent =
 EMAIL ||
 "Không có email";
-
 
 try{
 
@@ -1108,7 +1146,6 @@ USER_ID
 
 );
 
-
 if(!response.ok){
 
 throw new Error(
@@ -1117,10 +1154,8 @@ await response.text()
 
 }
 
-
 const data =
 await response.json();
-
 
 if(!data.length){
 
@@ -1134,15 +1169,12 @@ return;
 
 }
 
-
 const profile =
 data[0];
-
 
 nameEl.textContent =
 profile.full_name ||
 "Shipper";
-
 
 if(profile.phone){
 
@@ -1160,7 +1192,6 @@ phoneEl.textContent =
 "📞 Chưa có số điện thoại";
 
 }
-
 
 }catch(error){
 
@@ -1188,7 +1219,6 @@ function getItems(raw){
 
 let data=raw;
 
-
 for(
 let i=0;
 i<5 &&
@@ -1208,13 +1238,11 @@ break;
 
 }
 
-
 if(Array.isArray(data)){
 
 return data;
 
 }
-
 
 if(
 data &&
@@ -1225,7 +1253,6 @@ return data.items;
 
 }
 
-
 if(
 data &&
 typeof data==="object"
@@ -1234,7 +1261,6 @@ typeof data==="object"
 return [data];
 
 }
-
 
 if(
 typeof data==="string" &&
@@ -1249,7 +1275,6 @@ price:0
 
 }
 
-
 return [];
 
 }
@@ -1260,7 +1285,6 @@ function renderItems(raw){
 const list =
 getItems(raw);
 
-
 if(!list.length){
 
 return `
@@ -1270,7 +1294,6 @@ return `
 `;
 
 }
-
 
 return list.map(
 function(item,index){
@@ -1287,14 +1310,12 @@ price:0
 
 }
 
-
 const name =
 item.name ||
 item.title ||
 item.product_name ||
 item.food_name ||
 ("Món "+(index+1));
-
 
 const qty =
 Number(
@@ -1304,7 +1325,6 @@ item.amount ??
 1
 ) || 1;
 
-
 const price =
 Number(
 item.price ??
@@ -1313,7 +1333,6 @@ item.food_price ??
 0
 ) || 0;
 
-
 const total =
 Number(
 item.total ??
@@ -1321,7 +1340,6 @@ item.subtotal ??
 (price*qty)
 ) ||
 (price*qty);
-
 
 return `
 
@@ -1382,7 +1400,6 @@ return "#";
 
 }
 
-
 return (
 
 "https://www.google.com/maps/search/?api=1&query="+
@@ -1421,7 +1438,6 @@ if(!value){
 return "";
 
 }
-
 
 try{
 
@@ -1465,7 +1481,6 @@ ${esc(text)}
 let previousOrderIds =
 new Set();
 
-
 let firstOrderLoad =
 true;
 
@@ -1476,7 +1491,6 @@ const box =
 document.getElementById(
 "orders"
 );
-
 
 try{
 
@@ -1489,7 +1503,6 @@ await api(
 
 );
 
-
 if(!response.ok){
 
 throw new Error(
@@ -1501,14 +1514,9 @@ await response.text()
 
 }
 
-
 const orders =
 await response.json();
 
-
-/*
-   Phát hiện đơn mới
-*/
 
 if(!firstOrderLoad){
 
@@ -1536,7 +1544,6 @@ order.status ===
 }
 );
 
-
 if(newOrders.length){
 
 notifyNewOrders(
@@ -1547,7 +1554,6 @@ newOrders
 
 }
 
-
 previousOrderIds =
 new Set(
 orders.map(
@@ -1556,14 +1562,11 @@ String(order.id)
 )
 );
 
-
 firstOrderLoad=false;
-
 
 renderOrders(
 orders
 );
-
 
 }catch(error){
 
@@ -1571,7 +1574,6 @@ console.error(
 "LOAD ORDERS ERROR:",
 error
 );
-
 
 box.innerHTML =
 `
@@ -1592,45 +1594,33 @@ ${esc(error.message)}
 
 
 /* ==================================================
-   LOCAL FALLBACK NOTIFICATION
+   NEW ORDER CHECK
 ================================================== */
 
 async function notifyNewOrders(
 orders
 ){
 
-/*
-   OneSignal sẽ nhận Push từ server.
-   Đoạn này chỉ dùng khi trang đang mở.
-*/
-
 try{
 
 if(
-!window.OneSignal ||
-!OneSignal.Notifications.permission
+!oneSignalReady ||
+!oneSignal
 ){
 
 return;
 
 }
 
-
-for(
-const order of orders
-){
-
 console.log(
-"NEW ORDER:",
-order.id
+"🔔 ĐƠN MỚI:",
+orders
 );
-
-}
 
 }catch(error){
 
 console.warn(
-"ONESIGNAL NOTIFICATION CHECK:",
+"NOTIFICATION CHECK:",
 error
 );
 
@@ -1652,7 +1642,6 @@ document.getElementById(
 "orders"
 );
 
-
 const myOrders =
 orders.filter(
 function(order){
@@ -1663,7 +1652,6 @@ order.shipper_id || ""
 
 }
 );
-
 
 const visible =
 orders.filter(
@@ -1677,18 +1665,15 @@ order.status ===
 !order.shipper_id
 );
 
-
 const mine =
 String(
 order.shipper_id || ""
 ) === String(USER_ID);
 
-
 return pending || mine;
 
 }
 );
-
 
 const newCount =
 orders.filter(
@@ -1703,7 +1688,6 @@ order.status ===
 
 }
 ).length;
-
 
 const shippingCount =
 myOrders.filter(
@@ -1723,7 +1707,6 @@ order.status
 }
 ).length;
 
-
 const doneCount =
 myOrders.filter(
 function(order){
@@ -1736,24 +1719,20 @@ order.status ===
 }
 ).length;
 
-
 document.getElementById(
 "newCount"
 ).textContent =
 newCount;
-
 
 document.getElementById(
 "shippingCount"
 ).textContent =
 shippingCount;
 
-
 document.getElementById(
 "doneCount"
 ).textContent =
 doneCount;
-
 
 if(!visible.length){
 
@@ -1769,7 +1748,6 @@ box.innerHTML =
 return;
 
 }
-
 
 box.innerHTML =
 visible
@@ -1795,30 +1773,25 @@ order.status ===
 !order.shipper_id
 );
 
-
 const mine =
 String(
 order.shipper_id || ""
 ) === String(USER_ID);
-
 
 const customer =
 order.name ||
 order.customer_name ||
 "Khách hàng";
 
-
 const phone =
 order.phone ||
 order.customer_phone ||
 "";
 
-
 const pickup =
 order.pickup ||
 order.pickup_address ||
 "";
-
 
 const dropoff =
 order.dropoff ||
@@ -1826,14 +1799,12 @@ order.dropoff_address ||
 order.address ||
 "";
 
-
 const fee =
 Number(
 order.fee ||
 order.delivery_fee ||
 0
 );
-
 
 const total =
 Number(
@@ -1843,9 +1814,7 @@ order.amount ||
 0
 );
 
-
 let gpsHtml="";
-
 
 if(
 order.latitude !== null &&
@@ -1872,9 +1841,7 @@ order.longitude
 
 }
 
-
 let badgeClass="";
-
 
 if(pending){
 
@@ -1886,13 +1853,11 @@ badgeClass="mine";
 
 }
 
-
 return `
 
 <div
 class="order"
 id="order-${esc(order.id)}">
-
 
 <div class="order-top">
 
@@ -1907,7 +1872,6 @@ order.code ||
 
 </div>
 
-
 <div class="time">
 
 🕒
@@ -1918,7 +1882,6 @@ order.created_at
 )}
 
 </div>
-
 
 <span
 class="badge ${badgeClass}">
@@ -1931,7 +1894,6 @@ order.status ||
 </span>
 
 </div>
-
 
 ${
 total
@@ -1949,7 +1911,6 @@ ${money(total)}
 }
 
 </div>
-
 
 <div class="customer">
 
@@ -1974,7 +1935,6 @@ ${esc(phone)}
 "Chưa có số điện thoại"
 }
 
-
 <br>
 
 📍
@@ -1984,7 +1944,6 @@ ${esc(
 pickup ||
 "Chưa có địa chỉ"
 )}
-
 
 <br>
 
@@ -1997,7 +1956,6 @@ dropoff ||
 )}
 
 </div>
-
 
 <div class="box">
 
@@ -2012,7 +1970,6 @@ order.items
 )}
 
 </div>
-
 
 ${
 fee
@@ -2038,7 +1995,6 @@ ${money(fee)}
 ""
 }
 
-
 ${
 mine
 ?
@@ -2058,7 +2014,6 @@ Bạn có quyền cập nhật trạng thái.
 :
 ""
 }
-
 
 ${
 pending
@@ -2080,7 +2035,6 @@ onclick="acceptOrder(${JSON.stringify(order.id)})">
 ""
 }
 
-
 ${
 mine
 ?
@@ -2092,7 +2046,6 @@ mine
 🔄 Cập nhật trạng thái
 
 </div>
-
 
 <div class="status">
 
@@ -2112,7 +2065,6 @@ order.status === "Đã hủy"
 ""
 }>
 
-
 <option
 value="Đã nhận"
 ${
@@ -2126,7 +2078,6 @@ order.status === "Đã nhận"
 Đã nhận
 
 </option>
-
 
 <option
 value="Đang lấy hàng"
@@ -2142,7 +2093,6 @@ order.status === "Đang lấy hàng"
 
 </option>
 
-
 <option
 value="Đang giao"
 ${
@@ -2157,7 +2107,6 @@ order.status === "Đang giao"
 
 </option>
 
-
 <option
 value="Đã giao"
 ${
@@ -2171,7 +2120,6 @@ order.status === "Đã giao"
 Đã giao
 
 </option>
-
 
 <option
 value="Hoàn thành"
@@ -2197,7 +2145,6 @@ Hoàn thành
 ""
 }
 
-
 ${
 pickup
 ?
@@ -2215,7 +2162,6 @@ href="${mapUrl(pickup)}">
 :
 ""
 }
-
 
 ${
 dropoff
@@ -2235,9 +2181,7 @@ href="${mapUrl(dropoff)}">
 ""
 }
 
-
 ${gpsHtml}
-
 
 ${
 phone
@@ -2254,7 +2198,6 @@ href="tel:${esc(phone)}">
 :
 ""
 }
-
 
 </div>
 
@@ -2274,7 +2217,6 @@ document.getElementById(
 "order-"+id
 );
 
-
 const button =
 card
 ?
@@ -2284,7 +2226,6 @@ card.querySelector(
 :
 null;
 
-
 if(button){
 
 button.disabled=true;
@@ -2293,7 +2234,6 @@ button.textContent =
 "⏳ ĐANG NHẬN...";
 
 }
-
 
 try{
 
@@ -2337,7 +2277,6 @@ status:
 
 );
 
-
 if(!response.ok){
 
 throw new Error(
@@ -2349,10 +2288,8 @@ await response.text()
 
 }
 
-
 const result =
 await response.json();
-
 
 if(!result.length){
 
@@ -2367,15 +2304,12 @@ return;
 
 }
 
-
 showMessage(
 "success",
 "✅ Nhận đơn thành công!"
 );
 
-
 await loadOrders();
-
 
 }catch(error){
 
@@ -2384,13 +2318,11 @@ console.error(
 error
 );
 
-
 showMessage(
 "error",
 "❌ Không nhận được đơn.\n"+
 error.message
 );
-
 
 if(button){
 
@@ -2425,7 +2357,6 @@ const allowed=[
 
 ];
 
-
 if(
 !allowed.includes(
 newStatus
@@ -2435,7 +2366,6 @@ newStatus
 return;
 
 }
-
 
 try{
 
@@ -2473,7 +2403,6 @@ newStatus
 
 );
 
-
 if(!response.ok){
 
 throw new Error(
@@ -2485,10 +2414,8 @@ await response.text()
 
 }
 
-
 const result =
 await response.json();
-
 
 if(!result.length){
 
@@ -2498,16 +2425,13 @@ throw new Error(
 
 }
 
-
 showMessage(
 "success",
 "✅ Đã cập nhật: "+
 newStatus
 );
 
-
 await loadOrders();
-
 
 }catch(error){
 
@@ -2515,7 +2439,6 @@ console.error(
 "STATUS ERROR:",
 error
 );
-
 
 showMessage(
 "error",
@@ -2540,13 +2463,22 @@ await loadProfile();
 
 await loadOrders();
 
-setTimeout(
-updateNotificationStatus,
-1500
+/*
+   Bắt đầu OneSignal song song,
+   không chặn việc tải đơn hàng.
+*/
+
+initOneSignal()
+.catch(function(error){
+
+console.error(
+"OneSignal startup:",
+error
 );
 
-}
+});
 
+}
 
 start();
 
