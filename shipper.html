@@ -429,4 +429,1801 @@ onclick="logout()">
 
 <div class="welcome">
 
-👋 Xin chào Sh
+👋 Xin chào Shipper
+
+<small>
+Tài khoản:
+<span id="shipperEmail">
+Đang tải...
+</span>
+</small>
+
+<b id="shipperName">
+Đang tải...
+</b>
+
+<span
+class="profile-phone"
+id="shipperPhone">
+</span>
+
+</div>
+
+<div class="notification-box">
+
+<div class="notification-title">
+🔔 Thông báo đơn hàng
+</div>
+
+<div
+class="notification-status"
+id="notificationStatus">
+
+⏳ Đang kiểm tra thông báo...
+
+</div>
+
+<button
+id="notificationButton"
+class="notification-button"
+onclick="enableNotifications()">
+
+🔔 BẬT THÔNG BÁO
+
+</button>
+
+</div>
+
+<div id="message"></div>
+
+<div class="stats">
+
+<div class="stat">
+Đơn mới
+<b id="newCount">0</b>
+</div>
+
+<div class="stat">
+Đang giao
+<b id="shippingCount">0</b>
+</div>
+
+<div class="stat">
+Hoàn thành
+<b id="doneCount">0</b>
+</div>
+
+</div>
+
+<div
+id="orders"
+class="orders">
+
+<div class="empty">
+⏳ Đang tải đơn...
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+"https://guwdswqaqnhzqapflvey.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+
+const VAPID_PUBLIC_KEY =
+"BP4BlUl0FctLDXZFRmMku66a51WxKp-mUD7OvfDwMq1cYaFqXqjkuh5JvRun0n0uqq3FMxjaqgNNXmhIkVhEoCQ";
+
+const TOKEN =
+localStorage.getItem("choco_access_token");
+
+const USER_ID =
+localStorage.getItem("choco_user_id");
+
+const ROLE =
+localStorage.getItem("choco_role");
+
+const EMAIL =
+localStorage.getItem("choco_email") || "";
+
+if(
+!TOKEN ||
+!USER_ID ||
+ROLE !== "shipper"
+){
+window.location.replace("login.html");
+}
+
+function logout(){
+
+localStorage.removeItem("choco_access_token");
+localStorage.removeItem("choco_user_id");
+localStorage.removeItem("choco_role");
+localStorage.removeItem("choco_email");
+
+window.location.replace("login.html");
+}
+
+async function api(path,options={}){
+
+const headers={
+
+"apikey":SUPABASE_KEY,
+
+"Authorization":
+"Bearer "+TOKEN,
+
+"Accept":
+"application/json",
+
+...(options.headers || {})
+
+};
+
+return fetch(
+SUPABASE_URL+path,
+{
+...options,
+headers
+}
+);
+}
+
+function esc(value){
+
+return String(value ?? "")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+}
+
+function money(value){
+
+return Number(value || 0)
+.toLocaleString("vi-VN")+"đ";
+}
+
+function urlBase64ToUint8Array(base64String){
+
+const padding =
+"=".repeat(
+(4 - base64String.length % 4) % 4
+);
+
+const base64 =
+(
+base64String +
+padding
+)
+.replace(/-/g,"+")
+.replace(/_/g,"/");
+
+const rawData =
+window.atob(base64);
+
+const outputArray =
+new Uint8Array(
+rawData.length
+);
+
+for(
+let i=0;
+i<rawData.length;
+++i
+){
+
+outputArray[i] =
+rawData.charCodeAt(i);
+
+}
+
+return outputArray;
+}
+
+let swRegistration = null;
+
+async function registerServiceWorker(){
+
+if(!("serviceWorker" in navigator)){
+
+throw new Error(
+"Trình duyệt không hỗ trợ Service Worker."
+);
+}
+
+swRegistration =
+await navigator.serviceWorker.register(
+"./sw.js",
+{
+scope:"./"
+}
+);
+
+await navigator.serviceWorker.ready;
+
+return swRegistration;
+}
+
+async function checkNotificationStatus(){
+
+const status =
+document.getElementById(
+"notificationStatus"
+);
+
+const button =
+document.getElementById(
+"notificationButton"
+);
+
+if(!("Notification" in window)){
+
+status.innerHTML =
+"❌ Thiết bị/trình duyệt không hỗ trợ Push.";
+
+button.disabled=true;
+
+return;
+}
+
+if(Notification.permission==="granted"){
+
+status.innerHTML =
+"✅ <b>Thông báo đã được cấp quyền.</b><br>"+
+"Đang kiểm tra thiết bị...";
+
+button.textContent =
+"🔄 KIỂM TRA THÔNG BÁO";
+
+return;
+}
+
+if(Notification.permission==="denied"){
+
+status.innerHTML =
+"❌ Thông báo đang bị chặn.";
+
+button.textContent =
+"⚙️ THÔNG BÁO ĐANG BỊ CHẶN";
+
+button.classList.add("off");
+
+return;
+}
+
+status.innerHTML =
+"⚠️ Thông báo chưa được bật.<br>"+
+"Bấm nút bên dưới để bật.";
+
+button.textContent =
+"🔔 BẬT THÔNG BÁO";
+
+button.classList.add("off");
+}
+
+
+/* ==================================================
+   PUSH NOTIFICATION
+================================================== */
+
+function validBase64Url(value){
+
+return (
+typeof value === "string" &&
+value.length > 0 &&
+/^[A-Za-z0-9_-]+$/.test(value)
+);
+}
+
+
+async function enableNotifications(){
+
+const status =
+document.getElementById(
+"notificationStatus"
+);
+
+const button =
+document.getElementById(
+"notificationButton"
+);
+
+button.disabled=true;
+
+button.textContent =
+"⏳ ĐANG BẬT...";
+
+try{
+
+if(
+location.protocol !== "https:" &&
+location.hostname !== "localhost"
+){
+
+throw new Error(
+"Website phải chạy bằng HTTPS."
+);
+}
+
+if(!("Notification" in window)){
+
+throw new Error(
+"Thiết bị/trình duyệt không hỗ trợ thông báo."
+);
+}
+
+const isIOS =
+/iphone|ipad|ipod/i.test(
+navigator.userAgent
+);
+
+const isStandalone =
+(
+window.navigator.standalone === true
+) ||
+(
+window.matchMedia &&
+window.matchMedia(
+"(display-mode: standalone)"
+).matches
+);
+
+if(isIOS && !isStandalone){
+
+status.innerHTML =
+"⚠️ <b>iPhone cần thêm website vào Màn hình chính.</b><br><br>"+
+"1. Bấm Chia sẻ trong Safari<br>"+
+"2. Chọn <b>Thêm vào Màn hình chính</b><br>"+
+"3. Mở CHOCO SHIP từ màn hình chính<br>"+
+"4. Bấm lại BẬT THÔNG BÁO.";
+
+button.disabled=false;
+
+button.textContent =
+"🔔 BẬT THÔNG BÁO";
+
+return;
+}
+
+let permission =
+Notification.permission;
+
+if(permission !== "granted"){
+
+permission =
+await Notification.requestPermission();
+}
+
+if(permission !== "granted"){
+
+throw new Error(
+permission === "denied"
+?
+"Bạn đã chặn thông báo."
+:
+"Chưa cấp quyền thông báo."
+);
+}
+
+status.innerHTML =
+"⏳ Đang đăng ký thiết bị...";
+
+await registerServiceWorker();
+
+if(!swRegistration.pushManager){
+
+throw new Error(
+"Trình duyệt không hỗ trợ Push Manager."
+);
+}
+
+let subscription =
+await swRegistration.pushManager.getSubscription();
+
+if(!subscription){
+
+status.innerHTML =
+"⏳ Đang tạo Push Subscription...";
+
+subscription =
+await swRegistration.pushManager.subscribe({
+
+userVisibleOnly:true,
+
+applicationServerKey:
+urlBase64ToUint8Array(
+VAPID_PUBLIC_KEY
+)
+
+});
+}
+
+const subJSON =
+subscription.toJSON();
+
+console.log(
+"REAL PUSH SUBSCRIPTION:",
+subJSON
+);
+
+if(
+!subJSON ||
+!subJSON.endpoint ||
+!subJSON.keys ||
+!subJSON.keys.p256dh ||
+!subJSON.keys.auth
+){
+
+throw new Error(
+"Push Subscription không đầy đủ endpoint/p256dh/auth."
+);
+}
+
+if(
+!validBase64Url(
+subJSON.keys.p256dh
+)
+){
+
+throw new Error(
+"p256dh không phải Base64URL hợp lệ."
+);
+}
+
+if(
+!validBase64Url(
+subJSON.keys.auth
+)
+){
+
+throw new Error(
+"auth không phải Base64URL hợp lệ."
+);
+}
+
+const p256dhBytes =
+urlBase64ToUint8Array(
+subJSON.keys.p256dh
+);
+
+const authBytes =
+urlBase64ToUint8Array(
+subJSON.keys.auth
+);
+
+if(
+p256dhBytes.length !== 65
+){
+
+throw new Error(
+"p256dh không hợp lệ: phải có 65 bytes, hiện tại có "+
+p256dhBytes.length+
+" bytes."
+);
+}
+
+if(
+authBytes.length !== 16
+){
+
+throw new Error(
+"auth không hợp lệ: phải có 16 bytes, hiện tại có "+
+authBytes.length+
+" bytes."
+);
+}
+
+status.innerHTML =
+"⏳ Đang lưu thiết bị...";
+
+const saveResponse =
+await api(
+"/rest/v1/subscriptions",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+"Prefer":
+"resolution=merge-duplicates,return=representation"
+
+},
+
+body:JSON.stringify({
+
+user_id:
+USER_ID,
+
+endpoint:
+subJSON.endpoint,
+
+p256dh:
+subJSON.keys.p256dh,
+
+auth:
+subJSON.keys.auth
+
+})
+
+}
+);
+
+if(!saveResponse.ok){
+
+const errorText =
+await saveResponse.text();
+
+throw new Error(
+"Không lưu được subscription.\n"+
+errorText
+);
+}
+
+const saved =
+await saveResponse.json();
+
+console.log(
+"SUBSCRIPTION SAVED:",
+saved
+);
+
+status.innerHTML =
+"✅ <b>Đã bật thông báo thành công!</b><br>"+
+"Thiết bị này đã được đăng ký nhận đơn mới.";
+
+button.textContent =
+"✅ THÔNG BÁO ĐÃ BẬT";
+
+button.classList.remove("off");
+
+showMessage(
+"success",
+"🔔 Đã bật thông báo cho thiết bị này."
+);
+
+try{
+
+await swRegistration.showNotification(
+"🚚 CHOCO SHIP",
+{
+body:
+"✅ Thông báo đã được bật thành công!",
+vibrate:[
+200,
+100,
+200
+],
+data:{
+url:"./shipper.html"
+}
+}
+);
+
+}catch(testError){
+
+console.warn(
+"Notification test:",
+testError
+);
+}
+
+}catch(error){
+
+console.error(
+"ENABLE NOTIFICATION ERROR:",
+error
+);
+
+status.innerHTML =
+"❌ <b>Không bật được thông báo.</b><br>"+
+esc(error.message);
+
+button.disabled=false;
+
+button.textContent =
+"🔔 THỬ BẬT LẠI";
+
+button.classList.add("off");
+}
+}
+
+
+/* ==================================================
+   PROFILE
+================================================== */
+
+async function loadProfile(){
+
+const nameEl =
+document.getElementById(
+"shipperName"
+);
+
+const phoneEl =
+document.getElementById(
+"shipperPhone"
+);
+
+const emailEl =
+document.getElementById(
+"shipperEmail"
+);
+
+emailEl.textContent =
+EMAIL || "Không có email";
+
+try{
+
+const response =
+await api(
+"/rest/v1/profiles"+
+"?id=eq."+
+encodeURIComponent(USER_ID)+
+"&select=id,full_name,phone,role"
+);
+
+if(!response.ok){
+
+throw new Error(
+await response.text()
+);
+}
+
+const data =
+await response.json();
+
+if(!data.length){
+
+nameEl.textContent =
+"Không tìm thấy";
+
+phoneEl.textContent =
+"📞 Chưa có số điện thoại";
+
+return;
+}
+
+const profile =
+data[0];
+
+nameEl.textContent =
+profile.full_name ||
+"Shipper";
+
+if(profile.phone){
+
+phoneEl.innerHTML =
+`
+📞
+<a href="tel:${esc(profile.phone)}">
+${esc(profile.phone)}
+</a>
+`;
+
+}else{
+
+phoneEl.textContent =
+"📞 Chưa có số điện thoại";
+}
+
+}catch(error){
+
+console.error(
+"PROFILE ERROR:",
+error
+);
+
+nameEl.textContent =
+"Shipper";
+
+phoneEl.textContent =
+"📞 Không tải được số điện thoại";
+}
+}
+
+
+/* ==================================================
+   ITEMS
+================================================== */
+
+function getItems(raw){
+
+let data=raw;
+
+for(
+let i=0;
+i<5 &&
+typeof data==="string";
+i++
+){
+
+try{
+
+data=JSON.parse(data);
+
+}catch(e){
+
+break;
+}
+}
+
+if(Array.isArray(data)){
+
+return data;
+}
+
+if(
+data &&
+Array.isArray(data.items)
+){
+
+return data.items;
+}
+
+if(
+data &&
+typeof data==="object"
+){
+
+return [data];
+}
+
+if(
+typeof data==="string" &&
+data.trim()
+){
+
+return [{
+name:data,
+qty:1,
+price:0
+}];
+}
+
+return [];
+}
+
+
+function renderItems(raw){
+
+const list =
+getItems(raw);
+
+if(!list.length){
+
+return `
+<div style="color:#777">
+⚠️ Không có thông tin món
+</div>
+`;
+}
+
+return list.map(
+function(item,index){
+
+if(typeof item==="string"){
+
+item={
+name:item,
+qty:1,
+price:0
+};
+}
+
+const name =
+item.name ||
+item.title ||
+item.product_name ||
+item.food_name ||
+("Món "+(index+1));
+
+const qty =
+Number(
+item.qty ??
+item.quantity ??
+item.amount ??
+1
+) || 1;
+
+const price =
+Number(
+item.price ??
+item.unit_price ??
+item.food_price ??
+0
+) || 0;
+
+const total =
+Number(
+item.total ??
+item.subtotal ??
+(price*qty)
+) ||
+(price*qty);
+
+return `
+<div class="food">
+
+<div class="food-name">
+🍔 ${esc(name)} × ${qty}
+</div>
+
+<div class="food-detail">
+
+${price ? money(price)+" / món" : ""}
+
+${price ? " • " : ""}
+
+Thành tiền:
+<b>${money(total)}</b>
+
+</div>
+
+</div>
+`;
+
+}
+).join("");
+}
+
+
+/* ==================================================
+   MAP
+================================================== */
+
+function mapUrl(address){
+
+if(!address)return "#";
+
+return(
+"https://www.google.com/maps/search/?api=1&query="+
+encodeURIComponent(address)
+);
+}
+
+function gpsUrl(latitude,longitude){
+
+return(
+"https://www.google.com/maps?q="+
+encodeURIComponent(latitude)+
+","+
+encodeURIComponent(longitude)
+);
+}
+
+
+/* ==================================================
+   DATE
+================================================== */
+
+function dateText(value){
+
+if(!value)return "";
+
+try{
+
+return new Date(value)
+.toLocaleString("vi-VN");
+
+}catch(e){
+
+return String(value);
+}
+}
+
+
+/* ==================================================
+   MESSAGE
+================================================== */
+
+function showMessage(type,text){
+
+document.getElementById("message").innerHTML=
+`
+<div class="${type}">
+${esc(text)}
+</div>
+`;
+}
+
+
+/* ==================================================
+   ORDERS
+================================================== */
+
+let previousOrderIds=new Set();
+let firstOrderLoad=true;
+
+async function loadOrders(){
+
+const box =
+document.getElementById("orders");
+
+try{
+
+const response =
+await api(
+"/rest/v1/orders"+
+"?select=*"+
+"&order=created_at.desc"
+);
+
+if(!response.ok){
+
+throw new Error(
+"Supabase HTTP "+
+response.status+
+": "+
+await response.text()
+);
+}
+
+const orders =
+await response.json();
+
+console.log(
+"CHOCO SHIP ORDERS:",
+orders
+);
+
+if(!firstOrderLoad){
+
+const newOrders =
+orders.filter(
+function(order){
+
+return(
+!previousOrderIds.has(
+String(order.id)
+)&&
+order.status==="Chờ xác nhận"&&
+!order.shipper_id
+);
+
+}
+);
+
+if(newOrders.length){
+
+notifyNewOrders(newOrders);
+}
+}
+
+previousOrderIds =
+new Set(
+orders.map(
+order=>String(order.id)
+)
+);
+
+firstOrderLoad=false;
+
+renderOrders(orders);
+
+}catch(error){
+
+console.error(
+"LOAD ORDERS ERROR:",
+error
+);
+
+box.innerHTML=
+`
+<div class="empty">
+❌ Không tải được đơn hàng.
+<br><br>
+${esc(error.message)}
+</div>
+`;
+}
+}
+
+
+/* ==================================================
+   LOCAL NOTIFICATION
+================================================== */
+
+async function notifyNewOrders(orders){
+
+if(
+!("Notification" in window)
+)return;
+
+if(
+Notification.permission!=="granted"
+)return;
+
+try{
+
+if(!swRegistration){
+
+await registerServiceWorker();
+}
+
+for(
+const order of orders
+){
+
+const code =
+order.code ||
+("#"+order.id);
+
+const total =
+Number(
+order.total ||
+order.total_amount ||
+order.amount ||
+0
+);
+
+await swRegistration.showNotification(
+
+"🚚 CHOCO SHIP - ĐƠN MỚI",
+
+{
+
+body:
+"🔔 "+code+
+"\n💰 "+money(total)+
+"\n📍 Có khách đang chờ nhận đơn.",
+
+tag:
+"order-"+order.id,
+
+renotify:true,
+
+vibrate:[
+300,
+100,
+300
+],
+
+data:{
+url:"./shipper.html"
+}
+
+}
+);
+}
+
+}catch(error){
+
+console.error(
+"NOTIFICATION ERROR:",
+error
+);
+}
+}
+
+
+/* ==================================================
+   RENDER ORDERS
+================================================== */
+
+function renderOrders(orders){
+
+const box =
+document.getElementById("orders");
+
+const myOrders =
+orders.filter(
+function(order){
+
+return String(
+order.shipper_id||""
+)===String(USER_ID);
+
+}
+);
+
+const visible =
+orders.filter(
+function(order){
+
+const pending =
+(
+order.status==="Chờ xác nhận"&&
+!order.shipper_id
+);
+
+const mine =
+String(
+order.shipper_id||""
+)===String(USER_ID);
+
+return pending||mine;
+}
+);
+
+const newCount =
+orders.filter(
+function(order){
+
+return(
+order.status==="Chờ xác nhận"&&
+!order.shipper_id
+);
+}
+).length;
+
+const shippingCount =
+myOrders.filter(
+function(order){
+
+return[
+"Đã nhận",
+"Đang lấy hàng",
+"Đang giao",
+"Đã giao"
+].includes(order.status);
+
+}
+).length;
+
+const doneCount =
+myOrders.filter(
+function(order){
+
+return order.status==="Hoàn thành";
+
+}
+).length;
+
+document.getElementById(
+"newCount"
+).textContent=newCount;
+
+document.getElementById(
+"shippingCount"
+).textContent=shippingCount;
+
+document.getElementById(
+"doneCount"
+).textContent=doneCount;
+
+if(!visible.length){
+
+box.innerHTML=
+`
+<div class="empty">
+📭 Hiện chưa có đơn phù hợp.
+</div>
+`;
+
+return;
+}
+
+box.innerHTML=
+visible
+.map(renderOrder)
+.join("");
+}
+
+
+/* ==================================================
+   ORDER CARD
+================================================== */
+
+function renderOrder(order){
+
+const pending =
+(
+order.status==="Chờ xác nhận"&&
+!order.shipper_id
+);
+
+const mine =
+String(
+order.shipper_id||""
+)===String(USER_ID);
+
+const customer =
+order.name||
+order.customer_name||
+"Khách hàng";
+
+const phone =
+order.phone||
+order.customer_phone||
+"";
+
+const pickup =
+order.pickup||
+order.pickup_address||
+"";
+
+const dropoff =
+order.dropoff||
+order.dropoff_address||
+order.address||
+"";
+
+const fee =
+Number(
+order.fee||
+order.delivery_fee||
+0
+);
+
+const total =
+Number(
+order.total||
+order.total_amount||
+order.amount||
+0
+);
+
+let gpsHtml="";
+
+if(
+order.latitude!==null&&
+order.latitude!==undefined&&
+order.longitude!==null&&
+order.longitude!==undefined
+){
+
+gpsHtml=
+`
+<a
+class="map"
+target="_blank"
+rel="noopener"
+href="${gpsUrl(
+order.latitude,
+order.longitude
+)}">
+
+📍 XEM VỊ TRÍ KHÁCH
+
+</a>
+`;
+}
+
+let badgeClass="";
+
+if(pending){
+
+badgeClass="new";
+
+}else if(mine){
+
+badgeClass="mine";
+}
+
+return `
+
+<div
+class="order"
+id="order-${esc(order.id)}">
+
+<div class="order-top">
+
+<div>
+
+<div class="code">
+
+${esc(
+order.code||
+("#"+order.id)
+)}
+
+</div>
+
+<div class="time">
+
+🕒
+${esc(
+dateText(order.created_at)
+)}
+
+</div>
+
+<span
+class="badge ${badgeClass}">
+
+${esc(
+order.status||
+"Chờ xác nhận"
+)}
+
+</span>
+
+</div>
+
+${
+total
+?
+`
+<div class="total-top">
+💰 ${money(total)}
+</div>
+`
+:""
+}
+
+</div>
+
+<div class="customer">
+
+👤
+<b>${esc(customer)}</b>
+
+<br>
+
+📞
+
+${
+phone
+?
+`
+<a href="tel:${esc(phone)}">
+${esc(phone)}
+</a>
+`
+:
+"Chưa có số điện thoại"
+}
+
+<br>
+
+📍
+<b>Lấy:</b>
+${esc(
+pickup||
+"Chưa có địa chỉ"
+)}
+
+<br>
+
+🏁
+<b>Giao:</b>
+${esc(
+dropoff||
+"Chưa có địa chỉ"
+)}
+
+</div>
+
+<div class="box">
+
+<div class="box-title">
+🍔 MÓN TRONG ĐƠN
+</div>
+
+${renderItems(order.items)}
+
+</div>
+
+${
+fee
+?
+`
+<div class="box money">
+
+<div class="box-title">
+💰 PHÍ GIAO
+</div>
+
+Phí ship:
+
+<b>${money(fee)}</b>
+
+</div>
+`
+:""
+}
+
+${
+mine
+?
+`
+<div class="shipper-info">
+
+👤
+<b>Bạn đang nhận đơn này.</b>
+
+<br>
+
+🔒
+Bạn có quyền cập nhật trạng thái.
+
+</div>
+`
+:""
+}
+
+${
+pending
+?
+`
+<div class="actions">
+
+<button
+class="accept"
+onclick="acceptOrder(${JSON.stringify(order.id)})">
+
+✅ NHẬN ĐƠN
+
+</button>
+
+</div>
+`
+:""
+}
+
+${
+mine
+?
+`
+<div class="actions">
+
+<div class="status-label">
+🔄 Cập nhật trạng thái
+</div>
+
+<div class="status">
+
+<select
+onchange="changeStatus(
+${JSON.stringify(order.id)},
+this.value
+)"
+${
+(
+order.status==="Hoàn thành"||
+order.status==="Đã hủy"
+)
+?
+"disabled"
+:
+""
+}>
+
+<option
+value="Đã nhận"
+${order.status==="Đã nhận"?"selected":""}>
+Đã nhận
+</option>
+
+<option
+value="Đang lấy hàng"
+${order.status==="Đang lấy hàng"?"selected":""}>
+Đang lấy hàng
+</option>
+
+<option
+value="Đang giao"
+${order.status==="Đang giao"?"selected":""}>
+Đang giao
+</option>
+
+<option
+value="Đã giao"
+${order.status==="Đã giao"?"selected":""}>
+Đã giao
+</option>
+
+<option
+value="Hoàn thành"
+${order.status==="Hoàn thành"?"selected":""}>
+Hoàn thành
+</option>
+
+</select>
+
+</div>
+</div>
+`
+:""
+}
+
+${
+pickup
+?
+`
+<a
+class="map"
+target="_blank"
+rel="noopener"
+href="${mapUrl(pickup)}">
+
+📍 MỞ ĐIỂM LẤY HÀNG
+
+</a>
+`
+:""
+}
+
+${
+dropoff
+?
+`
+<a
+class="map"
+target="_blank"
+rel="noopener"
+href="${mapUrl(dropoff)}">
+
+🏁 MỞ ĐIỂM GIAO HÀNG
+
+</a>
+`
+:""
+}
+
+${gpsHtml}
+
+${
+phone
+?
+`
+<a
+class="call"
+href="tel:${esc(phone)}">
+
+📞 GỌI KHÁCH
+
+</a>
+`
+:""
+}
+
+</div>
+`;
+}
+
+
+/* ==================================================
+   NHẬN ĐƠN
+================================================== */
+
+async function acceptOrder(id){
+
+const card =
+document.getElementById(
+"order-"+id
+);
+
+const button =
+card
+?
+card.querySelector(".accept")
+:
+null;
+
+if(button){
+
+button.disabled=true;
+
+button.textContent=
+"⏳ ĐANG NHẬN...";
+}
+
+try{
+
+const response =
+await api(
+"/rest/v1/orders"+
+"?id=eq."+
+encodeURIComponent(id)+
+"&status=eq."+
+encodeURIComponent("Chờ xác nhận")+
+"&shipper_id=is.null",
+{
+
+method:"PATCH",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+"Prefer":
+"return=representation"
+
+},
+
+body:JSON.stringify({
+
+shipper_id:USER_ID,
+
+status:"Đã nhận"
+
+})
+
+}
+);
+
+if(!response.ok){
+
+throw new Error(
+"Supabase HTTP "+
+response.status+
+": "+
+await response.text()
+);
+}
+
+const result =
+await response.json();
+
+if(!result.length){
+
+showMessage(
+"error",
+"❌ Đơn này đã được shipper khác nhận."
+);
+
+await loadOrders();
+
+return;
+}
+
+showMessage(
+"success",
+"✅ Nhận đơn thành công!"
+);
+
+await loadOrders();
+
+}catch(error){
+
+console.error(
+"ACCEPT ERROR:",
+error
+);
+
+showMessage(
+"error",
+"❌ Không nhận được đơn.\n"+
+error.message
+);
+
+if(button){
+
+button.disabled=false;
+
+button.textContent=
+"✅ NHẬN ĐƠN";
+}
+}
+}
+
+
+/* ==================================================
+   ĐỔI TRẠNG THÁI
+================================================== */
+
+async function changeStatus(
+id,
+newStatus
+){
+
+const allowed=[
+
+"Đã nhận",
+"Đang lấy hàng",
+"Đang giao",
+"Đã giao",
+"Hoàn thành"
+
+];
+
+if(!allowed.includes(newStatus)){
+
+return;
+}
+
+try{
+
+const response =
+await api(
+"/rest/v1/orders"+
+"?id=eq."+
+encodeURIComponent(id)+
+"&shipper_id=eq."+
+encodeURIComponent(USER_ID),
+{
+
+method:"PATCH",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+"Prefer":
+"return=representation"
+
+},
+
+body:JSON.stringify({
+
+status:newStatus
+
+})
+
+}
+);
+
+if(!response.ok){
+
+throw new Error(
+"Supabase HTTP "+
+response.status+
+": "+
+await response.text()
+);
+}
+
+const result =
+await response.json();
+
+if(!result.length){
+
+throw new Error(
+"Đơn không thuộc shipper này."
+);
+}
+
+showMessage(
+"success",
+"✅ Đã cập nhật: "+
+newStatus
+);
+
+await loadOrders();
+
+}catch(error){
+
+console.error(
+"STATUS ERROR:",
+error
+);
+
+showMessage(
+"error",
+"❌ Không cập nhật được.\n"+
+error.message
+);
+
+await loadOrders();
+}
+}
+
+
+/* ==================================================
+   START
+================================================== */
+
+async function start(){
+
+await checkNotificationStatus();
+
+await loadProfile();
+
+await loadOrders();
+
+}
+
+start();
+
+setInterval(
+loadOrders,
+15000
+);
+
+</script>
+
+</body>
+</html>
