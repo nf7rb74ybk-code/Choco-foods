@@ -6,7 +6,7 @@
 
 <meta
   name="viewport"
-  content="width=device-width,initial-scale=1"
+  content="width=device-width,initial-scale=1,viewport-fit=cover"
 >
 
 <meta
@@ -22,6 +22,11 @@
 <meta
   name="apple-mobile-web-app-status-bar-style"
   content="default"
+>
+
+<meta
+  name="mobile-web-app-capable"
+  content="yes"
 >
 
 <title>CHOCO SHIP - Shipper</title>
@@ -451,7 +456,6 @@ onclick="logout()">
 
 <div class="container">
 
-
 <div class="welcome">
 
 👋 Xin chào Shipper
@@ -535,7 +539,6 @@ class="orders">
 
 </div>
 
-
 </div>
 
 
@@ -554,7 +557,7 @@ defer>
 /* ==================================================
    CHOCO SHIP
    SHIPPER
-   SUPABASE + ONESIGNAL
+   SUPABASE + ONESIGNAL V16
 ================================================== */
 
 
@@ -626,6 +629,39 @@ let oneSignalPromise = null;
 
 
 /* ==================================================
+   DEVICE
+================================================== */
+
+function isIOSDevice(){
+
+return /iphone|ipad|ipod/i.test(
+navigator.userAgent
+);
+
+}
+
+
+function isStandalone(){
+
+return (
+
+window.navigator.standalone === true
+
+||
+
+(
+window.matchMedia &&
+window.matchMedia(
+"(display-mode: standalone)"
+).matches
+)
+
+);
+
+}
+
+
+/* ==================================================
    ONESIGNAL INIT
 ================================================== */
 
@@ -642,7 +678,7 @@ new Promise(function(resolve,reject){
 
 let finished = false;
 
-let timeout =
+const timeout =
 setTimeout(function(){
 
 if(finished){
@@ -653,7 +689,7 @@ finished = true;
 
 reject(
 new Error(
-"OneSignal SDK không tải được."
+"OneSignal SDK không tải được. Hãy kiểm tra mạng."
 )
 );
 
@@ -670,9 +706,20 @@ return;
 try{
 
 /*
-   Worker phải nằm ở:
+==================================================
+QUAN TRỌNG
 
-   /Choco-foods/OneSignalSDKWorker.js
+shipper.html nằm tại:
+
+/Choco-foods/shipper.html
+
+Service Worker nằm tại:
+
+/Choco-foods/OneSignalSDKWorker.js
+
+Vì vậy KHÔNG được thêm "Choco-foods/"
+vào serviceWorkerPath.
+==================================================
 */
 
 await OS.init({
@@ -687,7 +734,7 @@ enable:false
 allowLocalhostAsSecureOrigin:false,
 
 serviceWorkerPath:
-"Choco-foods/OneSignalSDKWorker.js",
+"OneSignalSDKWorker.js",
 
 serviceWorkerParam:{
 scope:
@@ -705,7 +752,7 @@ true;
 
 
 /* ==================================================
-   LOGIN ONESIGNAL
+   LIÊN KẾT SHIPPER VỚI ONESIGNAL
 ================================================== */
 
 if(USER_ID){
@@ -717,7 +764,7 @@ String(USER_ID)
 );
 
 console.log(
-"✅ OneSignal login:",
+"✅ OneSignal External ID:",
 USER_ID
 );
 
@@ -734,7 +781,7 @@ error
 
 
 /* ==================================================
-   SUBSCRIPTION LISTENER
+   LISTENER
 ================================================== */
 
 try{
@@ -785,7 +832,7 @@ console.log(
 );
 
 console.log(
-"Shipper:",
+"Shipper External ID:",
 USER_ID
 );
 
@@ -828,40 +875,7 @@ return oneSignalPromise;
 
 
 /* ==================================================
-   DEVICE CHECK
-================================================== */
-
-function isIOSDevice(){
-
-return /iphone|ipad|ipod/i.test(
-navigator.userAgent
-);
-
-}
-
-
-function isStandalone(){
-
-return (
-
-window.navigator.standalone === true
-
-||
-
-(
-window.matchMedia &&
-window.matchMedia(
-"(display-mode: standalone)"
-).matches
-)
-
-);
-
-}
-
-
-/* ==================================================
-   GET SUBSCRIPTION
+   GET PUSH STATUS
 ================================================== */
 
 function getPushStatus(OS){
@@ -930,7 +944,9 @@ return;
 try{
 
 /*
-   iPhone Safari cần PWA
+==================================================
+iPhone phải chạy PWA
+==================================================
 */
 
 if(
@@ -940,8 +956,8 @@ isIOSDevice() &&
 
 status.innerHTML =
 "⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br><br>"+
-"1. Mở CHOCO SHIP bằng Safari<br>"+
-"2. Bấm nút Chia sẻ<br>"+
+"1. Mở website bằng Safari<br>"+
+"2. Bấm <b>Chia sẻ</b><br>"+
 "3. Chọn <b>Thêm vào Màn hình chính</b><br>"+
 "4. Mở CHOCO SHIP từ biểu tượng ngoài màn hình<br>"+
 "5. Bấm BẬT THÔNG BÁO.";
@@ -950,7 +966,7 @@ button.disabled =
 false;
 
 button.textContent =
-"📲 HƯỚNG DẪN BẬT";
+"📲 THÊM VÀO MÀN HÌNH CHÍNH";
 
 button.classList.add(
 "off"
@@ -961,17 +977,13 @@ return;
 }
 
 
-/*
-   INIT
-*/
+/* INIT */
 
 const OS =
 await initOneSignal();
 
 
-/*
-   Browser notification permission
-*/
+/* Browser permission */
 
 if(
 typeof Notification !== "undefined" &&
@@ -980,7 +992,7 @@ Notification.permission === "denied"
 
 status.innerHTML =
 "❌ <b>Thông báo đang bị chặn.</b><br>"+
-"Vào phần cài đặt của trình duyệt/PWA và cho phép thông báo.";
+"Vào Cài đặt iPhone → Thông báo → CHOCO SHIP → bật Cho phép thông báo.";
 
 button.disabled =
 false;
@@ -997,17 +1009,13 @@ return;
 }
 
 
-/*
-   OneSignal permission
-*/
+/* OneSignal permission */
 
 const permission =
 OS.Notifications.permission;
 
 
-/*
-   Subscription
-*/
+/* Subscription */
 
 const push =
 getPushStatus(OS);
@@ -1018,18 +1026,18 @@ console.log(
 {
 permission:permission,
 optedIn:push.optedIn,
-subscriptionId:push.id
+subscriptionId:push.id,
+externalId:USER_ID
 }
 );
 
 
-/*
-   READY
-*/
+/* READY */
 
 if(
 permission === true &&
-push.optedIn === true
+push.optedIn === true &&
+push.id
 ){
 
 status.innerHTML =
@@ -1051,9 +1059,7 @@ return;
 }
 
 
-/*
-   CHƯA BẬT
-*/
+/* CHƯA BẬT */
 
 button.disabled =
 false;
@@ -1069,8 +1075,8 @@ button.classList.add(
 if(permission === true){
 
 status.innerHTML =
-"⚠️ Quyền thông báo đã được cấp nhưng thiết bị chưa đăng ký Push.<br>"+
-"Bấm <b>BẬT THÔNG BÁO</b> để đăng ký.";
+"⚠️ Quyền thông báo đã cấp nhưng Push chưa đăng ký.<br>"+
+"Bấm <b>BẬT THÔNG BÁO</b> để đăng ký thiết bị.";
 
 }else{
 
@@ -1142,7 +1148,9 @@ button.textContent =
 try{
 
 /*
-   iOS PWA
+==================================================
+iOS
+==================================================
 */
 
 if(
@@ -1169,9 +1177,7 @@ return;
 }
 
 
-/*
-   INIT
-*/
+/* INIT */
 
 status.innerHTML =
 "⏳ Đang kết nối OneSignal...";
@@ -1180,9 +1186,7 @@ const OS =
 await initOneSignal();
 
 
-/*
-   LOGIN
-*/
+/* LOGIN */
 
 if(USER_ID){
 
@@ -1209,9 +1213,7 @@ error
 }
 
 
-/*
-   Browser permission
-*/
+/* Browser permission */
 
 if(
 typeof Notification !== "undefined" &&
@@ -1219,11 +1221,13 @@ Notification.permission === "denied"
 ){
 
 throw new Error(
-"Thông báo đang bị chặn trong trình duyệt."
+"Thông báo đang bị chặn trong iPhone."
 );
 
 }
 
+
+/* REQUEST PERMISSION */
 
 status.innerHTML =
 "🔔 Đang xin quyền thông báo...";
@@ -1238,9 +1242,7 @@ await OS.Notifications.requestPermission();
 }
 
 
-/*
-   CHECK PERMISSION
-*/
+/* CHECK PERMISSION */
 
 if(
 OS.Notifications.permission !== true
@@ -1253,17 +1255,13 @@ throw new Error(
 }
 
 
-/*
-   GET SUBSCRIPTION
-*/
+/* GET SUBSCRIPTION */
 
 let push =
 getPushStatus(OS);
 
 
-/*
-   OPT IN
-*/
+/* OPT IN */
 
 if(
 !push.optedIn
@@ -1271,7 +1269,6 @@ if(
 
 status.innerHTML =
 "⏳ Đang đăng ký thiết bị nhận thông báo...";
-
 
 try{
 
@@ -1289,16 +1286,14 @@ error
 }
 
 
-/*
-   WAIT
-*/
+/* WAIT FOR SUBSCRIPTION */
 
 let success =
 false;
 
 for(
 let i=0;
-i<12;
+i<20;
 i++
 ){
 
@@ -1322,7 +1317,8 @@ push
 );
 
 if(
-push.optedIn === true
+push.optedIn === true &&
+push.id
 ){
 
 success =
@@ -1335,22 +1331,18 @@ break;
 }
 
 
-/*
-   FAIL
-*/
+/* FAIL */
 
 if(!success){
 
 throw new Error(
-"OneSignal chưa đăng ký được thiết bị Push. Hãy thử lại."
+"OneSignal chưa tạo được Subscription ID. Hãy kiểm tra quyền thông báo và Service Worker."
 );
 
 }
 
 
-/*
-   SUCCESS
-*/
+/* SUCCESS */
 
 status.innerHTML =
 "✅ <b>Thông báo đã được bật!</b><br>"+
@@ -1382,12 +1374,12 @@ console.log(
 );
 
 console.log(
-"Shipper:",
+"Shipper External ID:",
 USER_ID
 );
 
 console.log(
-"Subscription:",
+"Subscription ID:",
 push.id
 );
 
@@ -1488,7 +1480,7 @@ window.location.replace(
 
 
 /* ==================================================
-   API
+   SUPABASE API
 ================================================== */
 
 async function api(
@@ -2036,7 +2028,8 @@ await response.json();
 
 
 /*
-   Phát hiện đơn mới khi polling.
+   Chỉ phát hiện đơn mới khi trang đang mở.
+   Push khi app đóng phải do server/OneSignal gửi.
 */
 
 if(!firstOrderLoad){
@@ -2140,19 +2133,6 @@ console.log(
 "🔔 PHÁT HIỆN ĐƠN MỚI:",
 orders
 );
-
-
-/*
-   LƯU Ý:
-
-   Push notification cho tất cả shipper
-   phải được gửi từ server / Edge Function /
-   Admin thông qua OneSignal REST API.
-
-   shipper.html KHÔNG tự gửi push cho
-   shipper khác.
-*/
-
 
 if(
 oneSignalReady &&
@@ -3070,19 +3050,10 @@ await loadOrders();
 
 async function start(){
 
-/*
-   Tải profile và đơn trước.
-*/
-
 await loadProfile();
 
 await loadOrders();
 
-
-/*
-   OneSignal chạy riêng,
-   không làm kẹt giao diện.
-*/
 
 initOneSignal()
 .then(
@@ -3146,7 +3117,7 @@ start();
 
 
 /* ==================================================
-   AUTO REFRESH ORDERS
+   AUTO REFRESH
 ================================================== */
 
 setInterval(
