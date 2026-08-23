@@ -1043,7 +1043,387 @@ button.classList.add("off");
    ENABLE
 ================================================== */
 
+async function saveShipperSubscription(subscriptionId){
+
+  if(!subscriptionId){
+    throw new Error(
+      "Không có Subscription ID."
+    );
+  }
+
+  console.log(
+    "💾 Lưu Subscription ID:",
+    subscriptionId
+  );
+
+
+  const response =
+    await api(
+      "/rest/v1/shipper_push_subscriptions",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "application/json",
+
+          "Prefer":
+            "resolution=merge-duplicates,return=representation"
+        },
+
+        body:JSON.stringify({
+
+          shipper_id:
+            USER_ID,
+
+          subscription_id:
+            subscriptionId,
+
+          enabled:
+            true,
+
+          updated_at:
+            new Date().toISOString()
+
+        })
+
+      }
+    );
+
+
+  if(!response.ok){
+
+    throw new Error(
+      "Không lưu được thiết bị:\n"+
+      await response.text()
+    );
+
+  }
+
+
+  const result =
+    await response.json();
+
+  console.log(
+    "✅ Đã lưu thiết bị:",
+    result
+  );
+
+  return result;
+
+}
+
+
+
 async function enableNotifications(){
+
+  const button =
+    document.getElementById(
+      "notificationButton"
+    );
+
+  const status =
+    document.getElementById(
+      "notificationStatus"
+    );
+
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    "⏳ ĐANG BẬT...";
+
+
+  try{
+
+    if(
+      isIOSDevice() &&
+      !isStandalone()
+    ){
+
+      status.innerHTML =
+        "⚠️ <b>Cần thêm CHOCO SHIP vào Màn hình chính.</b><br><br>"+
+        "Safari → Chia sẻ → Thêm vào Màn hình chính.";
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "📲 THÊM VÀO MÀN HÌNH CHÍNH";
+
+      return;
+
+    }
+
+
+    status.innerHTML =
+      "⏳ Đang kết nối OneSignal...";
+
+
+    const OS =
+      await initOneSignal();
+
+
+    /*
+    ==================================================
+    ĐẢM BẢO USER LOGIN
+    ==================================================
+    */
+
+    if(USER_ID){
+
+      try{
+
+        await OS.login(
+          String(USER_ID)
+        );
+
+        console.log(
+          "✅ OneSignal login:",
+          USER_ID
+        );
+
+      }catch(error){
+
+        console.warn(
+          "OneSignal login:",
+          error
+        );
+
+      }
+
+    }
+
+
+    /*
+    ==================================================
+    XIN QUYỀN
+    ==================================================
+    */
+
+    if(
+      typeof Notification !==
+      "undefined" &&
+      Notification.permission ===
+      "denied"
+    ){
+
+      throw new Error(
+        "Thông báo đang bị chặn trong cài đặt iPhone."
+      );
+
+    }
+
+
+    status.innerHTML =
+      "🔔 Đang xin quyền thông báo...";
+
+
+    if(
+      OS.Notifications.permission !==
+      true
+    ){
+
+      await OS.Notifications.requestPermission();
+
+    }
+
+
+    if(
+      OS.Notifications.permission !==
+      true
+    ){
+
+      throw new Error(
+        "Bạn chưa cho phép thông báo."
+      );
+
+    }
+
+
+    /*
+    ==================================================
+    OPT IN
+    ==================================================
+    */
+
+    let subscription =
+      OS.User.PushSubscription;
+
+
+    if(
+      !subscription.optedIn
+    ){
+
+      status.innerHTML =
+        "⏳ Đang đăng ký thiết bị...";
+
+      await subscription.optIn();
+
+    }
+
+
+    /*
+    ==================================================
+    CHỜ SUBSCRIPTION ID
+    ==================================================
+    */
+
+    let subscriptionId =
+      null;
+
+
+    for(
+      let i=0;
+      i<30;
+      i++
+    ){
+
+      subscription =
+        OS.User.PushSubscription;
+
+
+      subscriptionId =
+        subscription &&
+        subscription.id
+          ? String(
+              subscription.id
+            )
+          : null;
+
+
+      console.log(
+        "Subscription check:",
+        i + 1,
+        subscriptionId
+      );
+
+
+      if(
+        subscriptionId &&
+        subscription.optedIn === true
+      ){
+
+        break;
+
+      }
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            500
+          )
+      );
+
+    }
+
+
+    if(!subscriptionId){
+
+      throw new Error(
+        "OneSignal chưa tạo Subscription ID cho thiết bị."
+      );
+
+    }
+
+
+    /*
+    ==================================================
+    LƯU VÀO SUPABASE
+    ==================================================
+    */
+
+    status.innerHTML =
+      "⏳ Đang lưu thiết bị shipper...";
+
+
+    await saveShipperSubscription(
+      subscriptionId
+    );
+
+
+    /*
+    ==================================================
+    THÀNH CÔNG
+    ==================================================
+    */
+
+    status.innerHTML =
+      "✅ <b>Thông báo đã được bật.</b><br>"+
+      "Thiết bị đã sẵn sàng nhận đơn mới.";
+
+    button.textContent =
+      "✅ THÔNG BÁO ĐÃ BẬT";
+
+    button.classList.remove(
+      "off"
+    );
+
+    button.disabled =
+      false;
+
+
+    console.log(
+      "================================"
+    );
+
+    console.log(
+      "✅ CHOCO SHIP PUSH READY"
+    );
+
+    console.log(
+      "Shipper:",
+      USER_ID
+    );
+
+    console.log(
+      "Subscription ID:",
+      subscriptionId
+    );
+
+    console.log(
+      "================================"
+    );
+
+
+    showMessage(
+      "success",
+      "🔔 Đã đăng ký thiết bị nhận thông báo."
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "ENABLE PUSH ERROR:",
+      error
+    );
+
+
+    status.innerHTML =
+      "❌ <b>Không bật được thông báo.</b><br>"+
+      esc(
+        error.message ||
+        String(error)
+      );
+
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "🔔 THỬ LẠI";
+
+    button.classList.add(
+      "off"
+    );
+
+  }
+
+}
 
 const button =
 document.getElementById(
