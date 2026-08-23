@@ -883,6 +883,169 @@ id:null
 
 async function updateNotificationStatus(){
 
+  const status =
+    document.getElementById(
+      "notificationStatus"
+    );
+
+  const button =
+    document.getElementById(
+      "notificationButton"
+    );
+
+
+  if(!status || !button){
+    return;
+  }
+
+
+  try{
+
+    if(
+      isIOSDevice() &&
+      !isStandalone()
+    ){
+
+      status.innerHTML =
+        "⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br><br>"+
+        "Safari → Chia sẻ → Thêm vào Màn hình chính.";
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "📲 THÊM VÀO MÀN HÌNH CHÍNH";
+
+      return;
+
+    }
+
+
+    const OS =
+      await initOneSignal();
+
+
+    const subscription =
+      OS.User.PushSubscription;
+
+
+    const subscriptionId =
+      subscription &&
+      subscription.id
+        ? String(
+            subscription.id
+          )
+        : null;
+
+
+    console.log(
+      "PUSH STATUS:",
+      {
+        permission:
+          OS.Notifications.permission,
+
+        optedIn:
+          subscription?.optedIn,
+
+        subscriptionId:
+          subscriptionId,
+
+        userId:
+          USER_ID
+      }
+    );
+
+
+    if(
+      OS.Notifications.permission === true &&
+      subscription?.optedIn === true &&
+      subscriptionId
+    ){
+
+      /*
+      Đảm bảo DB luôn có thiết bị mới nhất
+      */
+
+      try{
+
+        await saveShipperSubscription(
+          subscriptionId
+        );
+
+      }catch(error){
+
+        console.warn(
+          "Không cập nhật DB:",
+          error
+        );
+
+      }
+
+
+      status.innerHTML =
+        "✅ <b>Thông báo đã được bật.</b><br>"+
+        "Thiết bị đã sẵn sàng nhận đơn mới.";
+
+      button.textContent =
+        "✅ THÔNG BÁO ĐÃ BẬT";
+
+      button.classList.remove(
+        "off"
+      );
+
+      button.disabled =
+        false;
+
+      return;
+
+    }
+
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "🔔 BẬT THÔNG BÁO";
+
+    button.classList.add(
+      "off"
+    );
+
+
+    status.innerHTML =
+      "⚠️ <b>Thông báo chưa được đăng ký.</b><br>"+
+      "Bấm BẬT THÔNG BÁO để đăng ký thiết bị.";
+
+
+  }catch(error){
+
+    console.error(
+      "UPDATE PUSH STATUS:",
+      error
+    );
+
+
+    status.innerHTML =
+      "❌ <b>Không kiểm tra được thông báo.</b><br>"+
+      esc(
+        error.message ||
+        String(error)
+      );
+
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "🔄 THỬ LẠI";
+
+    button.classList.add(
+      "off"
+    );
+
+  }
+
+}
 const status =
 document.getElementById(
 "notificationStatus"
