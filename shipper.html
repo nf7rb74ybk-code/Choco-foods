@@ -383,6 +383,7 @@ button{
   color:#555;
   font-size:12px;
   line-height:1.5;
+  word-break:break-word;
 }
 
 @media(max-width:600px){
@@ -453,6 +454,7 @@ onclick="logout()">
 </div>
 
 </header>
+
 
 <div class="container">
 
@@ -556,11 +558,10 @@ defer>
 
 <script>
 
-/* ==================================================
-   CHOCO SHIP
-   SHIPPER
-   SUPABASE + ONESIGNAL V16
-================================================== */
+/* =====================================================
+   CHOCO SHIP - SHIPPER
+   BẢN SỬA HOÀN CHỈNH
+===================================================== */
 
 const SUPABASE_URL =
 "https://guwdswqaqnhzqapflvey.supabase.co";
@@ -569,9 +570,9 @@ const SUPABASE_KEY =
 "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-/* ==================================================
+/* =====================================================
    LOGIN
-================================================== */
+===================================================== */
 
 const TOKEN =
 localStorage.getItem("choco_access_token");
@@ -586,10 +587,6 @@ const EMAIL =
 localStorage.getItem("choco_email") || "";
 
 
-/* ==================================================
-   CHECK LOGIN
-================================================== */
-
 if(
 !TOKEN ||
 !USER_ID ||
@@ -601,9 +598,9 @@ window.location.replace("login.html");
 }
 
 
-/* ==================================================
+/* =====================================================
    ONESIGNAL
-================================================== */
+===================================================== */
 
 window.OneSignalDeferred =
 window.OneSignalDeferred || [];
@@ -615,9 +612,60 @@ let oneSignalReady = false;
 let oneSignalPromise = null;
 
 
-/* ==================================================
-   DEVICE
-================================================== */
+/* =====================================================
+   DEBUG
+===================================================== */
+
+function pushDebug(text){
+
+const el =
+document.getElementById("pushDebug");
+
+if(el){
+
+el.innerHTML = text;
+
+}
+
+console.log(
+"[CHOCO PUSH]",
+text
+);
+
+}
+
+
+/* =====================================================
+   ESC
+===================================================== */
+
+function esc(value){
+
+return String(value ?? "")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+}
+
+
+/* =====================================================
+   MONEY
+===================================================== */
+
+function money(value){
+
+return Number(value || 0)
+.toLocaleString("vi-VN")+"đ";
+
+}
+
+
+/* =====================================================
+   IOS
+===================================================== */
 
 function isIOSDevice(){
 
@@ -648,32 +696,46 @@ window.matchMedia(
 }
 
 
-/* ==================================================
-   DEBUG
-================================================== */
+/* =====================================================
+   API
+===================================================== */
 
-function pushDebug(text){
+async function api(
+path,
+options={}
+){
 
-const el =
-document.getElementById("pushDebug");
+const headers = {
 
-if(el){
+"apikey":
+SUPABASE_KEY,
 
-el.innerHTML = text;
+"Authorization":
+"Bearer "+
+TOKEN,
 
+"Accept":
+"application/json",
+
+...(options.headers || {})
+
+};
+
+return fetch(
+SUPABASE_URL+
+path,
+{
+...options,
+headers
 }
-
-console.log(
-"[CHOCO PUSH]",
-text
 );
 
 }
 
 
-/* ==================================================
-   INIT ONESIGNAL
-================================================== */
+/* =====================================================
+   ONESIGNAL INIT
+===================================================== */
 
 function initOneSignal(){
 
@@ -686,20 +748,20 @@ return oneSignalPromise;
 oneSignalPromise =
 new Promise(function(resolve,reject){
 
-let finished = false;
+let done = false;
 
 const timeout =
 setTimeout(function(){
 
-if(finished){
+if(done){
 return;
 }
 
-finished = true;
+done = true;
 
 reject(
 new Error(
-"OneSignal SDK không tải được."
+"OneSignal SDK không tải được sau 20 giây."
 )
 );
 
@@ -709,7 +771,7 @@ new Error(
 window.OneSignalDeferred.push(
 async function(OS){
 
-if(finished){
+if(done){
 return;
 }
 
@@ -744,9 +806,9 @@ oneSignalReady =
 true;
 
 
-/* ==================================================
-   LOGIN EXTERNAL ID
-================================================== */
+/* ================================
+   LOGIN ONESIGNAL
+================================ */
 
 if(USER_ID){
 
@@ -757,68 +819,32 @@ String(USER_ID)
 );
 
 console.log(
-"✅ OneSignal.login:",
-String(USER_ID)
+"OneSignal external ID:",
+OS.User.externalId
 );
 
 }catch(error){
 
 console.error(
-"❌ OneSignal.login:",
+"OneSignal login error:",
 error
 );
 
 }
-
-}
-
-
-/* ==================================================
-   LISTENER PUSH
-================================================== */
-
-try{
-
-if(
-OS.User &&
-OS.User.PushSubscription &&
-typeof
-OS.User.PushSubscription.addEventListener ===
-"function"
-){
-
-OS.User.PushSubscription.addEventListener(
-"change",
-function(){
-
-setTimeout(
-updateNotificationStatus,
-1000
-);
-
-});
-
-}
-
-}catch(error){
-
-console.warn(
-"Subscription listener:",
-error
-);
 
 }
 
 
 clearTimeout(timeout);
 
-finished = true;
+done = true;
 
 resolve(OS);
 
+
 setTimeout(
 updateNotificationStatus,
-500
+300
 );
 
 
@@ -826,7 +852,7 @@ updateNotificationStatus,
 
 clearTimeout(timeout);
 
-finished = true;
+done = true;
 
 reject(error);
 
@@ -841,9 +867,9 @@ return oneSignalPromise;
 }
 
 
-/* ==================================================
+/* =====================================================
    PUSH STATUS
-================================================== */
+===================================================== */
 
 function getPushStatus(OS){
 
@@ -877,175 +903,81 @@ id:null
 }
 
 
-/* ==================================================
-   UPDATE STATUS
-================================================== */
+/* =====================================================
+   SAVE SUBSCRIPTION
+===================================================== */
+
+async function saveShipperSubscription(
+subscriptionId
+){
+
+if(!subscriptionId){
+
+throw new Error(
+"Không có Subscription ID."
+);
+
+}
+
+
+const response =
+await api(
+"/rest/v1/shipper_push_subscriptions",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+"Prefer":
+"resolution=merge-duplicates,return=representation"
+
+},
+
+body:JSON.stringify({
+
+shipper_id:
+USER_ID,
+
+subscription_id:
+subscriptionId,
+
+enabled:
+true,
+
+updated_at:
+new Date().toISOString()
+
+})
+
+}
+);
+
+
+if(!response.ok){
+
+throw new Error(
+"Không lưu được thiết bị:\n"+
+await response.text()
+);
+
+}
+
+
+return response.json();
+
+}
+
+
+/* =====================================================
+   UPDATE PUSH STATUS
+===================================================== */
 
 async function updateNotificationStatus(){
 
-  const status =
-    document.getElementById(
-      "notificationStatus"
-    );
-
-  const button =
-    document.getElementById(
-      "notificationButton"
-    );
-
-
-  if(!status || !button){
-    return;
-  }
-
-
-  try{
-
-    if(
-      isIOSDevice() &&
-      !isStandalone()
-    ){
-
-      status.innerHTML =
-        "⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br><br>"+
-        "Safari → Chia sẻ → Thêm vào Màn hình chính.";
-
-      button.disabled =
-        false;
-
-      button.textContent =
-        "📲 THÊM VÀO MÀN HÌNH CHÍNH";
-
-      return;
-
-    }
-
-
-    const OS =
-      await initOneSignal();
-
-
-    const subscription =
-      OS.User.PushSubscription;
-
-
-    const subscriptionId =
-      subscription &&
-      subscription.id
-        ? String(
-            subscription.id
-          )
-        : null;
-
-
-    console.log(
-      "PUSH STATUS:",
-      {
-        permission:
-          OS.Notifications.permission,
-
-        optedIn:
-          subscription?.optedIn,
-
-        subscriptionId:
-          subscriptionId,
-
-        userId:
-          USER_ID
-      }
-    );
-
-
-    if(
-      OS.Notifications.permission === true &&
-      subscription?.optedIn === true &&
-      subscriptionId
-    ){
-
-      /*
-      Đảm bảo DB luôn có thiết bị mới nhất
-      */
-
-      try{
-
-        await saveShipperSubscription(
-          subscriptionId
-        );
-
-      }catch(error){
-
-        console.warn(
-          "Không cập nhật DB:",
-          error
-        );
-
-      }
-
-
-      status.innerHTML =
-        "✅ <b>Thông báo đã được bật.</b><br>"+
-        "Thiết bị đã sẵn sàng nhận đơn mới.";
-
-      button.textContent =
-        "✅ THÔNG BÁO ĐÃ BẬT";
-
-      button.classList.remove(
-        "off"
-      );
-
-      button.disabled =
-        false;
-
-      return;
-
-    }
-
-
-    button.disabled =
-      false;
-
-    button.textContent =
-      "🔔 BẬT THÔNG BÁO";
-
-    button.classList.add(
-      "off"
-    );
-
-
-    status.innerHTML =
-      "⚠️ <b>Thông báo chưa được đăng ký.</b><br>"+
-      "Bấm BẬT THÔNG BÁO để đăng ký thiết bị.";
-
-
-  }catch(error){
-
-    console.error(
-      "UPDATE PUSH STATUS:",
-      error
-    );
-
-
-    status.innerHTML =
-      "❌ <b>Không kiểm tra được thông báo.</b><br>"+
-      esc(
-        error.message ||
-        String(error)
-      );
-
-
-    button.disabled =
-      false;
-
-    button.textContent =
-      "🔄 THỬ LẠI";
-
-    button.classList.add(
-      "off"
-    );
-
-  }
-
-}
 const status =
 document.getElementById(
 "notificationStatus"
@@ -1056,6 +988,7 @@ document.getElementById(
 "notificationButton"
 );
 
+
 if(!status || !button){
 
 return;
@@ -1063,7 +996,9 @@ return;
 }
 
 
-/* iOS PWA */
+/* ================================
+   IOS SAFARI
+================================ */
 
 if(
 isIOSDevice() &&
@@ -1072,9 +1007,10 @@ isIOSDevice() &&
 
 status.innerHTML =
 "⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br><br>"+
-"Safari → Chia sẻ → Thêm vào Màn hình chính → mở lại CHOCO SHIP.";
+"Safari → Chia sẻ → Thêm vào Màn hình chính → mở lại.";
 
-button.disabled = false;
+button.disabled =
+false;
 
 button.textContent =
 "📲 THÊM VÀO MÀN HÌNH CHÍNH";
@@ -1082,7 +1018,7 @@ button.textContent =
 button.classList.add("off");
 
 pushDebug(
-"iPhone chưa chạy ở chế độ PWA."
+"iPhone chưa chạy chế độ PWA."
 );
 
 return;
@@ -1102,7 +1038,10 @@ OS.Notifications.permission;
 const push =
 getPushStatus(OS);
 
-let externalId = null;
+
+let externalId =
+null;
+
 
 try{
 
@@ -1120,34 +1059,57 @@ esc(push.id || "chưa có")+
 "<br>Opt-in: "+
 (push.optedIn ? "YES" : "NO")+
 "<br>Permission: "+
-(permission === true ? "YES" : "NO")
+(permission === true ? "YES" : "NO")+
+"<br>Shipper ID: "+
+esc(USER_ID)
 );
 
 
 if(
 permission === true &&
 push.optedIn === true &&
-push.id &&
-String(externalId) === String(USER_ID)
+push.id
 ){
+
+try{
+
+await saveShipperSubscription(
+String(push.id)
+);
+
+}catch(error){
+
+console.warn(
+"Không lưu subscription:",
+error
+);
+
+}
+
 
 status.innerHTML =
 "✅ <b>Thông báo đã được bật.</b><br>"+
-"Thiết bị này đã đăng ký nhận đơn.";
+"Thiết bị đã sẵn sàng nhận đơn mới.";
 
 button.textContent =
 "✅ THÔNG BÁO ĐÃ BẬT";
 
 button.classList.remove("off");
 
-button.disabled = false;
+button.disabled =
+false;
 
 return;
 
 }
 
 
-button.disabled = false;
+/* ================================
+   CHƯA BẬT
+================================ */
+
+button.disabled =
+false;
 
 button.textContent =
 "🔔 BẬT THÔNG BÁO";
@@ -1158,39 +1120,39 @@ button.classList.add("off");
 if(permission !== true){
 
 status.innerHTML =
-"⚠️ Chưa cấp quyền thông báo.";
+"⚠️ <b>Chưa cấp quyền thông báo.</b><br>"+
+"Bấm nút bên dưới để bật.";
 
 }else if(!push.id){
 
 status.innerHTML =
-"⚠️ Đã cấp quyền nhưng thiết bị chưa đăng ký Push.";
-
-}else if(
-String(externalId) !== String(USER_ID)
-){
-
-status.innerHTML =
-"⚠️ Thiết bị chưa liên kết đúng tài khoản shipper.";
+"⚠️ <b>Đã cấp quyền nhưng chưa có thiết bị Push.</b><br>"+
+"Bấm BẬT THÔNG BÁO để đăng ký.";
 
 }else{
 
 status.innerHTML =
-"⚠️ Thông báo chưa hoàn tất đăng ký.";
+"⚠️ <b>Thông báo chưa hoàn tất đăng ký.</b>";
 
 }
+
 
 }catch(error){
 
 console.error(
-"UPDATE PUSH:",
+"UPDATE PUSH ERROR:",
 error
 );
 
 status.innerHTML =
 "❌ <b>Không kiểm tra được OneSignal.</b><br>"+
-esc(error.message);
+esc(
+error.message ||
+String(error)
+);
 
-button.disabled = false;
+button.disabled =
+false;
 
 button.textContent =
 "🔄 THỬ LẠI";
@@ -1202,391 +1164,11 @@ button.classList.add("off");
 }
 
 
-/* ==================================================
-   ENABLE
-================================================== */
-
-async function saveShipperSubscription(subscriptionId){
-
-  if(!subscriptionId){
-    throw new Error(
-      "Không có Subscription ID."
-    );
-  }
-
-  console.log(
-    "💾 Lưu Subscription ID:",
-    subscriptionId
-  );
-
-
-  const response =
-    await api(
-      "/rest/v1/shipper_push_subscriptions",
-      {
-        method:"POST",
-
-        headers:{
-          "Content-Type":
-            "application/json",
-
-          "Prefer":
-            "resolution=merge-duplicates,return=representation"
-        },
-
-        body:JSON.stringify({
-
-          shipper_id:
-            USER_ID,
-
-          subscription_id:
-            subscriptionId,
-
-          enabled:
-            true,
-
-          updated_at:
-            new Date().toISOString()
-
-        })
-
-      }
-    );
-
-
-  if(!response.ok){
-
-    throw new Error(
-      "Không lưu được thiết bị:\n"+
-      await response.text()
-    );
-
-  }
-
-
-  const result =
-    await response.json();
-
-  console.log(
-    "✅ Đã lưu thiết bị:",
-    result
-  );
-
-  return result;
-
-}
-
-
+/* =====================================================
+   ENABLE NOTIFICATIONS
+===================================================== */
 
 async function enableNotifications(){
-
-  const button =
-    document.getElementById(
-      "notificationButton"
-    );
-
-  const status =
-    document.getElementById(
-      "notificationStatus"
-    );
-
-
-  button.disabled =
-    true;
-
-  button.textContent =
-    "⏳ ĐANG BẬT...";
-
-
-  try{
-
-    if(
-      isIOSDevice() &&
-      !isStandalone()
-    ){
-
-      status.innerHTML =
-        "⚠️ <b>Cần thêm CHOCO SHIP vào Màn hình chính.</b><br><br>"+
-        "Safari → Chia sẻ → Thêm vào Màn hình chính.";
-
-      button.disabled =
-        false;
-
-      button.textContent =
-        "📲 THÊM VÀO MÀN HÌNH CHÍNH";
-
-      return;
-
-    }
-
-
-    status.innerHTML =
-      "⏳ Đang kết nối OneSignal...";
-
-
-    const OS =
-      await initOneSignal();
-
-
-    /*
-    ==================================================
-    ĐẢM BẢO USER LOGIN
-    ==================================================
-    */
-
-    if(USER_ID){
-
-      try{
-
-        await OS.login(
-          String(USER_ID)
-        );
-
-        console.log(
-          "✅ OneSignal login:",
-          USER_ID
-        );
-
-      }catch(error){
-
-        console.warn(
-          "OneSignal login:",
-          error
-        );
-
-      }
-
-    }
-
-
-    /*
-    ==================================================
-    XIN QUYỀN
-    ==================================================
-    */
-
-    if(
-      typeof Notification !==
-      "undefined" &&
-      Notification.permission ===
-      "denied"
-    ){
-
-      throw new Error(
-        "Thông báo đang bị chặn trong cài đặt iPhone."
-      );
-
-    }
-
-
-    status.innerHTML =
-      "🔔 Đang xin quyền thông báo...";
-
-
-    if(
-      OS.Notifications.permission !==
-      true
-    ){
-
-      await OS.Notifications.requestPermission();
-
-    }
-
-
-    if(
-      OS.Notifications.permission !==
-      true
-    ){
-
-      throw new Error(
-        "Bạn chưa cho phép thông báo."
-      );
-
-    }
-
-
-    /*
-    ==================================================
-    OPT IN
-    ==================================================
-    */
-
-    let subscription =
-      OS.User.PushSubscription;
-
-
-    if(
-      !subscription.optedIn
-    ){
-
-      status.innerHTML =
-        "⏳ Đang đăng ký thiết bị...";
-
-      await subscription.optIn();
-
-    }
-
-
-    /*
-    ==================================================
-    CHỜ SUBSCRIPTION ID
-    ==================================================
-    */
-
-    let subscriptionId =
-      null;
-
-
-    for(
-      let i=0;
-      i<30;
-      i++
-    ){
-
-      subscription =
-        OS.User.PushSubscription;
-
-
-      subscriptionId =
-        subscription &&
-        subscription.id
-          ? String(
-              subscription.id
-            )
-          : null;
-
-
-      console.log(
-        "Subscription check:",
-        i + 1,
-        subscriptionId
-      );
-
-
-      if(
-        subscriptionId &&
-        subscription.optedIn === true
-      ){
-
-        break;
-
-      }
-
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            500
-          )
-      );
-
-    }
-
-
-    if(!subscriptionId){
-
-      throw new Error(
-        "OneSignal chưa tạo Subscription ID cho thiết bị."
-      );
-
-    }
-
-
-    /*
-    ==================================================
-    LƯU VÀO SUPABASE
-    ==================================================
-    */
-
-    status.innerHTML =
-      "⏳ Đang lưu thiết bị shipper...";
-
-
-    await saveShipperSubscription(
-      subscriptionId
-    );
-
-
-    /*
-    ==================================================
-    THÀNH CÔNG
-    ==================================================
-    */
-
-    status.innerHTML =
-      "✅ <b>Thông báo đã được bật.</b><br>"+
-      "Thiết bị đã sẵn sàng nhận đơn mới.";
-
-    button.textContent =
-      "✅ THÔNG BÁO ĐÃ BẬT";
-
-    button.classList.remove(
-      "off"
-    );
-
-    button.disabled =
-      false;
-
-
-    console.log(
-      "================================"
-    );
-
-    console.log(
-      "✅ CHOCO SHIP PUSH READY"
-    );
-
-    console.log(
-      "Shipper:",
-      USER_ID
-    );
-
-    console.log(
-      "Subscription ID:",
-      subscriptionId
-    );
-
-    console.log(
-      "================================"
-    );
-
-
-    showMessage(
-      "success",
-      "🔔 Đã đăng ký thiết bị nhận thông báo."
-    );
-
-
-  }catch(error){
-
-    console.error(
-      "ENABLE PUSH ERROR:",
-      error
-    );
-
-
-    status.innerHTML =
-      "❌ <b>Không bật được thông báo.</b><br>"+
-      esc(
-        error.message ||
-        String(error)
-      );
-
-
-    button.disabled =
-      false;
-
-    button.textContent =
-      "🔔 THỬ LẠI";
-
-    button.classList.add(
-      "off"
-    );
-
-  }
-
-}
 
 const button =
 document.getElementById(
@@ -1599,7 +1181,8 @@ document.getElementById(
 );
 
 
-button.disabled = true;
+button.disabled =
+true;
 
 button.textContent =
 "⏳ ĐANG BẬT...";
@@ -1607,16 +1190,22 @@ button.textContent =
 
 try{
 
+
+/* ================================
+   IOS PWA CHECK
+================================ */
+
 if(
 isIOSDevice() &&
 !isStandalone()
 ){
 
 status.innerHTML =
-"⚠️ <b>Trước tiên thêm CHOCO SHIP vào Màn hình chính.</b><br><br>"+
+"⚠️ <b>Cần thêm CHOCO SHIP vào Màn hình chính.</b><br><br>"+
 "Safari → Chia sẻ → Thêm vào Màn hình chính.";
 
-button.disabled = false;
+button.disabled =
+false;
 
 button.textContent =
 "📲 THÊM VÀO MÀN HÌNH CHÍNH";
@@ -1626,32 +1215,38 @@ return;
 }
 
 
+/* ================================
+   INIT
+================================ */
+
+status.innerHTML =
+"⏳ Đang kết nối OneSignal...";
+
+
 const OS =
 await initOneSignal();
 
 
-/* ==================================================
-   LUÔN LOGIN TRƯỚC
-================================================== */
+/* ================================
+   LOGIN
+================================ */
 
 status.innerHTML =
 "🔗 Đang liên kết tài khoản shipper...";
 
 
+if(USER_ID){
+
 await OS.login(
 String(USER_ID)
 );
 
-
-console.log(
-"External ID:",
-OS.User.externalId
-);
+}
 
 
-/* ==================================================
-   REQUEST PERMISSION
-================================================== */
+/* ================================
+   PERMISSION
+================================ */
 
 status.innerHTML =
 "🔔 Đang xin quyền thông báo...";
@@ -1677,103 +1272,150 @@ throw new Error(
 }
 
 
-/* ==================================================
+/* ================================
    OPT IN
-================================================== */
+================================ */
 
-let push =
-getPushStatus(OS);
+let subscription =
+OS.User.PushSubscription;
 
 
-if(!push.optedIn){
+if(
+!subscription.optedIn
+){
 
 status.innerHTML =
 "⏳ Đang đăng ký thiết bị...";
 
-await OS.User.PushSubscription.optIn();
+await subscription.optIn();
 
 }
 
 
-/* ==================================================
-   CHỜ SUBSCRIPTION
-================================================== */
+/* ================================
+   WAIT SUBSCRIPTION
+================================ */
 
-let success = false;
+let subscriptionId =
+null;
+
 
 for(
 let i=0;
-i<30;
+i<40;
 i++
 ){
 
-await new Promise(
-resolve =>
-setTimeout(resolve,500)
-);
+subscription =
+OS.User.PushSubscription;
 
-push =
-getPushStatus(OS);
+
+subscriptionId =
+subscription?.id
+?
+String(subscription.id)
+:
+null;
+
 
 let externalId =
+null;
+
+try{
+
+externalId =
 OS.User.externalId || null;
 
+}catch(e){}
+
+
 pushDebug(
-"Đang đăng ký... "+
-(i+1)+"/30"+
+"Đang đăng ký thiết bị... "+
+(i+1)+"/40"+
 "<br>External ID: "+
 esc(externalId || "chưa có")+
 "<br>Subscription ID: "+
-esc(push.id || "chưa có")
+esc(subscriptionId || "chưa có")+
+"<br>Opt-in: "+
+(
+subscription?.optedIn
+?
+"YES"
+:
+"NO"
+)
 );
 
 
 if(
-push.optedIn === true &&
-push.id &&
-String(externalId) === String(USER_ID)
+subscriptionId &&
+subscription.optedIn === true
 ){
-
-success = true;
 
 break;
 
 }
 
-}
 
-
-if(!success){
-
-throw new Error(
-"OneSignal chưa tạo Subscription ID. Hãy kiểm tra quyền thông báo và Service Worker."
+await new Promise(
+resolve =>
+setTimeout(
+resolve,
+500
+)
 );
 
 }
 
 
-/* ==================================================
+if(!subscriptionId){
+
+throw new Error(
+"OneSignal chưa tạo Subscription ID.\n"+
+"Kiểm tra Service Worker và quyền thông báo."
+);
+
+}
+
+
+/* ================================
+   SAVE DATABASE
+================================ */
+
+status.innerHTML =
+"⏳ Đang lưu thiết bị shipper...";
+
+
+await saveShipperSubscription(
+subscriptionId
+);
+
+
+/* ================================
    SUCCESS
-================================================== */
+================================ */
 
 status.innerHTML =
 "✅ <b>Thông báo đã được bật!</b><br>"+
-"Thiết bị đã liên kết với tài khoản shipper.";
+"Thiết bị đã sẵn sàng nhận đơn.";
 
 button.textContent =
 "✅ THÔNG BÁO ĐÃ BẬT";
 
 button.classList.remove("off");
 
-button.disabled = false;
+button.disabled =
+false;
 
 
 pushDebug(
 "✅ PUSH READY"+
 "<br>External ID: "+
-esc(OS.User.externalId)+
+esc(OS.User.externalId || "chưa có")+
 "<br>Subscription ID: "+
-esc(push.id)
+esc(subscriptionId)+
+"<br>Shipper ID: "+
+esc(USER_ID)
 );
 
 
@@ -1786,15 +1428,21 @@ showMessage(
 }catch(error){
 
 console.error(
-"ENABLE PUSH:",
+"ENABLE PUSH ERROR:",
 error
 );
 
+
 status.innerHTML =
 "❌ <b>Không bật được thông báo.</b><br>"+
-esc(error.message);
+esc(
+error.message ||
+String(error)
+);
 
-button.disabled = false;
+
+button.disabled =
+false;
 
 button.textContent =
 "🔔 THỬ LẠI";
@@ -1806,110 +1454,9 @@ button.classList.add("off");
 }
 
 
-/* ==================================================
-   LOGOUT
-================================================== */
-
-async function logout(){
-
-/*
-Không logout OneSignal ở đây.
-
-Điều này tránh làm mất External ID
-khi tài khoản shipper được mở lại.
-*/
-
-localStorage.removeItem(
-"choco_access_token"
-);
-
-localStorage.removeItem(
-"choco_user_id"
-);
-
-localStorage.removeItem(
-"choco_role"
-);
-
-localStorage.removeItem(
-"choco_email"
-);
-
-window.location.replace(
-"login.html"
-);
-
-}
-
-
-/* ==================================================
-   API
-================================================== */
-
-async function api(
-path,
-options={}
-){
-
-const headers={
-
-"apikey":
-SUPABASE_KEY,
-
-"Authorization":
-"Bearer "+
-TOKEN,
-
-"Accept":
-"application/json",
-
-...(options.headers || {})
-
-};
-
-return fetch(
-SUPABASE_URL+
-path,
-{
-...options,
-headers
-}
-);
-
-}
-
-
-/* ==================================================
-   ESC
-================================================== */
-
-function esc(value){
-
-return String(value ?? "")
-.replace(/&/g,"&amp;")
-.replace(/</g,"&lt;")
-.replace(/>/g,"&gt;")
-.replace(/"/g,"&quot;")
-.replace(/'/g,"&#039;");
-
-}
-
-
-/* ==================================================
-   MONEY
-================================================== */
-
-function money(value){
-
-return Number(value || 0)
-.toLocaleString("vi-VN")+"đ";
-
-}
-
-
-/* ==================================================
+/* =====================================================
    PROFILE
-================================================== */
+===================================================== */
 
 async function loadProfile(){
 
@@ -1969,7 +1516,8 @@ data[0];
 
 
 nameEl.textContent =
-profile.full_name || "Shipper";
+profile.full_name ||
+"Shipper";
 
 
 if(profile.phone){
@@ -1988,10 +1536,11 @@ phoneEl.textContent =
 
 }
 
+
 }catch(error){
 
 console.error(
-"PROFILE:",
+"PROFILE ERROR:",
 error
 );
 
@@ -2006,18 +1555,19 @@ phoneEl.textContent =
 }
 
 
-/* ==================================================
+/* =====================================================
    ITEMS
-================================================== */
+===================================================== */
 
 function getItems(raw){
 
 let data = raw;
 
+
 for(
 let i=0;
 i<5 &&
-typeof data==="string";
+typeof data === "string";
 i++
 ){
 
@@ -2054,7 +1604,7 @@ return data.items;
 
 if(
 data &&
-typeof data==="object"
+typeof data === "object"
 ){
 
 return [data];
@@ -2063,7 +1613,7 @@ return [data];
 
 
 if(
-typeof data==="string" &&
+typeof data === "string" &&
 data.trim()
 ){
 
@@ -2101,9 +1651,9 @@ return `
 return list.map(
 function(item,index){
 
-if(typeof item==="string"){
+if(typeof item === "string"){
 
-item={
+item = {
 name:item,
 qty:1,
 price:0
@@ -2142,9 +1692,9 @@ const total =
 Number(
 item.total ??
 item.subtotal ??
-(price*qty)
+(price * qty)
 ) ||
-(price*qty);
+(price * qty);
 
 
 return `
@@ -2173,9 +1723,9 @@ Thành tiền:
 }
 
 
-/* ==================================================
+/* =====================================================
    MAP
-================================================== */
+===================================================== */
 
 function mapUrl(address){
 
@@ -2208,9 +1758,9 @@ encodeURIComponent(longitude)
 }
 
 
-/* ==================================================
+/* =====================================================
    DATE
-================================================== */
+===================================================== */
 
 function dateText(value){
 
@@ -2234,9 +1784,9 @@ return String(value);
 }
 
 
-/* ==================================================
+/* =====================================================
    MESSAGE
-================================================== */
+===================================================== */
 
 function showMessage(
 type,
@@ -2246,11 +1796,13 @@ text
 const message =
 document.getElementById("message");
 
+
 if(!message){
 
 return;
 
 }
+
 
 message.innerHTML =
 `
@@ -2262,21 +1814,21 @@ ${esc(text)}
 }
 
 
-/* ==================================================
+/* =====================================================
    ORDERS
-================================================== */
-
-let previousOrderIds =
-new Set();
-
-let firstOrderLoad =
-true;
-
+===================================================== */
 
 async function loadOrders(){
 
 const box =
 document.getElementById("orders");
+
+
+if(!box){
+
+return;
+
+}
 
 
 try{
@@ -2305,27 +1857,16 @@ const orders =
 await response.json();
 
 
-previousOrderIds =
-new Set(
-orders.map(
-order =>
-String(order.id)
-)
-);
-
-
-firstOrderLoad = false;
-
-
 renderOrders(orders);
 
 
 }catch(error){
 
 console.error(
-"ORDERS:",
+"ORDERS ERROR:",
 error
 );
+
 
 box.innerHTML =
 `
@@ -2345,9 +1886,9 @@ ${esc(error.message)}
 }
 
 
-/* ==================================================
-   RENDER
-================================================== */
+/* =====================================================
+   RENDER ORDERS
+===================================================== */
 
 function renderOrders(orders){
 
@@ -2408,16 +1949,21 @@ order.status === "Hoàn thành"
 ).length;
 
 
-document.getElementById("newCount")
-.textContent =
+document.getElementById(
+"newCount"
+).textContent =
 newCount;
 
-document.getElementById("shippingCount")
-.textContent =
+
+document.getElementById(
+"shippingCount"
+).textContent =
 shippingCount;
 
-document.getElementById("doneCount")
-.textContent =
+
+document.getElementById(
+"doneCount"
+).textContent =
 doneCount;
 
 
@@ -2436,14 +1982,16 @@ return;
 
 
 box.innerHTML =
-visible.map(renderOrder).join("");
+visible
+.map(renderOrder)
+.join("");
 
 }
 
 
-/* ==================================================
+/* =====================================================
    ORDER CARD
-================================================== */
+===================================================== */
 
 function renderOrder(order){
 
@@ -2529,6 +2077,7 @@ order.longitude
 
 
 let badgeClass = "";
+
 
 if(pending){
 
@@ -2818,9 +2367,9 @@ href="tel:${esc(phone)}">
 }
 
 
-/* ==================================================
-   ACCEPT
-================================================== */
+/* =====================================================
+   ACCEPT ORDER
+===================================================== */
 
 async function acceptOrder(id){
 
@@ -2829,13 +2378,15 @@ document.getElementById(
 "order-"+id
 );
 
+
 const button =
 card?.querySelector(".accept");
 
 
 if(button){
 
-button.disabled = true;
+button.disabled =
+true;
 
 button.textContent =
 "⏳ ĐANG NHẬN...";
@@ -2858,8 +2409,13 @@ encodeURIComponent("Chờ xác nhận")+
 method:"PATCH",
 
 headers:{
-"Content-Type":"application/json",
-"Prefer":"return=representation"
+
+"Content-Type":
+"application/json",
+
+"Prefer":
+"return=representation"
+
 },
 
 body:JSON.stringify({
@@ -2911,6 +2467,7 @@ showMessage(
 "✅ Nhận đơn thành công!"
 );
 
+
 await loadOrders();
 
 
@@ -2922,9 +2479,11 @@ showMessage(
 error.message
 );
 
+
 if(button){
 
-button.disabled = false;
+button.disabled =
+false;
 
 button.textContent =
 "✅ NHẬN ĐƠN";
@@ -2936,9 +2495,9 @@ button.textContent =
 }
 
 
-/* ==================================================
+/* =====================================================
    CHANGE STATUS
-================================================== */
+===================================================== */
 
 async function changeStatus(
 id,
@@ -2977,12 +2536,20 @@ encodeURIComponent(USER_ID),
 method:"PATCH",
 
 headers:{
-"Content-Type":"application/json",
-"Prefer":"return=representation"
+
+"Content-Type":
+"application/json",
+
+"Prefer":
+"return=representation"
+
 },
 
 body:JSON.stringify({
-status:newStatus
+
+status:
+newStatus
+
 })
 
 }
@@ -3020,6 +2587,7 @@ showMessage(
 newStatus
 );
 
+
 await loadOrders();
 
 
@@ -3038,34 +2606,68 @@ await loadOrders();
 }
 
 
-/* ==================================================
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+async function logout(){
+
+localStorage.removeItem(
+"choco_access_token"
+);
+
+localStorage.removeItem(
+"choco_user_id"
+);
+
+localStorage.removeItem(
+"choco_role"
+);
+
+localStorage.removeItem(
+"choco_email"
+);
+
+window.location.replace(
+"login.html"
+);
+
+}
+
+
+/* =====================================================
    START
-================================================== */
+===================================================== */
 
 async function start(){
+
+console.log(
+"================================="
+);
+
+console.log(
+"CHOCO SHIP SHIPPER START"
+);
+
+console.log(
+"USER_ID:",
+USER_ID
+);
+
+console.log(
+"ROLE:",
+ROLE
+);
+
+console.log(
+"================================="
+);
+
 
 await loadProfile();
 
 await loadOrders();
 
-
-initOneSignal()
-.then(
-function(){
-
-console.log(
-"✅ OneSignal READY"
-);
-
-}
-)
-.catch(
-function(error){
-
-console.error(
-"OneSignal:",
-error
-);
 
 const status =
 document.getElementById(
@@ -3077,44 +2679,127 @@ document.getElementById(
 "notificationButton"
 );
 
-if(status){
+
+try{
+
+/* ================================
+   IOS PWA
+================================ */
+
+if(
+isIOSDevice() &&
+!isStandalone()
+){
 
 status.innerHTML =
-"❌ OneSignal chưa khởi động.<br>"+
-esc(error.message);
+"⚠️ <b>Cần mở CHOCO SHIP từ Màn hình chính.</b><br><br>"+
+"Safari → Chia sẻ → Thêm vào Màn hình chính.";
+
+button.disabled =
+false;
+
+button.textContent =
+"📲 THÊM VÀO MÀN HÌNH CHÍNH";
+
+button.classList.add("off");
+
+pushDebug(
+"iPhone Safari thường."
+);
+
+return;
 
 }
 
-if(button){
 
-button.disabled = false;
+/* ================================
+   ONESIGNAL
+================================ */
+
+status.innerHTML =
+"⏳ Đang khởi động OneSignal...";
+
+
+await initOneSignal();
+
+
+console.log(
+"✅ OneSignal READY"
+);
+
+
+await updateNotificationStatus();
+
+
+}catch(error){
+
+console.error(
+"ONESIGNAL START ERROR:",
+error
+);
+
+
+status.innerHTML =
+"❌ <b>OneSignal chưa khởi động.</b><br>"+
+esc(
+error.message ||
+String(error)
+);
+
+
+button.disabled =
+false;
 
 button.textContent =
 "🔄 THỬ LẠI";
 
+button.classList.add("off");
+
+
+pushDebug(
+"❌ OneSignal ERROR:<br>"+
+esc(
+error.message ||
+String(error)
+)
+);
+
 }
 
-});
-
 }
 
+
+/* =====================================================
+   START APP
+===================================================== */
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
 
 start();
 
+}
+);
 
-/* ==================================================
-   AUTO REFRESH
-================================================== */
+
+/* =====================================================
+   AUTO REFRESH ORDERS
+===================================================== */
 
 setInterval(
-loadOrders,
+function(){
+
+loadOrders();
+
+},
 15000
 );
 
 
-/* ==================================================
-   PUSH STATUS
-================================================== */
+/* =====================================================
+   AUTO CHECK PUSH
+===================================================== */
 
 setInterval(
 function(){
