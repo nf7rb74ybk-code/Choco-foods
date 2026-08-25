@@ -50,16 +50,16 @@ self.addEventListener("push", event => {
                     "./icon-192.png",
 
                 vibrate:
-                    [300,100,300],
+                    [300, 100, 300],
 
                 requireInteraction:
                     true,
 
                 tag:
                     notificationData.orderId
-                    ? "order-" +
-                      notificationData.orderId
-                    : "choco-ship-order",
+                        ? "order-" +
+                        notificationData.orderId
+                        : "choco-ship-order",
 
                 renotify:
                     true,
@@ -88,7 +88,7 @@ self.addEventListener(
 
         const url =
             event.notification.data &&
-            event.notification.data.url
+                event.notification.data.url
                 ? event.notification.data.url
                 : "https://nf7rb74ybk-code.github.io/Choco-foods/shipper.html";
 

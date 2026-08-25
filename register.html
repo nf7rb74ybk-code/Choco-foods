@@ -1,306 +1,325 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CHOCO SHIP - Đăng ký Shipper</title>
 
-<style>
-*{box-sizing:border-box}
-body{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:20px;
-font-family:Arial,sans-serif;
-background:#f4f5f7
-}
-.box{
-width:100%;
-max-width:420px;
-background:white;
-padding:25px;
-border-radius:20px;
-box-shadow:0 5px 25px rgba(0,0,0,.12)
-}
-.logo{
-text-align:center;
-font-size:30px;
-font-weight:bold;
-color:#ff6b00
-}
-.title{
-text-align:center;
-font-size:21px;
-font-weight:bold;
-margin:8px 0 22px
-}
-label{
-display:block;
-font-weight:bold;
-margin:12px 0 6px
-}
-input{
-width:100%;
-padding:13px;
-border:1px solid #ddd;
-border-radius:10px;
-font-size:16px
-}
-button{
-width:100%;
-padding:14px;
-margin-top:20px;
-border:0;
-border-radius:10px;
-background:#ff6b00;
-color:white;
-font-size:16px;
-font-weight:bold
-}
-button:disabled{opacity:.6}
-.msg{
-display:none;
-margin-top:15px;
-padding:14px;
-border-radius:10px;
-white-space:pre-line;
-line-height:1.5
-}
-.error{
-background:#fee2e2;
-color:#991b1b
-}
-.success{
-background:#dcfce7;
-color:#166534
-}
-.login{
-text-align:center;
-margin-top:18px
-}
-.login a{
-color:#ff6b00;
-font-weight:bold
-}
-</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CHOCO SHIP - Đăng ký Shipper</title>
+
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f4f5f7
+        }
+
+        .box {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, .12)
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff6b00
+        }
+
+        .title {
+            text-align: center;
+            font-size: 21px;
+            font-weight: bold;
+            margin: 8px 0 22px
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 12px 0 6px
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            border: 0;
+            border-radius: 10px;
+            background: #ff6b00;
+            color: white;
+            font-size: 16px;
+            font-weight: bold
+        }
+
+        button:disabled {
+            opacity: .6
+        }
+
+        .msg {
+            display: none;
+            margin-top: 15px;
+            padding: 14px;
+            border-radius: 10px;
+            white-space: pre-line;
+            line-height: 1.5
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534
+        }
+
+        .login {
+            text-align: center;
+            margin-top: 18px
+        }
+
+        .login a {
+            color: #ff6b00;
+            font-weight: bold
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="box">
+    <div class="box">
 
-<div class="logo">🚚 CHOCO SHIP</div>
+        <div class="logo">🚚 CHOCO SHIP</div>
 
-<div class="title">Đăng ký Shipper</div>
+        <div class="title">Đăng ký Shipper</div>
 
-<form id="form">
+        <form id="form">
 
-<label>Họ và tên</label>
-<input id="name" required placeholder="Nguyễn Văn A">
+            <label>Họ và tên</label>
+            <input id="name" required placeholder="Nguyễn Văn A">
 
-<label>Số điện thoại</label>
-<input id="phone" required placeholder="0900000000">
+            <label>Số điện thoại</label>
+            <input id="phone" required placeholder="0900000000">
 
-<label>Email</label>
-<input id="email" type="email" required placeholder="shipper@gmail.com">
+            <label>Email</label>
+            <input id="email" type="email" required placeholder="shipper@gmail.com">
 
-<label>Mật khẩu</label>
-<input id="password" type="password" minlength="6" required placeholder="Ít nhất 6 ký tự">
+            <label>Mật khẩu</label>
+            <input id="password" type="password" minlength="6" required placeholder="Ít nhất 6 ký tự">
 
-<label>Nhập lại mật khẩu</label>
-<input id="password2" type="password" minlength="6" required placeholder="Nhập lại mật khẩu">
+            <label>Nhập lại mật khẩu</label>
+            <input id="password2" type="password" minlength="6" required placeholder="Nhập lại mật khẩu">
 
-<button id="btn" type="submit">
-🚚 ĐĂNG KÝ SHIPPER
-</button>
+            <button id="btn" type="submit">
+                🚚 ĐĂNG KÝ SHIPPER
+            </button>
 
-</form>
+        </form>
 
-<div id="msg" class="msg"></div>
+        <div id="msg" class="msg"></div>
 
-<div class="login">
-<a href="login.html">← Quay lại đăng nhập</a>
-</div>
+        <div class="login">
+            <a href="login.html">← Quay lại đăng nhập</a>
+        </div>
 
-</div>
+    </div>
 
-<script>
+    <script>
 
-const SUPABASE_URL =
-"https://guwdswqaqnhzqapflvey.supabase.co";
+        const SUPABASE_URL =
+            "https://guwdswqaqnhzqapflvey.supabase.co";
 
-const SUPABASE_KEY =
-"sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+        const SUPABASE_KEY =
+            "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
-const form =
-document.getElementById("form");
+        const form =
+            document.getElementById("form");
 
-const btn =
-document.getElementById("btn");
+        const btn =
+            document.getElementById("btn");
 
-const msg =
-document.getElementById("msg");
+        const msg =
+            document.getElementById("msg");
 
 
-function show(text,type){
+        function show(text, type) {
 
-msg.className="msg "+type;
-msg.textContent=text;
-msg.style.display="block";
+            msg.className = "msg " + type;
+            msg.textContent = text;
+            msg.style.display = "block";
 
-}
+        }
 
 
-form.addEventListener("submit",async function(e){
+        form.addEventListener("submit", async function (e) {
 
-e.preventDefault();
+            e.preventDefault();
 
-msg.style.display="none";
+            msg.style.display = "none";
 
-const name =
-document.getElementById("name").value.trim();
+            const name =
+                document.getElementById("name").value.trim();
 
-const phone =
-document.getElementById("phone").value.trim();
+            const phone =
+                document.getElementById("phone").value.trim();
 
-const email =
-document.getElementById("email").value.trim().toLowerCase();
+            const email =
+                document.getElementById("email").value.trim().toLowerCase();
 
-const password =
-document.getElementById("password").value;
+            const password =
+                document.getElementById("password").value;
 
-const password2 =
-document.getElementById("password2").value;
+            const password2 =
+                document.getElementById("password2").value;
 
 
-if(password !== password2){
+            if (password !== password2) {
 
-show(
-"❌ Mật khẩu nhập lại không giống nhau.",
-"error"
-);
+                show(
+                    "❌ Mật khẩu nhập lại không giống nhau.",
+                    "error"
+                );
 
-return;
+                return;
 
-}
+            }
 
 
-btn.disabled=true;
-btn.textContent="⏳ Đang kiểm tra...";
+            btn.disabled = true;
+            btn.textContent = "⏳ Đang kiểm tra...";
 
 
-try{
+            try {
 
-const response = await fetch(
+                const response = await fetch(
 
-SUPABASE_URL + "/auth/v1/signup",
+                    SUPABASE_URL + "/auth/v1/signup",
 
-{
-method:"POST",
+                    {
+                        method: "POST",
 
-headers:{
-"Content-Type":"application/json",
-"apikey":SUPABASE_KEY
-},
+                        headers: {
+                            "Content-Type": "application/json",
+                            "apikey": SUPABASE_KEY
+                        },
 
-body:JSON.stringify({
+                        body: JSON.stringify({
 
-email:email,
+                            email: email,
 
-password:password,
+                            password: password,
 
-data:{
-full_name:name,
-phone:phone
-}
+                            data: {
+                                full_name: name,
+                                phone: phone
+                            }
 
-})
-}
+                        })
+                    }
 
-);
+                );
 
 
-const raw =
-await response.text();
+                const raw =
+                    await response.text();
 
 
-let data;
+                let data;
 
-try{
-data=JSON.parse(raw);
-}catch{
-data={};
-}
+                try {
+                    data = JSON.parse(raw);
+                } catch {
+                    data = {};
+                }
 
 
-/* HIỂN THỊ LỖI THẬT */
+                /* HIỂN THỊ LỖI THẬT */
 
-if(!response.ok){
+                if (!response.ok) {
 
-show(
+                    show(
 
-"❌ SUPABASE TỪ CHỐI ĐĂNG KÝ\n\n"+
-"HTTP: "+response.status+
-"\n\n"+
-(raw || "Không có thông báo lỗi."),
+                        "❌ SUPABASE TỪ CHỐI ĐĂNG KÝ\n\n" +
+                        "HTTP: " + response.status +
+                        "\n\n" +
+                        (raw || "Không có thông báo lỗi."),
 
-"error"
+                        "error"
 
-);
+                    );
 
-btn.disabled=false;
-btn.textContent="🚚 ĐĂNG KÝ SHIPPER";
+                    btn.disabled = false;
+                    btn.textContent = "🚚 ĐĂNG KÝ SHIPPER";
 
-return;
+                    return;
 
-}
+                }
 
 
-/* ĐĂNG KÝ THÀNH CÔNG */
+                /* ĐĂNG KÝ THÀNH CÔNG */
 
-show(
+                show(
 
-"✅ SUPABASE ĐÃ TẠO TÀI KHOẢN!\n\n"+
-"Email: "+email+
-"\n\n"+
-(data.session
-?
-"Bạn có thể đăng nhập ngay."
-:
-"Hãy kiểm tra email nếu hệ thống yêu cầu xác nhận."),
+                    "✅ SUPABASE ĐÃ TẠO TÀI KHOẢN!\n\n" +
+                    "Email: " + email +
+                    "\n\n" +
+                    (data.session
+                        ?
+                        "Bạn có thể đăng nhập ngay."
+                        :
+                        "Hãy kiểm tra email nếu hệ thống yêu cầu xác nhận."),
 
-"success"
+                    "success"
 
-);
+                );
 
-form.reset();
+                form.reset();
 
-btn.disabled=false;
-btn.textContent="🚚 ĐĂNG KÝ SHIPPER";
+                btn.disabled = false;
+                btn.textContent = "🚚 ĐĂNG KÝ SHIPPER";
 
 
-}catch(error){
+            } catch (error) {
 
-show(
+                show(
 
-"❌ LỖI KẾT NỐI\n\n"+
-error.message,
+                    "❌ LỖI KẾT NỐI\n\n" +
+                    error.message,
 
-"error"
+                    "error"
 
-);
+                );
 
-btn.disabled=false;
-btn.textContent="🚚 ĐĂNG KÝ SHIPPER";
+                btn.disabled = false;
+                btn.textContent = "🚚 ĐĂNG KÝ SHIPPER";
 
-}
+            }
 
-});
+        });
 
-</script>
+    </script>
 
 </body>
+
 </html>

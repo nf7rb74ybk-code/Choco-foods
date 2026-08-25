@@ -1,904 +1,897 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CHOCO SHIP - ADMIN</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CHOCO SHIP - ADMIN</title>
 
-<style>
-*{box-sizing:border-box}
+    <style>
+        * {
+            box-sizing: border-box
+        }
 
-body{
-margin:0;
-font-family:Arial,sans-serif;
-background:#f3f4f6;
-color:#222
-}
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            color: #222
+        }
 
-header{
-background:#ff6b00;
-color:white;
-padding:15px;
-position:sticky;
-top:0;
-z-index:100
-}
+        header {
+            background: #ff6b00;
+            color: white;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
 
-.header{
-max-width:850px;
-margin:auto;
-display:flex;
-justify-content:space-between;
-align-items:center
-}
+        .header {
+            max-width: 850px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
 
-.logo{
-font-size:21px;
-font-weight:bold
-}
+        .logo {
+            font-size: 21px;
+            font-weight: bold
+        }
 
-.header button{
-border:0;
-border-radius:9px;
-padding:10px 12px;
-font-weight:bold;
-margin-left:5px;
-cursor:pointer
-}
+        .header button {
+            border: 0;
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-weight: bold;
+            margin-left: 5px;
+            cursor: pointer
+        }
 
-.refresh{
-background:white;
-color:#ff6b00
-}
+        .refresh {
+            background: white;
+            color: #ff6b00
+        }
 
-.logout{
-background:#dc2626;
-color:white
-}
+        .logout {
+            background: #dc2626;
+            color: white
+        }
 
-.container{
-max-width:850px;
-margin:auto;
-padding:15px
-}
+        .container {
+            max-width: 850px;
+            margin: auto;
+            padding: 15px
+        }
 
-.admin-box{
-background:white;
-border-radius:15px;
-padding:16px;
-margin-bottom:15px;
-box-shadow:0 2px 8px #ddd
-}
+        .admin-box {
+            background: white;
+            border-radius: 15px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px #ddd
+        }
 
-.admin-title{
-font-size:13px;
-color:#777
-}
+        .admin-title {
+            font-size: 13px;
+            color: #777
+        }
 
-.admin-name{
-font-size:20px;
-font-weight:bold;
-margin-top:5px
-}
+        .admin-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 5px
+        }
 
-.stats{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:8px;
-margin-bottom:15px
-}
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px
+        }
 
-.stat{
-background:white;
-padding:14px 5px;
-border-radius:13px;
-text-align:center;
-box-shadow:0 2px 7px #ddd;
-font-size:13px
-}
+        .stat {
+            background: white;
+            padding: 14px 5px;
+            border-radius: 13px;
+            text-align: center;
+            box-shadow: 0 2px 7px #ddd;
+            font-size: 13px
+        }
 
-.stat b{
-display:block;
-font-size:24px;
-margin-top:5px
-}
+        .stat b {
+            display: block;
+            font-size: 24px;
+            margin-top: 5px
+        }
 
-.message{
-margin-bottom:12px
-}
+        .message {
+            margin-bottom: 12px
+        }
 
-.success{
-background:#dcfce7;
-color:#166534;
-padding:13px;
-border-radius:11px
-}
+        .success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 13px;
+            border-radius: 11px
+        }
 
-.error{
-background:#fee2e2;
-color:#991b1b;
-padding:13px;
-border-radius:11px;
-word-break:break-word
-}
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 13px;
+            border-radius: 11px;
+            word-break: break-word
+        }
 
-.orders{
-display:flex;
-flex-direction:column;
-gap:14px
-}
+        .orders {
+            display: flex;
+            flex-direction: column;
+            gap: 14px
+        }
 
-.empty{
-background:white;
-padding:40px 15px;
-text-align:center;
-border-radius:15px;
-color:#777
-}
+        .empty {
+            background: white;
+            padding: 40px 15px;
+            text-align: center;
+            border-radius: 15px;
+            color: #777
+        }
 
-.order{
-background:white;
-border-radius:16px;
-padding:15px;
-box-shadow:0 2px 8px #ddd
-}
+        .order {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 2px 8px #ddd
+        }
 
-.order-header{
-display:flex;
-justify-content:space-between;
-align-items:flex-start;
-gap:10px
-}
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px
+        }
 
-.code{
-color:#ff6b00;
-font-size:19px;
-font-weight:bold
-}
+        .code {
+            color: #ff6b00;
+            font-size: 19px;
+            font-weight: bold
+        }
 
-.time{
-color:#777;
-font-size:12px;
-margin-top:5px
-}
+        .time {
+            color: #777;
+            font-size: 12px;
+            margin-top: 5px
+        }
 
-.order-total-top{
-color:#e65100;
-font-size:17px;
-font-weight:bold
-}
+        .order-total-top {
+            color: #e65100;
+            font-size: 17px;
+            font-weight: bold
+        }
 
-.customer{
-margin-top:13px;
-line-height:1.8
-}
+        .customer {
+            margin-top: 13px;
+            line-height: 1.8
+        }
 
-.customer a{
-color:#075bd8;
-text-decoration:none
-}
+        .customer a {
+            color: #075bd8;
+            text-decoration: none
+        }
 
-.food-box{
-background:#f8f8f8;
-border-radius:12px;
-padding:13px;
-margin-top:12px
-}
+        .food-box {
+            background: #f8f8f8;
+            border-radius: 12px;
+            padding: 13px;
+            margin-top: 12px
+        }
 
-.food-title{
-font-weight:bold;
-font-size:17px;
-margin-bottom:10px
-}
+        .food-title {
+            font-weight: bold;
+            font-size: 17px;
+            margin-bottom: 10px
+        }
 
-.restaurant{
-color:#666;
-font-size:13px;
-margin-bottom:8px
-}
+        .restaurant {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px
+        }
 
-.food{
-border-bottom:1px solid #ddd;
-padding:9px 0
-}
+        .food {
+            border-bottom: 1px solid #ddd;
+            padding: 9px 0
+        }
 
-.food:last-child{
-border-bottom:0
-}
+        .food:last-child {
+            border-bottom: 0
+        }
 
-.food-name{
-font-weight:bold;
-font-size:16px
-}
+        .food-name {
+            font-weight: bold;
+            font-size: 16px
+        }
 
-.food-detail{
-color:#555;
-font-size:14px;
-margin-top:4px
-}
+        .food-detail {
+            color: #555;
+            font-size: 14px;
+            margin-top: 4px
+        }
 
-.total{
-color:#e65100;
-font-size:20px;
-font-weight:bold;
-margin-top:13px
-}
+        .total {
+            color: #e65100;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 13px
+        }
 
-/* SHIPPER */
+        /* SHIPPER */
 
-.shipper{
-background:#eff6ff;
-border:1px solid #bfdbfe;
-padding:13px;
-border-radius:12px;
-margin-top:12px;
-line-height:1.8
-}
+        .shipper {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 13px;
+            border-radius: 12px;
+            margin-top: 12px;
+            line-height: 1.8
+        }
 
-.shipper-title{
-font-size:16px;
-font-weight:bold;
-color:#1d4ed8;
-margin-bottom:5px
-}
+        .shipper-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1d4ed8;
+            margin-bottom: 5px
+        }
 
-.shipper-name{
-font-weight:bold;
-font-size:17px
-}
+        .shipper-name {
+            font-weight: bold;
+            font-size: 17px
+        }
 
-.shipper-phone{
-color:#075bd8;
-font-weight:bold;
-text-decoration:none
-}
+        .shipper-phone {
+            color: #075bd8;
+            font-weight: bold;
+            text-decoration: none
+        }
 
-.shipper-id{
-font-size:12px;
-color:#64748b;
-word-break:break-all
-}
+        .shipper-id {
+            font-size: 12px;
+            color: #64748b;
+            word-break: break-all
+        }
 
-.no-shipper{
-background:#fff7ed;
-border:1px solid #fed7aa;
-color:#9a3412;
-padding:12px;
-border-radius:11px;
-margin-top:12px
-}
+        .no-shipper {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            padding: 12px;
+            border-radius: 11px;
+            margin-top: 12px
+        }
 
-.status-box{
-margin-top:13px
-}
+        .status-box {
+            margin-top: 13px
+        }
 
-.status-box label{
-display:block;
-font-size:13px;
-color:#777;
-margin-bottom:5px
-}
+        .status-box label {
+            display: block;
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 5px
+        }
 
-.status-box select{
-width:100%;
-padding:12px;
-border:1px solid #ddd;
-border-radius:9px;
-background:white;
-font-size:15px
-}
+        .status-box select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 9px;
+            background: white;
+            font-size: 15px
+        }
 
-.map{
-display:block;
-margin-top:10px;
-background:#1677ff;
-color:white !important;
-text-decoration:none;
-text-align:center;
-padding:12px;
-border-radius:10px;
-font-weight:bold
-}
+        .map {
+            display: block;
+            margin-top: 10px;
+            background: #1677ff;
+            color: white !important;
+            text-decoration: none;
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold
+        }
 
-@media(max-width:500px){
+        @media(max-width:500px) {
 
-.logo{
-font-size:18px
-}
+            .logo {
+                font-size: 18px
+            }
 
-.header button{
-padding:9px
-}
+            .header button {
+                padding: 9px
+            }
 
-.container{
-padding:11px
-}
+            .container {
+                padding: 11px
+            }
 
-.order{
-padding:13px
-}
+            .order {
+                padding: 13px
+            }
 
-.stats{
-gap:6px
-}
+            .stats {
+                gap: 6px
+            }
 
-.stat{
-font-size:12px
-}
+            .stat {
+                font-size: 12px
+            }
 
-}
-</style>
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
+    <header>
 
-<div class="header">
+        <div class="header">
 
-<div class="logo">
-🚚 CHOCO SHIP
-</div>
+            <div class="logo">
+                🚚 CHOCO SHIP
+            </div>
 
-<div>
+            <div>
 
-<button
-class="refresh"
-onclick="loadOrders()">
-🔄
-</button>
+                <button class="refresh" onclick="loadOrders()">
+                    🔄
+                </button>
 
-<button
-class="logout"
-onclick="logout()">
-🚪
-</button>
+                <button class="logout" onclick="logout()">
+                    🚪
+                </button>
 
-</div>
+            </div>
 
-</div>
+        </div>
 
-</header>
+    </header>
 
 
-<div class="container">
+    <div class="container">
 
-<div class="admin-box">
+        <div class="admin-box">
 
-<div class="admin-title">
-ĐANG ĐĂNG NHẬP
-</div>
+            <div class="admin-title">
+                ĐANG ĐĂNG NHẬP
+            </div>
 
-<div
-class="admin-name"
-id="adminName">
-Admin
-</div>
+            <div class="admin-name" id="adminName">
+                Admin
+            </div>
 
-</div>
+        </div>
 
 
-<div
-class="message"
-id="message">
-</div>
+        <div class="message" id="message">
+        </div>
 
 
-<div class="stats">
+        <div class="stats">
 
-<div class="stat">
-Đơn mới
-<b id="newCount">0</b>
-</div>
+            <div class="stat">
+                Đơn mới
+                <b id="newCount">0</b>
+            </div>
 
-<div class="stat">
-Đang giao
-<b id="shippingCount">0</b>
-</div>
+            <div class="stat">
+                Đang giao
+                <b id="shippingCount">0</b>
+            </div>
 
-<div class="stat">
-Hoàn thành
-<b id="doneCount">0</b>
-</div>
+            <div class="stat">
+                Hoàn thành
+                <b id="doneCount">0</b>
+            </div>
 
-</div>
+        </div>
 
 
-<div
-class="orders"
-id="orders">
+        <div class="orders" id="orders">
 
-<div class="empty">
-⏳ Đang tải đơn...
-</div>
+            <div class="empty">
+                ⏳ Đang tải đơn...
+            </div>
 
-</div>
+        </div>
 
-</div>
+    </div>
 
 
-<script>
+    <script>
 
-/* =====================================
-SUPABASE
-===================================== */
+        /* =====================================
+        SUPABASE
+        ===================================== */
 
-const SUPABASE_URL =
-"https://guwdswqaqnhzqapflvey.supabase.co";
+        const SUPABASE_URL =
+            "https://guwdswqaqnhzqapflvey.supabase.co";
 
-const SUPABASE_KEY =
-"sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+        const SUPABASE_KEY =
+            "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-/* =====================================
-LOGIN
-===================================== */
+        /* =====================================
+        LOGIN
+        ===================================== */
 
-let TOKEN =
-localStorage.getItem("choco_access_token");
+        let TOKEN =
+            localStorage.getItem("choco_access_token");
 
-const USER_ID =
-localStorage.getItem("choco_user_id");
+        const USER_ID =
+            localStorage.getItem("choco_user_id");
 
-const ROLE =
-localStorage.getItem("choco_role");
+        const ROLE =
+            localStorage.getItem("choco_role");
 
-const EMAIL =
-localStorage.getItem("choco_email") || "";
+        const EMAIL =
+            localStorage.getItem("choco_email") || "";
 
 
-if(
-!TOKEN ||
-!USER_ID ||
-ROLE !== "admin"
-){
+        if (
+            !TOKEN ||
+            !USER_ID ||
+            ROLE !== "admin"
+        ) {
 
-window.location.href="login.html";
+            window.location.href = "login.html";
 
-}
+        }
 
 
-/* =====================================
-ADMIN NAME
-===================================== */
+        /* =====================================
+        ADMIN NAME
+        ===================================== */
 
-document.getElementById(
-"adminName"
-).textContent =
-EMAIL || "Admin";
+        document.getElementById(
+            "adminName"
+        ).textContent =
+            EMAIL || "Admin";
 
 
-/* =====================================
-LOGOUT
-===================================== */
+        /* =====================================
+        LOGOUT
+        ===================================== */
 
-function logout(){
+        function logout() {
 
-[
-"choco_access_token",
-"choco_user_id",
-"choco_role",
-"choco_email"
-].forEach(function(key){
+            [
+                "choco_access_token",
+                "choco_user_id",
+                "choco_role",
+                "choco_email"
+            ].forEach(function (key) {
 
-localStorage.removeItem(key);
+                localStorage.removeItem(key);
 
-});
+            });
 
-window.location.href="login.html";
+            window.location.href = "login.html";
 
-}
+        }
 
 
-/* =====================================
-ESCAPE HTML
-===================================== */
+        /* =====================================
+        ESCAPE HTML
+        ===================================== */
 
-function escapeHtml(value){
+        function escapeHtml(value) {
 
-return String(value ?? "")
-.replace(/&/g,"&amp;")
-.replace(/</g,"&lt;")
-.replace(/>/g,"&gt;")
-.replace(/"/g,"&quot;")
-.replace(/'/g,"&#039;");
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
 
-}
+        }
 
 
-/* =====================================
-MONEY
-===================================== */
+        /* =====================================
+        MONEY
+        ===================================== */
 
-function money(value){
+        function money(value) {
 
-return Number(value || 0)
-.toLocaleString("vi-VN")+"đ";
+            return Number(value || 0)
+                .toLocaleString("vi-VN") + "đ";
 
-}
+        }
 
 
-/* =====================================
-ITEMS
-===================================== */
+        /* =====================================
+        ITEMS
+        ===================================== */
 
-function decodeItems(value){
+        function decodeItems(value) {
 
-if(
-value === null ||
-value === undefined
-){
+            if (
+                value === null ||
+                value === undefined
+            ) {
 
-return [];
+                return [];
 
-}
+            }
 
 
-if(Array.isArray(value)){
+            if (Array.isArray(value)) {
 
-return value;
+                return value;
 
-}
+            }
 
 
-if(typeof value === "string"){
+            if (typeof value === "string") {
 
-let data=value.trim();
+                let data = value.trim();
 
-for(
-let i=0;
-i<5;
-i++
-){
+                for (
+                    let i = 0;
+                    i < 5;
+                    i++
+                ) {
 
-if(typeof data !== "string"){
+                    if (typeof data !== "string") {
 
-break;
+                        break;
 
-}
+                    }
 
-try{
+                    try {
 
-data=JSON.parse(data);
+                        data = JSON.parse(data);
 
-}catch(error){
+                    } catch (error) {
 
-break;
+                        break;
 
-}
+                    }
 
-}
+                }
 
-if(Array.isArray(data)){
+                if (Array.isArray(data)) {
 
-return data;
+                    return data;
 
-}
+                }
 
-}
+            }
 
 
-return [];
+            return [];
 
-}
+        }
 
 
-/* =====================================
-API
-===================================== */
+        /* =====================================
+        API
+        ===================================== */
 
-async function api(
-path,
-options={}
-){
+        async function api(
+            path,
+            options = {}
+        ) {
 
-const headers={
+            const headers = {
 
-"apikey":SUPABASE_KEY,
+                "apikey": SUPABASE_KEY,
 
-"Authorization":
-"Bearer "+TOKEN,
+                "Authorization":
+                    "Bearer " + TOKEN,
 
-"Accept":
-"application/json",
+                "Accept":
+                    "application/json",
 
-...(options.headers || {})
+                ...(options.headers || {})
 
-};
+            };
 
-return fetch(
-SUPABASE_URL+path,
-{
-...options,
-headers:headers
-}
-);
+            return fetch(
+                SUPABASE_URL + path,
+                {
+                    ...options,
+                    headers: headers
+                }
+            );
 
-}
+        }
 
 
-/* =====================================
-KIỂM TRA JWT
-===================================== */
+        /* =====================================
+        KIỂM TRA JWT
+        ===================================== */
 
-function checkJWT(response){
+        function checkJWT(response) {
 
-if(response.status === 401){
+            if (response.status === 401) {
 
-localStorage.removeItem(
-"choco_access_token"
-);
+                localStorage.removeItem(
+                    "choco_access_token"
+                );
 
-alert(
-"⚠️ Phiên đăng nhập đã hết hạn.\n\nVui lòng đăng nhập lại."
-);
+                alert(
+                    "⚠️ Phiên đăng nhập đã hết hạn.\n\nVui lòng đăng nhập lại."
+                );
 
-window.location.href="login.html";
+                window.location.href = "login.html";
 
-return true;
+                return true;
 
-}
+            }
 
-return false;
+            return false;
 
-}
+        }
 
 
-/* =====================================
-LẤY THÔNG TIN SHIPPER
-===================================== */
+        /* =====================================
+        LẤY THÔNG TIN SHIPPER
+        ===================================== */
 
-async function loadShippers(
-shipperIds
-){
+        async function loadShippers(
+            shipperIds
+        ) {
 
-const result={};
+            const result = {};
 
 
-if(!shipperIds.length){
+            if (!shipperIds.length) {
 
-return result;
+                return result;
 
-}
+            }
 
 
-/*
-BẢNG PROFILES CỦA BẠN:
+            /*
+            BẢNG PROFILES CỦA BẠN:
+            
+            id
+            full_name
+            phone
+            role
+            
+            KHÔNG CÓ EMAIL
+            */
 
-id
-full_name
-phone
-role
+            const ids =
+                shipperIds
+                    .map(function (id) {
 
-KHÔNG CÓ EMAIL
-*/
+                        return encodeURIComponent(id);
 
-const ids =
-shipperIds
-.map(function(id){
+                    })
+                    .join(",");
 
-return encodeURIComponent(id);
 
-})
-.join(",");
+            try {
 
+                const response =
+                    await api(
 
-try{
+                        "/rest/v1/profiles" +
+                        "?id=in.(" + ids + ")" +
+                        "&select=id,full_name,phone,role"
 
-const response =
-await api(
+                    );
 
-"/rest/v1/profiles"+
-"?id=in.("+ids+")"+
-"&select=id,full_name,phone,role"
 
-);
+                if (checkJWT(response)) {
 
+                    return result;
 
-if(checkJWT(response)){
+                }
 
-return result;
 
-}
+                if (!response.ok) {
 
+                    console.error(
+                        "PROFILE ERROR:",
+                        await response.text()
+                    );
 
-if(!response.ok){
+                    return result;
 
-console.error(
-"PROFILE ERROR:",
-await response.text()
-);
+                }
 
-return result;
 
-}
+                const profiles =
+                    await response.json();
 
 
-const profiles =
-await response.json();
+                profiles.forEach(function (profile) {
 
+                    result[
+                        String(profile.id)
+                    ] = profile;
 
-profiles.forEach(function(profile){
+                });
 
-result[
-String(profile.id)
-]=profile;
 
-});
+            } catch (error) {
 
+                console.error(
+                    "LOAD SHIPPERS ERROR:",
+                    error
+                );
 
-}catch(error){
+            }
 
-console.error(
-"LOAD SHIPPERS ERROR:",
-error
-);
 
-}
+            return result;
 
+        }
 
-return result;
 
-}
+        /* =====================================
+        LOAD ORDERS
+        ===================================== */
 
+        async function loadOrders() {
 
-/* =====================================
-LOAD ORDERS
-===================================== */
+            const box =
+                document.getElementById("orders");
 
-async function loadOrders(){
+            const message =
+                document.getElementById("message");
 
-const box =
-document.getElementById("orders");
 
-const message =
-document.getElementById("message");
-
-
-box.innerHTML =
-`
+            box.innerHTML =
+                `
 <div class="empty">
 ⏳ Đang tải đơn...
 </div>
 `;
 
-message.innerHTML="";
+            message.innerHTML = "";
 
 
-try{
+            try {
 
-const response =
-await api(
+                const response =
+                    await api(
 
-"/rest/v1/orders"+
-"?select=*"+
-"&order=created_at.desc"
+                        "/rest/v1/orders" +
+                        "?select=*" +
+                        "&order=created_at.desc"
 
-);
-
-
-if(checkJWT(response)){
-
-return;
-
-}
+                    );
 
 
-if(!response.ok){
+                if (checkJWT(response)) {
 
-throw new Error(
-"Supabase HTTP "+
-response.status+
-": "+
-await response.text()
-);
+                    return;
 
-}
+                }
 
 
-const orders =
-await response.json();
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Supabase HTTP " +
+                        response.status +
+                        ": " +
+                        await response.text()
+                    );
+
+                }
 
 
-console.log(
-"CHOCO SHIP - ORDERS:",
-orders
-);
+                const orders =
+                    await response.json();
 
 
-/*
-LẤY TOÀN BỘ SHIPPER ID
-*/
-
-const shipperIds=[
-...new Set(
-
-orders
-.map(function(order){
-
-return order.shipper_id;
-
-})
-.filter(function(id){
-
-return id !== null &&
-id !== undefined &&
-String(id).trim() !== "";
-
-})
-
-)
-];
+                console.log(
+                    "CHOCO SHIP - ORDERS:",
+                    orders
+                );
 
 
-/*
-LẤY PROFILES
-*/
+                /*
+                LẤY TOÀN BỘ SHIPPER ID
+                */
 
-const shippers =
-await loadShippers(
-shipperIds
-);
+                const shipperIds = [
+                    ...new Set(
 
+                        orders
+                            .map(function (order) {
 
-/*
-GẮN THÔNG TIN SHIPPER
-*/
+                                return order.shipper_id;
 
-orders.forEach(function(order){
+                            })
+                            .filter(function (id) {
 
-if(order.shipper_id){
+                                return id !== null &&
+                                    id !== undefined &&
+                                    String(id).trim() !== "";
 
-const profile =
-shippers[
-String(order.shipper_id)
-];
+                            })
 
-
-if(profile){
-
-order.shipper_name =
-profile.full_name ||
-"Chưa có tên";
+                    )
+                ];
 
 
-order.shipper_phone =
-profile.phone ||
-"";
+                /*
+                LẤY PROFILES
+                */
 
-}else{
-
-order.shipper_name =
-"Không tìm thấy";
-
-
-order.shipper_phone =
-"";
-
-}
-
-}
-
-});
+                const shippers =
+                    await loadShippers(
+                        shipperIds
+                    );
 
 
-console.log(
-"CHOCO SHIP - SHIPPERS:",
-shippers
-);
+                /*
+                GẮN THÔNG TIN SHIPPER
+                */
+
+                orders.forEach(function (order) {
+
+                    if (order.shipper_id) {
+
+                        const profile =
+                            shippers[
+                            String(order.shipper_id)
+                            ];
 
 
-renderOrders(
-orders
-);
+                        if (profile) {
+
+                            order.shipper_name =
+                                profile.full_name ||
+                                "Chưa có tên";
 
 
-}catch(error){
+                            order.shipper_phone =
+                                profile.phone ||
+                                "";
 
-console.error(error);
+                        } else {
 
-message.innerHTML =
-`
+                            order.shipper_name =
+                                "Không tìm thấy";
+
+
+                            order.shipper_phone =
+                                "";
+
+                        }
+
+                    }
+
+                });
+
+
+                console.log(
+                    "CHOCO SHIP - SHIPPERS:",
+                    shippers
+                );
+
+
+                renderOrders(
+                    orders
+                );
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.innerHTML =
+                    `
 <div class="error">
 
 ❌ Không tải được đơn hàng.
@@ -906,178 +899,178 @@ message.innerHTML =
 <br><br>
 
 ${escapeHtml(
-error.message
-)}
+                        error.message
+                    )}
 
 </div>
 `;
 
-box.innerHTML="";
+                box.innerHTML = "";
 
-}
+            }
 
-}
-
-
-/* =====================================
-RENDER ORDERS
-===================================== */
-
-function renderOrders(
-orders
-){
-
-const box =
-document.getElementById("orders");
+        }
 
 
-let newCount=0;
-let shippingCount=0;
-let doneCount=0;
+        /* =====================================
+        RENDER ORDERS
+        ===================================== */
+
+        function renderOrders(
+            orders
+        ) {
+
+            const box =
+                document.getElementById("orders");
 
 
-orders.forEach(function(order){
-
-if(
-order.status ===
-"Chờ xác nhận"
-){
-
-newCount++;
-
-}
+            let newCount = 0;
+            let shippingCount = 0;
+            let doneCount = 0;
 
 
-if(
-[
-"Đã nhận",
-"Đang lấy hàng",
-"Đang giao",
-"Đã giao"
-].includes(
-order.status
-)
-){
+            orders.forEach(function (order) {
 
-shippingCount++;
+                if (
+                    order.status ===
+                    "Chờ xác nhận"
+                ) {
 
-}
+                    newCount++;
+
+                }
 
 
-if(
-order.status ===
-"Hoàn thành"
-){
+                if (
+                    [
+                        "Đã nhận",
+                        "Đang lấy hàng",
+                        "Đang giao",
+                        "Đã giao"
+                    ].includes(
+                        order.status
+                    )
+                ) {
 
-doneCount++;
+                    shippingCount++;
 
-}
-
-});
-
-
-document.getElementById(
-"newCount"
-).textContent =
-newCount;
-
-document.getElementById(
-"shippingCount"
-).textContent =
-shippingCount;
-
-document.getElementById(
-"doneCount"
-).textContent =
-doneCount;
+                }
 
 
-if(!orders.length){
+                if (
+                    order.status ===
+                    "Hoàn thành"
+                ) {
 
-box.innerHTML =
-`
+                    doneCount++;
+
+                }
+
+            });
+
+
+            document.getElementById(
+                "newCount"
+            ).textContent =
+                newCount;
+
+            document.getElementById(
+                "shippingCount"
+            ).textContent =
+                shippingCount;
+
+            document.getElementById(
+                "doneCount"
+            ).textContent =
+                doneCount;
+
+
+            if (!orders.length) {
+
+                box.innerHTML =
+                    `
 <div class="empty">
 📭 Chưa có đơn hàng.
 </div>
 `;
 
-return;
+                return;
 
-}
-
-
-box.innerHTML="";
+            }
 
 
-orders.forEach(function(order){
-
-/* =================================
-ITEMS
-================================= */
-
-const items =
-decodeItems(order.items);
-
-let foodsHtml="";
-
-const restaurants=[];
+            box.innerHTML = "";
 
 
-if(items.length){
+            orders.forEach(function (order) {
 
-items.forEach(function(item){
+                /* =================================
+                ITEMS
+                ================================= */
 
-const name =
-item.name ||
-item.title ||
-item.product_name ||
-item.food_name ||
-"Món ăn";
+                const items =
+                    decodeItems(order.items);
 
+                let foodsHtml = "";
 
-const qty =
-Number(
-item.qty ??
-item.quantity ??
-item.amount ??
-1
-) || 1;
+                const restaurants = [];
 
 
-const price =
-Number(
-item.price ??
-item.unit_price ??
-item.food_price ??
-0
-) || 0;
+                if (items.length) {
+
+                    items.forEach(function (item) {
+
+                        const name =
+                            item.name ||
+                            item.title ||
+                            item.product_name ||
+                            item.food_name ||
+                            "Món ăn";
 
 
-const subtotal =
-Number(
-item.total ??
-item.subtotal ??
-(price*qty)
-) ||
-(price*qty);
+                        const qty =
+                            Number(
+                                item.qty ??
+                                item.quantity ??
+                                item.amount ??
+                                1
+                            ) || 1;
 
 
-if(
-item.restaurant &&
-!restaurants.includes(
-item.restaurant
-)
-){
-
-restaurants.push(
-item.restaurant
-);
-
-}
+                        const price =
+                            Number(
+                                item.price ??
+                                item.unit_price ??
+                                item.food_price ??
+                                0
+                            ) || 0;
 
 
-foodsHtml +=
-`
+                        const subtotal =
+                            Number(
+                                item.total ??
+                                item.subtotal ??
+                                (price * qty)
+                            ) ||
+                            (price * qty);
+
+
+                        if (
+                            item.restaurant &&
+                            !restaurants.includes(
+                                item.restaurant
+                            )
+                        ) {
+
+                            restaurants.push(
+                                item.restaurant
+                            );
+
+                        }
+
+
+                        foodsHtml +=
+                            `
 <div class="food">
 
 <div class="food-name">
@@ -1106,150 +1099,148 @@ ${money(subtotal)}
 </div>
 `;
 
-});
+                    });
 
-}else{
+                } else {
 
-foodsHtml =
-`
+                    foodsHtml =
+                        `
 <div style="color:#777">
 ⚠️ Không đọc được thông tin món
 </div>
 `;
 
-}
+                }
 
 
-/* =================================
-RESTAURANT
-================================= */
+                /* =================================
+                RESTAURANT
+                ================================= */
 
-let restaurantHtml="";
+                let restaurantHtml = "";
 
 
-if(restaurants.length){
+                if (restaurants.length) {
 
-restaurantHtml =
-`
+                    restaurantHtml =
+                        `
 <div class="restaurant">
 
 🏪
 ${escapeHtml(
-restaurants.join(" • ")
-)}
+                            restaurants.join(" • ")
+                        )}
 
 </div>
 `;
 
-}
+                }
 
 
-/* =================================
-CUSTOMER
-================================= */
+                /* =================================
+                CUSTOMER
+                ================================= */
 
-let customerHtml =
-`
+                let customerHtml =
+                    `
 
 👤
 
 <b>
 ${escapeHtml(
-order.name ||
-order.customer_name ||
-""
-)}
+                        order.name ||
+                        order.customer_name ||
+                        ""
+                    )}
 </b>
 
 <br>
 
 📞
 
-${
-order.phone
-?
-`
+${order.phone
+                        ?
+                        `
 <a href="tel:${escapeHtml(
-order.phone
-)}">
+                            order.phone
+                        )}">
 
 ${escapeHtml(
-order.phone
-)}
+                            order.phone
+                        )}
 
 </a>
 `
-:
-"Chưa có số điện thoại"
-}
+                        :
+                        "Chưa có số điện thoại"
+                    }
 
 <br>
 
 📍
 
 ${escapeHtml(
-order.address ||
-order.dropoff ||
-order.dropoff_address ||
-""
-)}
+                        order.address ||
+                        order.dropoff ||
+                        order.dropoff_address ||
+                        ""
+                    )}
 
 `;
 
 
-if(order.note){
+                if (order.note) {
 
-customerHtml +=
-`
+                    customerHtml +=
+                        `
 <br>
 
 📝
 
 ${escapeHtml(
-order.note
-)}
+                            order.note
+                        )}
 `;
 
-}
+                }
 
 
-customerHtml +=
-`
+                customerHtml +=
+                    `
 <br>
 
 💳
 
-${
-order.payment === "bank"
-?
-"Chuyển khoản"
-:
-"Tiền mặt"
-}
+${order.payment === "bank"
+                        ?
+                        "Chuyển khoản"
+                        :
+                        "Tiền mặt"
+                    }
 `;
 
 
-/* =================================
-SHIPPER
-================================= */
+                /* =================================
+                SHIPPER
+                ================================= */
 
-let shipperHtml="";
-
-
-if(order.shipper_id){
-
-const shipperName =
-order.shipper_name ||
-"Không tìm thấy";
+                let shipperHtml = "";
 
 
-const shipperPhone =
-order.shipper_phone ||
-"";
+                if (order.shipper_id) {
+
+                    const shipperName =
+                        order.shipper_name ||
+                        "Không tìm thấy";
 
 
-shipperHtml =
-`
+                    const shipperPhone =
+                        order.shipper_phone ||
+                        "";
+
+
+                    shipperHtml =
+                        `
 <div class="shipper">
 
 <div class="shipper-title">
@@ -1263,16 +1254,15 @@ shipperHtml =
 
 👤
 ${escapeHtml(
-shipperName
-)}
+                            shipperName
+                        )}
 
 </div>
 
 
-${
-shipperPhone
-?
-`
+${shipperPhone
+                            ?
+                            `
 <div>
 
 📞
@@ -1280,24 +1270,24 @@ shipperPhone
 <a
 class="shipper-phone"
 href="tel:${escapeHtml(
-shipperPhone
-)}">
+                                shipperPhone
+                            )}">
 
 ${escapeHtml(
-shipperPhone
-)}
+                                shipperPhone
+                            )}
 
 </a>
 
 </div>
 `
-:
-`
+                            :
+                            `
 <div>
 📞 Chưa có số điện thoại
 </div>
 `
-}
+                        }
 
 
 <div class="shipper-id">
@@ -1305,8 +1295,8 @@ shipperPhone
 🆔
 
 ${escapeHtml(
-String(order.shipper_id)
-)}
+                            String(order.shipper_id)
+                        )}
 
 </div>
 
@@ -1314,10 +1304,10 @@ String(order.shipper_id)
 </div>
 `;
 
-}else{
+                } else {
 
-shipperHtml =
-`
+                    shipperHtml =
+                        `
 <div class="no-shipper">
 
 🚚
@@ -1333,113 +1323,110 @@ Chưa có shipper nhận đơn
 </div>
 `;
 
-}
+                }
 
 
-/* =================================
-GPS
-================================= */
+                /* =================================
+                GPS
+                ================================= */
 
-let gpsHtml="";
+                let gpsHtml = "";
 
 
-if(
-order.latitude !== null &&
-order.latitude !== undefined &&
-order.longitude !== null &&
-order.longitude !== undefined
-){
+                if (
+                    order.latitude !== null &&
+                    order.latitude !== undefined &&
+                    order.longitude !== null &&
+                    order.longitude !== undefined
+                ) {
 
-gpsHtml =
-`
+                    gpsHtml =
+                        `
 <a
 class="map"
 target="_blank"
 rel="noopener"
 
-href="https://www.google.com/maps?q=${
-encodeURIComponent(
-order.latitude
-)},${
-encodeURIComponent(
-order.longitude
-)}">
+href="https://www.google.com/maps?q=${encodeURIComponent(
+                            order.latitude
+                        )},${encodeURIComponent(
+                            order.longitude
+                        )}">
 
 📍 XEM VỊ TRÍ KHÁCH
 
 </a>
 `;
 
-}
+                }
 
 
-/* =================================
-TIME
-================================= */
+                /* =================================
+                TIME
+                ================================= */
 
-let time="";
-
-
-if(order.created_at){
-
-time =
-new Date(
-order.created_at
-).toLocaleString(
-"vi-VN"
-);
-
-}
+                let time = "";
 
 
-/* =================================
-STATUS
-================================= */
+                if (order.created_at) {
 
-const statuses=[
+                    time =
+                        new Date(
+                            order.created_at
+                        ).toLocaleString(
+                            "vi-VN"
+                        );
 
-"Chờ xác nhận",
-"Đã nhận",
-"Đang lấy hàng",
-"Đang giao",
-"Đã giao",
-"Hoàn thành",
-"Đã hủy"
-
-];
+                }
 
 
-let options="";
+                /* =================================
+                STATUS
+                ================================= */
+
+                const statuses = [
+
+                    "Chờ xác nhận",
+                    "Đã nhận",
+                    "Đang lấy hàng",
+                    "Đang giao",
+                    "Đã giao",
+                    "Hoàn thành",
+                    "Đã hủy"
+
+                ];
 
 
-statuses.forEach(function(status){
+                let options = "";
 
-options +=
-`
+
+                statuses.forEach(function (status) {
+
+                    options +=
+                        `
 <option
 value="${escapeHtml(status)}"
-${
-order.status === status
-?
-"selected"
-:
-""
-}>
+${order.status === status
+                            ?
+                            "selected"
+                            :
+                            ""
+                        }>
 
 ${escapeHtml(status)}
 
 </option>
 `;
 
-});
+                });
 
 
-/* =================================
-CARD
-================================= */
+                /* =================================
+                CARD
+                ================================= */
 
-box.innerHTML +=
-`
+                box.innerHTML +=
+                    `
 <div class="order">
 
 <div class="order-header">
@@ -1450,9 +1437,9 @@ box.innerHTML +=
 
 Đơn
 ${escapeHtml(
-order.code ||
-order.id
-)}
+                        order.code ||
+                        order.id
+                    )}
 
 </div>
 
@@ -1534,73 +1521,73 @@ ${gpsHtml}
 </div>
 `;
 
-});
+            });
 
-}
-
-
-/* =====================================
-UPDATE STATUS
-===================================== */
-
-async function updateStatus(
-id,
-status
-){
-
-try{
-
-const response =
-await api(
-
-"/rest/v1/orders?id=eq."+
-encodeURIComponent(id),
-
-{
-
-method:"PATCH",
-
-headers:{
-
-"Content-Type":
-"application/json",
-
-"Prefer":
-"return=minimal"
-
-},
-
-body:JSON.stringify({
-
-status:status
-
-})
-
-}
-
-);
+        }
 
 
-if(checkJWT(response)){
+        /* =====================================
+        UPDATE STATUS
+        ===================================== */
 
-return;
+        async function updateStatus(
+            id,
+            status
+        ) {
 
-}
+            try {
+
+                const response =
+                    await api(
+
+                        "/rest/v1/orders?id=eq." +
+                        encodeURIComponent(id),
+
+                        {
+
+                            method: "PATCH",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                "Prefer":
+                                    "return=minimal"
+
+                            },
+
+                            body: JSON.stringify({
+
+                                status: status
+
+                            })
+
+                        }
+
+                    );
 
 
-if(!response.ok){
+                if (checkJWT(response)) {
 
-throw new Error(
-await response.text()
-);
+                    return;
 
-}
+                }
 
 
-document.getElementById(
-"message"
-).innerHTML =
-`
+                if (!response.ok) {
+
+                    throw new Error(
+                        await response.text()
+                    );
+
+                }
+
+
+                document.getElementById(
+                    "message"
+                ).innerHTML =
+                    `
 <div class="success">
 
 ✅ Đã cập nhật trạng thái đơn.
@@ -1609,40 +1596,41 @@ document.getElementById(
 `;
 
 
-await loadOrders();
+                await loadOrders();
 
 
-}catch(error){
+            } catch (error) {
 
-console.error(error);
+                console.error(error);
 
-alert(
-"❌ Không cập nhật được:\n"+
-error.message
-);
+                alert(
+                    "❌ Không cập nhật được:\n" +
+                    error.message
+                );
 
-}
+            }
 
-}
-
-
-/* =====================================
-START
-===================================== */
-
-loadOrders();
+        }
 
 
-/* =====================================
-AUTO REFRESH
-===================================== */
+        /* =====================================
+        START
+        ===================================== */
 
-setInterval(
-loadOrders,
-15000
-);
+        loadOrders();
 
-</script>
+
+        /* =====================================
+        AUTO REFRESH
+        ===================================== */
+
+        setInterval(
+            loadOrders,
+            15000
+        );
+
+    </script>
 
 </body>
+
 </html>

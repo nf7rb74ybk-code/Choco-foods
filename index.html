@@ -1,822 +1,791 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>CHOCO SHIP - Đồ ăn Phú Quốc</title>
+  <title>CHOCO SHIP - Đồ ăn Phú Quốc</title>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-<style>
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-body{
-font-family:Arial,sans-serif;
-background:#f5f5f5;
-color:#222;
-padding-bottom:75px;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      padding-bottom: 75px;
+    }
 
-header{
-background:#ff6b00;
-color:white;
-padding:15px;
-position:sticky;
-top:0;
-z-index:1000;
-}
+    header {
+      background: #ff6b00;
+      color: white;
+      padding: 15px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-.header{
-max-width:700px;
-margin:auto;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
+    .header {
+      max-width: 700px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-.logo{
-font-size:21px;
-font-weight:bold;
-}
+    .logo {
+      font-size: 21px;
+      font-weight: bold;
+    }
 
-.cart{
-border:0;
-background:white;
-color:#ff6b00;
-border-radius:10px;
-padding:9px 13px;
-font-weight:bold;
-}
+    .cart {
+      border: 0;
+      background: white;
+      color: #ff6b00;
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-weight: bold;
+    }
 
-.container{
-max-width:700px;
-margin:auto;
-padding:15px;
-}
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 15px;
+    }
 
-.search{
-width:100%;
-padding:14px;
-border:0;
-border-radius:12px;
-font-size:16px;
-margin-bottom:15px;
-outline:none;
-}
+    .search {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      outline: none;
+    }
 
-.categories{
-display:flex;
-gap:8px;
-overflow-x:auto;
-margin-bottom:18px;
-}
+    .categories {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-bottom: 18px;
+    }
 
-.categories button{
-border:0;
-background:white;
-padding:10px 16px;
-border-radius:20px;
-white-space:nowrap;
-}
+    .categories button {
+      border: 0;
+      background: white;
+      padding: 10px 16px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
 
-.categories .active{
-background:#ff6b00;
-color:white;
-}
+    .categories .active {
+      background: #ff6b00;
+      color: white;
+    }
 
-.title{
-font-size:20px;
-font-weight:bold;
-margin:18px 0 12px;
-}
+    .title {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 18px 0 12px;
+    }
 
-.map-box{
-background:white;
-padding:10px;
-border-radius:15px;
-box-shadow:0 2px 8px #ddd;
-}
+    .map-box {
+      background: white;
+      padding: 10px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px #ddd;
+    }
 
-#map{
-height:320px;
-border-radius:12px;
-}
+    #map {
+      height: 320px;
+      border-radius: 12px;
+    }
 
-.map-help{
-background:#eff6ff;
-color:#1d4ed8;
-padding:10px;
-margin-top:10px;
-border-radius:10px;
-font-size:13px;
-line-height:1.5;
-}
+    .map-help {
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
 
-.location{
-width:100%;
-border:0;
-background:#1677ff;
-color:white;
-padding:13px;
-border-radius:10px;
-margin-top:10px;
-font-weight:bold;
-}
+    .location {
+      width: 100%;
+      border: 0;
+      background: #1677ff;
+      color: white;
+      padding: 13px;
+      border-radius: 10px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
 
-.location:disabled{
-opacity:.6;
-}
+    .location:disabled {
+      opacity: .6;
+    }
 
-.location-text{
-font-size:13px;
-margin-top:8px;
-color:#555;
-line-height:1.5;
-}
+    .location-text {
+      font-size: 13px;
+      margin-top: 8px;
+      color: #555;
+      line-height: 1.5;
+    }
 
-.restaurant{
-background:white;
-border-radius:15px;
-padding:12px;
-margin-bottom:14px;
-box-shadow:0 2px 8px #ddd;
-}
+    .restaurant {
+      background: white;
+      border-radius: 15px;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px #ddd;
+    }
 
-.restaurant-head{
-display:flex;
-gap:12px;
-}
+    .restaurant-head {
+      display: flex;
+      gap: 12px;
+    }
 
-.restaurant-img{
-width:85px;
-height:85px;
-object-fit:cover;
-border-radius:12px;
-}
+    .restaurant-img {
+      width: 85px;
+      height: 85px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
 
-.restaurant-info{
-flex:1;
-}
+    .restaurant-info {
+      flex: 1;
+    }
 
-.restaurant-name{
-font-size:18px;
-font-weight:bold;
-margin-bottom:7px;
-}
+    .restaurant-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
 
-.rating{
-color:#f59e0b;
-}
+    .rating {
+      color: #f59e0b;
+    }
 
-.open{
-color:#16a34a;
-font-size:13px;
-margin-top:5px;
-}
+    .open {
+      color: #16a34a;
+      font-size: 13px;
+      margin-top: 5px;
+    }
 
-.food{
-border-top:1px solid #eee;
-padding:12px 0;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
+    .food {
+      border-top: 1px solid #eee;
+      padding: 12px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-.food-name{
-font-weight:bold;
-}
+    .food-name {
+      font-weight: bold;
+    }
 
-.price{
-color:#ff5a00;
-font-weight:bold;
-margin-top:5px;
-}
+    .price {
+      color: #ff5a00;
+      font-weight: bold;
+      margin-top: 5px;
+    }
 
-.add{
-border:0;
-background:#ff6b00;
-color:white;
-border-radius:8px;
-padding:8px 12px;
-font-weight:bold;
-}
+    .add {
+      border: 0;
+      background: #ff6b00;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-weight: bold;
+    }
 
-.modal{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.55);
-z-index:2000;
-align-items:flex-end;
-}
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      z-index: 2000;
+      align-items: flex-end;
+    }
 
-.modal-content{
-background:white;
-width:100%;
-max-width:700px;
-margin:auto;
-border-radius:20px 20px 0 0;
-padding:20px;
-max-height:90vh;
-overflow:auto;
-}
+    .modal-content {
+      background: white;
+      width: 100%;
+      max-width: 700px;
+      margin: auto;
+      border-radius: 20px 20px 0 0;
+      padding: 20px;
+      max-height: 90vh;
+      overflow: auto;
+    }
 
-.modal-title{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:15px;
-}
+    .modal-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
 
-.close{
-border:0;
-background:#eee;
-border-radius:50%;
-width:35px;
-height:35px;
-font-size:20px;
-}
+    .close {
+      border: 0;
+      background: #eee;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      font-size: 20px;
+    }
 
-.cart-item{
-padding:12px 0;
-border-bottom:1px solid #eee;
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-}
+    .cart-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
 
-.qty{
-display:flex;
-align-items:center;
-gap:8px;
-}
+    .qty {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-.qty button{
-width:28px;
-height:28px;
-border:0;
-border-radius:6px;
-background:#eee;
-font-size:18px;
-}
+    .qty button {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 6px;
+      background: #eee;
+      font-size: 18px;
+    }
 
-.empty{
-text-align:center;
-padding:25px;
-color:#777;
-}
+    .empty {
+      text-align: center;
+      padding: 25px;
+      color: #777;
+    }
 
-.form{
-margin-top:15px;
-}
+    .form {
+      margin-top: 15px;
+    }
 
-.form label{
-display:block;
-font-weight:bold;
-margin:10px 0 5px;
-}
+    .form label {
+      display: block;
+      font-weight: bold;
+      margin: 10px 0 5px;
+    }
 
-.form input,
-.form textarea,
-.form select{
-width:100%;
-padding:12px;
-border:1px solid #ddd;
-border-radius:9px;
-font-size:15px;
-outline:none;
-}
+    .form input,
+    .form textarea,
+    .form select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      font-size: 15px;
+      outline: none;
+    }
 
-.form textarea{
-height:75px;
-resize:none;
-}
+    .form textarea {
+      height: 75px;
+      resize: none;
+    }
 
-.price-row{
-display:flex;
-justify-content:space-between;
-margin-top:10px;
-font-size:16px;
-}
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 16px;
+    }
 
-.total{
-display:flex;
-justify-content:space-between;
-font-size:20px;
-font-weight:bold;
-margin:18px 0;
-padding-top:12px;
-border-top:1px solid #ddd;
-}
+    .total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 20px;
+      font-weight: bold;
+      margin: 18px 0;
+      padding-top: 12px;
+      border-top: 1px solid #ddd;
+    }
 
-.order{
-width:100%;
-background:#16a34a;
-color:white;
-border:0;
-padding:15px;
-border-radius:12px;
-font-size:17px;
-font-weight:bold;
-}
+    .order {
+      width: 100%;
+      background: #16a34a;
+      color: white;
+      border: 0;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: bold;
+    }
 
-.order:disabled{
-opacity:.6;
-}
+    .order:disabled {
+      opacity: .6;
+    }
 
-.shipping-info{
-background:#fff7ed;
-border:1px solid #fed7aa;
-padding:12px;
-border-radius:10px;
-margin-top:12px;
-font-size:14px;
-line-height:1.6;
-}
+    .shipping-info {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
 
-.success-box{
-display:none;
-background:#ecfdf5;
-border:1px solid #86efac;
-padding:15px;
-border-radius:12px;
-margin-top:15px;
-line-height:1.6;
-}
+    .success-box {
+      display: none;
+      background: #ecfdf5;
+      border: 1px solid #86efac;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 15px;
+      line-height: 1.6;
+    }
 
-.bottom{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-height:65px;
-background:white;
-border-top:1px solid #ddd;
-display:flex;
-justify-content:space-around;
-align-items:center;
-z-index:1500;
-}
+    .bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 65px;
+      background: white;
+      border-top: 1px solid #ddd;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1500;
+    }
 
-.bottom button{
-border:0;
-background:none;
-font-size:12px;
-}
+    .bottom button {
+      border: 0;
+      background: none;
+      font-size: 12px;
+    }
 
-.bottom span{
-display:block;
-font-size:22px;
-}
-</style>
+    .bottom span {
+      display: block;
+      font-size: 22px;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-<div class="header">
+  <header>
+    <div class="header">
 
-<div class="logo">
-🍔 CHOCO SHIP
-</div>
+      <div class="logo">
+        🍔 CHOCO SHIP
+      </div>
 
-<button class="cart" onclick="openCart()">
-🛒 <span id="count">0</span>
-</button>
+      <button class="cart" onclick="openCart()">
+        🛒 <span id="count">0</span>
+      </button>
 
-</div>
-</header>
+    </div>
+  </header>
 
-<div class="container">
+  <div class="container">
 
-<input
-class="search"
-id="search"
-placeholder="🔎 Tìm món ăn hoặc quán..."
-oninput="showRestaurants()"
->
+    <input class="search" id="search" placeholder="🔎 Tìm món ăn hoặc quán..." oninput="showRestaurants()">
 
-<div class="categories">
+    <div class="categories">
 
-<button class="active"
-onclick="category('all',this)">
-Tất cả
-</button>
+      <button class="active" onclick="category('all',this)">
+        Tất cả
+      </button>
 
-<button onclick="category('cơm',this)">
-🍚 Cơm
-</button>
+      <button onclick="category('cơm',this)">
+        🍚 Cơm
+      </button>
 
-<button onclick="category('bún',this)">
-🍜 Bún
-</button>
+      <button onclick="category('bún',this)">
+        🍜 Bún
+      </button>
 
-<button onclick="category('gà',this)">
-🍗 Gà
-</button>
+      <button onclick="category('gà',this)">
+        🍗 Gà
+      </button>
 
-<button onclick="category('đồ uống',this)">
-🥤 Đồ uống
-</button>
+      <button onclick="category('đồ uống',this)">
+        🥤 Đồ uống
+      </button>
 
-</div>
+    </div>
 
-<div class="title">
-📍 Vị trí giao hàng
-</div>
+    <div class="title">
+      📍 Vị trí giao hàng
+    </div>
 
-<div class="map-box">
+    <div class="map-box">
 
-<div id="map"></div>
+      <div id="map"></div>
 
-<button
-class="location"
-id="gpsButton"
-onclick="getGPS()">
+      <button class="location" id="gpsButton" onclick="getGPS()">
 
-📍 LẤY VỊ TRÍ HIỆN TẠI
+        📍 LẤY VỊ TRÍ HIỆN TẠI
 
-</button>
+      </button>
 
-<div
-class="location-text"
-id="locationText">
+      <div class="location-text" id="locationText">
 
-Chưa chọn vị trí giao hàng.
+        Chưa chọn vị trí giao hàng.
 
-</div>
+      </div>
 
-<div class="map-help">
+      <div class="map-help">
 
-<b>💡 Cách chọn vị trí giao hàng:</b><br>
+        <b>💡 Cách chọn vị trí giao hàng:</b><br>
 
-1. Bấm <b>📍 LẤY VỊ TRÍ HIỆN TẠI</b> nếu đang ở nơi giao hàng.<br>
+        1. Bấm <b>📍 LẤY VỊ TRÍ HIỆN TẠI</b> nếu đang ở nơi giao hàng.<br>
 
-2. Hoặc <b>chạm trực tiếp lên bản đồ</b> để đặt ghim tại vị trí giao hàng.
+        2. Hoặc <b>chạm trực tiếp lên bản đồ</b> để đặt ghim tại vị trí giao hàng.
 
-</div>
+      </div>
 
-</div>
+    </div>
 
-<div class="title">
-🍽️ Quán đang bán
-</div>
+    <div class="title">
+      🍽️ Quán đang bán
+    </div>
 
-<div id="restaurants"></div>
+    <div id="restaurants"></div>
 
-</div>
+  </div>
 
-<!-- GIỎ HÀNG -->
+  <!-- GIỎ HÀNG -->
 
-<div class="modal" id="modal">
+  <div class="modal" id="modal">
 
-<div class="modal-content">
+    <div class="modal-content">
 
-<div class="modal-title">
+      <div class="modal-title">
 
-<h2>🛒 Giỏ hàng</h2>
+        <h2>🛒 Giỏ hàng</h2>
 
-<button class="close"
-onclick="closeCart()">
-×
-</button>
+        <button class="close" onclick="closeCart()">
+          ×
+        </button>
 
-</div>
+      </div>
 
-<div id="cartItems"></div>
+      <div id="cartItems"></div>
 
-<div class="form">
+      <div class="form">
 
-<label>
-Họ tên
-</label>
+        <label>
+          Họ tên
+        </label>
 
-<input
-id="name"
-placeholder="Nguyễn Văn A"
->
+        <input id="name" placeholder="Nguyễn Văn A">
 
-<label>
-Số điện thoại
-</label>
+        <label>
+          Số điện thoại
+        </label>
 
-<input
-id="phone"
-type="tel"
-placeholder="09xxxxxxxx"
->
+        <input id="phone" type="tel" placeholder="09xxxxxxxx">
 
-<label>
-Địa chỉ giao hàng
-</label>
+        <label>
+          Địa chỉ giao hàng
+        </label>
 
-<input
-id="address"
-placeholder="Ví dụ: 123 đường Trần Hưng Đạo..."
->
+        <input id="address" placeholder="Ví dụ: 123 đường Trần Hưng Đạo...">
 
-<label>
-Ghi chú
-</label>
+        <label>
+          Ghi chú
+        </label>
 
-<textarea
-id="note"
-placeholder="Ví dụ: gọi trước khi giao..."
-></textarea>
+        <textarea id="note" placeholder="Ví dụ: gọi trước khi giao..."></textarea>
 
-<label>
-Thanh toán
-</label>
+        <label>
+          Thanh toán
+        </label>
 
-<select id="payment">
+        <select id="payment">
 
-<option value="cash">
-💵 Tiền mặt
-</option>
+          <option value="cash">
+            💵 Tiền mặt
+          </option>
 
-<option value="bank">
-🏦 Chuyển khoản
-</option>
+          <option value="bank">
+            🏦 Chuyển khoản
+          </option>
 
-</select>
+        </select>
 
-</div>
+      </div>
 
-<div class="shipping-info">
+      <div class="shipping-info">
 
-📍 Vị trí giao hàng:
+        📍 Vị trí giao hàng:
 
-<strong id="selectedGPS">
-Chưa chọn
-</strong>
+        <strong id="selectedGPS">
+          Chưa chọn
+        </strong>
 
-<br>
+        <br>
 
-📏 Khoảng cách:
+        📏 Khoảng cách:
 
-<strong id="shippingDistance">
-Chưa chọn vị trí
-</strong>
+        <strong id="shippingDistance">
+          Chưa chọn vị trí
+        </strong>
 
-</div>
+      </div>
 
-<div class="shipping-info">
+      <div class="shipping-info">
 
-🛵 Phí ship:
+        🛵 Phí ship:
 
-<strong id="shippingFee">
-20.000đ
-</strong>
+        <strong id="shippingFee">
+          20.000đ
+        </strong>
 
-<br>
+        <br>
 
-<small>
-Phí ship được tính tự động theo khoảng cách.
-</small>
+        <small>
+          Phí ship được tính tự động theo khoảng cách.
+        </small>
 
-</div>
+      </div>
 
-<div class="price-row">
+      <div class="price-row">
 
-<span>
-Tiền món
-</span>
+        <span>
+          Tiền món
+        </span>
 
-<strong id="foodTotal">
-0đ
-</strong>
+        <strong id="foodTotal">
+          0đ
+        </strong>
 
-</div>
+      </div>
 
-<div class="price-row">
+      <div class="price-row">
 
-<span>
-Phí ship
-</span>
+        <span>
+          Phí ship
+        </span>
 
-<strong id="shippingTotal">
-20.000đ
-</strong>
+        <strong id="shippingTotal">
+          20.000đ
+        </strong>
 
-</div>
+      </div>
 
-<div class="total">
+      <div class="total">
 
-<span>
-TỔNG
-</span>
+        <span>
+          TỔNG
+        </span>
 
-<span id="total">
-20.000đ
-</span>
+        <span id="total">
+          20.000đ
+        </span>
 
-</div>
+      </div>
 
-<button
-class="order"
-id="orderButton"
-onclick="createOrder()">
+      <button class="order" id="orderButton" onclick="createOrder()">
 
-🚀 ĐẶT ĐƠN
+        🚀 ĐẶT ĐƠN
 
-</button>
+      </button>
 
-<div
-class="success-box"
-id="successBox">
-</div>
+      <div class="success-box" id="successBox">
+      </div>
 
-</div>
-</div>
+    </div>
+  </div>
 
-<div class="bottom">
+  <div class="bottom">
 
-<button
-onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})">
 
-<span>🏠</span>
-Trang chủ
+      <span>🏠</span>
+      Trang chủ
 
-</button>
+    </button>
 
-<button onclick="openCart()">
+    <button onclick="openCart()">
 
-<span>🛒</span>
-Giỏ hàng
+      <span>🛒</span>
+      Giỏ hàng
 
-</button>
+    </button>
 
-<button onclick="getGPS()">
+    <button onclick="getGPS()">
 
-<span>📍</span>
-GPS
+      <span>📍</span>
+      GPS
 
-</button>
+    </button>
 
-</div>
+  </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script>
+  <script>
 
-/* =====================================================
-SUPABASE
-===================================================== */
+    /* =====================================================
+    SUPABASE
+    ===================================================== */
 
-const SUPABASE_URL =
-"https://guwdswqaqnhzqapflvey.supabase.co";
+    const SUPABASE_URL =
+      "https://guwdswqaqnhzqapflvey.supabase.co";
 
-const SUPABASE_KEY =
-"sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+    const SUPABASE_KEY =
+      "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
 
 
-/* =====================================================
-DỮ LIỆU QUÁN
-===================================================== */
+    /* =====================================================
+    DỮ LIỆU QUÁN
+    ===================================================== */
 
-const data = [
+    const data = [
 
-{
-id:1,
-name:"Cơm Nhà Phú Quốc",
-category:"cơm",
-rating:"4.9",
+      {
+        id: 1,
+        name: "Cơm Nhà Phú Quốc",
+        category: "cơm",
+        rating: "4.9",
 
-image:
-"https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=500&q=80",
+        image:
+          "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=500&q=80",
 
-foods:[
-{id:101,name:"Cơm gà",price:45000},
-{id:102,name:"Cơm sườn",price:50000},
-{id:103,name:"Cơm thịt kho",price:45000}
-]
-},
+        foods: [
+          { id: 101, name: "Cơm gà", price: 45000 },
+          { id: 102, name: "Cơm sườn", price: 50000 },
+          { id: 103, name: "Cơm thịt kho", price: 45000 }
+        ]
+      },
 
-{
-id:2,
-name:"Bún Phú Quốc",
-category:"bún",
-rating:"4.8",
+      {
+        id: 2,
+        name: "Bún Phú Quốc",
+        category: "bún",
+        rating: "4.8",
 
-image:
-"https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=500&q=80",
+        image:
+          "https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=500&q=80",
 
-foods:[
-{id:201,name:"Bún bò",price:50000},
-{id:202,name:"Bún thịt nướng",price:45000},
-{id:203,name:"Bún chả",price:50000}
-]
-},
+        foods: [
+          { id: 201, name: "Bún bò", price: 50000 },
+          { id: 202, name: "Bún thịt nướng", price: 45000 },
+          { id: 203, name: "Bún chả", price: 50000 }
+        ]
+      },
 
-{
-id:3,
-name:"Gà Rán PQ",
-category:"gà",
-rating:"4.7",
+      {
+        id: 3,
+        name: "Gà Rán PQ",
+        category: "gà",
+        rating: "4.7",
 
-image:
-"https://images.unsplash.com/photo-1562967916-eb82221dfb92?auto=format&fit=crop&w=500&q=80",
+        image:
+          "https://images.unsplash.com/photo-1562967916-eb82221dfb92?auto=format&fit=crop&w=500&q=80",
 
-foods:[
-{id:301,name:"Gà rán",price:40000},
-{id:302,name:"Gà sốt cay",price:45000},
-{id:303,name:"Combo gà",price:70000}
-]
-},
+        foods: [
+          { id: 301, name: "Gà rán", price: 40000 },
+          { id: 302, name: "Gà sốt cay", price: 45000 },
+          { id: 303, name: "Combo gà", price: 70000 }
+        ]
+      },
 
-{
-id:4,
-name:"Choco Drinks",
-category:"đồ uống",
-rating:"4.9",
+      {
+        id: 4,
+        name: "Choco Drinks",
+        category: "đồ uống",
+        rating: "4.9",
 
-image:
-"https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=500&q=80",
+        image:
+          "https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=500&q=80",
 
-foods:[
-{id:401,name:"Trà sữa",price:30000},
-{id:402,name:"Trà đào",price:30000},
-{id:403,name:"Matcha",price:35000}
-]
-}
+        foods: [
+          { id: 401, name: "Trà sữa", price: 30000 },
+          { id: 402, name: "Trà đào", price: 30000 },
+          { id: 403, name: "Matcha", price: 35000 }
+        ]
+      }
 
-];
+    ];
 
-let cart = [];
+    let cart = [];
 
-let currentCategory = "all";
+    let currentCategory = "all";
 
-let currentGPS = {
-lat:null,
-lng:null
-};
+    let currentGPS = {
+      lat: null,
+      lng: null
+    };
 
-let marker = null;
+    let marker = null;
 
 
-/* =====================================================
-TIỀN
-===================================================== */
+    /* =====================================================
+    TIỀN
+    ===================================================== */
 
-function money(n){
+    function money(n) {
 
-return Number(n || 0)
-.toLocaleString("vi-VN") + "đ";
+      return Number(n || 0)
+        .toLocaleString("vi-VN") + "đ";
 
-}
+    }
 
 
-/* =====================================================
-HIỂN THỊ QUÁN
-===================================================== */
+    /* =====================================================
+    HIỂN THỊ QUÁN
+    ===================================================== */
 
-function showRestaurants(){
+    function showRestaurants() {
 
-const box =
-document.getElementById("restaurants");
+      const box =
+        document.getElementById("restaurants");
 
-const search =
-document.getElementById("search")
-.value
-.toLowerCase();
+      const search =
+        document.getElementById("search")
+          .value
+          .toLowerCase();
 
-box.innerHTML = "";
+      box.innerHTML = "";
 
-data.forEach(r=>{
+      data.forEach(r => {
 
-if(
-currentCategory !== "all" &&
-r.category !== currentCategory
-){
+        if (
+          currentCategory !== "all" &&
+          r.category !== currentCategory
+        ) {
 
-return;
+          return;
 
-}
+        }
 
-if(
-search &&
-!r.name.toLowerCase().includes(search) &&
-!r.foods.some(f =>
-f.name.toLowerCase().includes(search)
-)
-){
+        if (
+          search &&
+          !r.name.toLowerCase().includes(search) &&
+          !r.foods.some(f =>
+            f.name.toLowerCase().includes(search)
+          )
+        ) {
 
-return;
+          return;
 
-}
+        }
 
-let foods = "";
+        let foods = "";
 
-r.foods.forEach(f=>{
+        r.foods.forEach(f => {
 
-foods += `
+          foods += `
 
 <div class="food">
 
@@ -844,9 +813,9 @@ onclick="add(${r.id},${f.id})">
 
 `;
 
-});
+        });
 
-box.innerHTML += `
+        box.innerHTML += `
 
 <div class="restaurant">
 
@@ -882,383 +851,383 @@ ${foods}
 
 `;
 
-});
+      });
 
-}
+    }
 
 
-/* =====================================================
-DANH MỤC
-===================================================== */
+    /* =====================================================
+    DANH MỤC
+    ===================================================== */
 
-function category(cat,btn){
+    function category(cat, btn) {
 
-currentCategory = cat;
+      currentCategory = cat;
 
-document
-.querySelectorAll(".categories button")
-.forEach(x =>
-x.classList.remove("active")
-);
+      document
+        .querySelectorAll(".categories button")
+        .forEach(x =>
+          x.classList.remove("active")
+        );
 
-btn.classList.add("active");
+      btn.classList.add("active");
 
-showRestaurants();
+      showRestaurants();
 
-}
+    }
 
 
-/* =====================================================
-THÊM MÓN
-===================================================== */
+    /* =====================================================
+    THÊM MÓN
+    ===================================================== */
 
-function add(restaurantId,foodId){
+    function add(restaurantId, foodId) {
 
-const restaurant =
-data.find(x =>
-x.id === restaurantId
-);
+      const restaurant =
+        data.find(x =>
+          x.id === restaurantId
+        );
 
-if(!restaurant) return;
+      if (!restaurant) return;
 
-const food =
-restaurant.foods.find(x =>
-x.id === foodId
-);
+      const food =
+        restaurant.foods.find(x =>
+          x.id === foodId
+        );
 
-if(!food) return;
+      if (!food) return;
 
-const item =
-cart.find(x =>
-x.foodId === foodId
-);
+      const item =
+        cart.find(x =>
+          x.foodId === foodId
+        );
 
-if(item){
+      if (item) {
 
-item.qty++;
+        item.qty++;
 
-}else{
+      } else {
 
-cart.push({
+        cart.push({
 
-restaurantId:restaurant.id,
+          restaurantId: restaurant.id,
 
-restaurant:restaurant.name,
+          restaurant: restaurant.name,
 
-foodId:food.id,
+          foodId: food.id,
 
-name:food.name,
+          name: food.name,
 
-price:food.price,
+          price: food.price,
 
-qty:1
+          qty: 1
 
-});
+        });
 
-}
+      }
 
-updateCart();
+      updateCart();
 
-alert("✅ Đã thêm " + food.name);
+      alert("✅ Đã thêm " + food.name);
 
-}
+    }
 
 
-/* =====================================================
-GIỎ HÀNG
-===================================================== */
+    /* =====================================================
+    GIỎ HÀNG
+    ===================================================== */
 
-function updateCart(){
+    function updateCart() {
 
-let count = 0;
+      let count = 0;
 
-cart.forEach(item =>
-count += Number(item.qty)
-);
+      cart.forEach(item =>
+        count += Number(item.qty)
+      );
 
-document.getElementById("count")
-.innerText = count;
+      document.getElementById("count")
+        .innerText = count;
 
-}
+    }
 
-function openCart(){
+    function openCart() {
 
-renderCart();
+      renderCart();
 
-document.getElementById("modal")
-.style.display = "flex";
+      document.getElementById("modal")
+        .style.display = "flex";
 
-}
+    }
 
-function closeCart(){
+    function closeCart() {
 
-document.getElementById("modal")
-.style.display = "none";
+      document.getElementById("modal")
+        .style.display = "none";
 
-}
+    }
 
 
-/* =====================================================
-TỔNG TIỀN MÓN
-===================================================== */
+    /* =====================================================
+    TỔNG TIỀN MÓN
+    ===================================================== */
 
-function getFoodTotal(){
+    function getFoodTotal() {
 
-return cart.reduce(
-(sum,item) =>
-sum +
-Number(item.price) *
-Number(item.qty),
-0
-);
+      return cart.reduce(
+        (sum, item) =>
+          sum +
+          Number(item.price) *
+          Number(item.qty),
+        0
+      );
 
-}
+    }
 
 
-/* =====================================================
-TÍNH KHOẢNG CÁCH
-===================================================== */
+    /* =====================================================
+    TÍNH KHOẢNG CÁCH
+    ===================================================== */
 
-function calculateDistance(
-lat1,
-lng1,
-lat2,
-lng2
-){
+    function calculateDistance(
+      lat1,
+      lng1,
+      lat2,
+      lng2
+    ) {
 
-const R = 6371;
+      const R = 6371;
 
-const dLat =
-(lat2-lat1) *
-Math.PI / 180;
+      const dLat =
+        (lat2 - lat1) *
+        Math.PI / 180;
 
-const dLng =
-(lng2-lng1) *
-Math.PI / 180;
+      const dLng =
+        (lng2 - lng1) *
+        Math.PI / 180;
 
-const a =
-Math.sin(dLat/2) *
-Math.sin(dLat/2) +
+      const a =
+        Math.sin(dLat / 2) *
+        Math.sin(dLat / 2) +
 
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLng/2) *
-Math.sin(dLng/2);
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
 
-const c =
-2 *
-Math.atan2(
-Math.sqrt(a),
-Math.sqrt(1-a)
-);
+      const c =
+        2 *
+        Math.atan2(
+          Math.sqrt(a),
+          Math.sqrt(1 - a)
+        );
 
-return R*c;
+      return R * c;
 
-}
+    }
 
 
-/* =====================================================
-TÍNH PHÍ SHIP
-===================================================== */
+    /* =====================================================
+    TÍNH PHÍ SHIP
+    ===================================================== */
 
-function calculateShippingFee(){
+    function calculateShippingFee() {
 
-if(
-currentGPS.lat === null ||
-currentGPS.lng === null
-){
+      if (
+        currentGPS.lat === null ||
+        currentGPS.lng === null
+      ) {
 
-return 20000;
+        return 20000;
 
-}
+      }
 
 
-/*
-TỌA ĐỘ TRUNG TÂM PHÚ QUỐC
-*/
+      /*
+      TỌA ĐỘ TRUNG TÂM PHÚ QUỐC
+      */
 
-const shopLat = 10.2899;
+      const shopLat = 10.2899;
 
-const shopLng = 103.9840;
+      const shopLng = 103.9840;
 
 
-/*
-TÍNH KM
-*/
+      /*
+      TÍNH KM
+      */
 
-const km =
-calculateDistance(
-shopLat,
-shopLng,
-currentGPS.lat,
-currentGPS.lng
-);
+      const km =
+        calculateDistance(
+          shopLat,
+          shopLng,
+          currentGPS.lat,
+          currentGPS.lng
+        );
 
 
-/*
-BẢNG GIÁ
+      /*
+      BẢNG GIÁ
+      
+      0-3km       20.000
+      >3-5km      25.000
+      >5-7km      30.000
+      >7-10km     40.000
+      >10-15km    50.000
+      >15km       60.000
+      */
 
-0-3km       20.000
->3-5km      25.000
->5-7km      30.000
->7-10km     40.000
->10-15km    50.000
->15km       60.000
-*/
+      if (km <= 3) {
 
-if(km <= 3){
+        return 20000;
 
-return 20000;
+      }
 
-}
+      if (km <= 5) {
 
-if(km <= 5){
+        return 25000;
 
-return 25000;
+      }
 
-}
+      if (km <= 7) {
 
-if(km <= 7){
+        return 30000;
 
-return 30000;
+      }
 
-}
+      if (km <= 10) {
 
-if(km <= 10){
+        return 40000;
 
-return 40000;
+      }
 
-}
+      if (km <= 15) {
 
-if(km <= 15){
+        return 50000;
 
-return 50000;
+      }
 
-}
+      return 60000;
 
-return 60000;
+    }
 
-}
 
+    /* =====================================================
+    CẬP NHẬT PHÍ SHIP
+    ===================================================== */
 
-/* =====================================================
-CẬP NHẬT PHÍ SHIP
-===================================================== */
+    function updateShippingDisplay() {
 
-function updateShippingDisplay(){
+      const foodTotal =
+        getFoodTotal();
 
-const foodTotal =
-getFoodTotal();
+      const shippingFee =
+        calculateShippingFee();
 
-const shippingFee =
-calculateShippingFee();
+      const total =
+        foodTotal + shippingFee;
 
-const total =
-foodTotal + shippingFee;
 
+      /* TIỀN MÓN */
 
-/* TIỀN MÓN */
+      document.getElementById("foodTotal")
+        .innerText =
+        money(foodTotal);
 
-document.getElementById("foodTotal")
-.innerText =
-money(foodTotal);
 
+      /* PHÍ SHIP */
 
-/* PHÍ SHIP */
+      document.getElementById("shippingFee")
+        .innerText =
+        money(shippingFee);
 
-document.getElementById("shippingFee")
-.innerText =
-money(shippingFee);
 
+      /* PHÍ SHIP BÊN DƯỚI */
 
-/* PHÍ SHIP BÊN DƯỚI */
+      document.getElementById("shippingTotal")
+        .innerText =
+        money(shippingFee);
 
-document.getElementById("shippingTotal")
-.innerText =
-money(shippingFee);
 
+      /* TỔNG */
 
-/* TỔNG */
+      document.getElementById("total")
+        .innerText =
+        money(total);
 
-document.getElementById("total")
-.innerText =
-money(total);
 
+      /* =====================================================
+      HIỂN THỊ KHOẢNG CÁCH
+      ===================================================== */
 
-/* =====================================================
-HIỂN THỊ KHOẢNG CÁCH
-===================================================== */
+      const distanceBox =
+        document.getElementById(
+          "shippingDistance"
+        );
 
-const distanceBox =
-document.getElementById(
-"shippingDistance"
-);
+      if (
+        currentGPS.lat !== null &&
+        currentGPS.lng !== null
+      ) {
 
-if(
-currentGPS.lat !== null &&
-currentGPS.lng !== null
-){
+        const distance =
+          calculateDistance(
+            10.2899,
+            103.9840,
+            currentGPS.lat,
+            currentGPS.lng
+          );
 
-const distance =
-calculateDistance(
-10.2899,
-103.9840,
-currentGPS.lat,
-currentGPS.lng
-);
+        distanceBox.innerText =
+          distance.toFixed(1) +
+          " km";
 
-distanceBox.innerText =
-distance.toFixed(1) +
-" km";
+      } else {
 
-}else{
+        distanceBox.innerText =
+          "Chưa chọn vị trí";
 
-distanceBox.innerText =
-"Chưa chọn vị trí";
+      }
 
-}
 
+      /* =====================================================
+      HIỂN THỊ GPS
+      ===================================================== */
 
-/* =====================================================
-HIỂN THỊ GPS
-===================================================== */
+      const gpsText =
+        document.getElementById(
+          "selectedGPS"
+        );
 
-const gpsText =
-document.getElementById(
-"selectedGPS"
-);
+      if (currentGPS.lat !== null) {
 
-if(currentGPS.lat !== null){
+        gpsText.innerText =
+          currentGPS.lat.toFixed(6) +
+          ", " +
+          currentGPS.lng.toFixed(6);
 
-gpsText.innerText =
-currentGPS.lat.toFixed(6) +
-", " +
-currentGPS.lng.toFixed(6);
+      } else {
 
-}else{
+        gpsText.innerText =
+          "Chưa chọn";
 
-gpsText.innerText =
-"Chưa chọn";
+      }
 
-}
+    }
 
-}
 
+    /* =====================================================
+    HIỂN THỊ GIỎ
+    ===================================================== */
 
-/* =====================================================
-HIỂN THỊ GIỎ
-===================================================== */
+    function renderCart() {
 
-function renderCart(){
+      const box =
+        document.getElementById("cartItems");
 
-const box =
-document.getElementById("cartItems");
+      box.innerHTML = "";
 
-box.innerHTML = "";
+      if (cart.length === 0) {
 
-if(cart.length === 0){
-
-box.innerHTML = `
+        box.innerHTML = `
 
 <div class="empty">
 🛒 Giỏ hàng đang trống
@@ -1266,15 +1235,15 @@ box.innerHTML = `
 
 `;
 
-updateShippingDisplay();
+        updateShippingDisplay();
 
-return;
+        return;
 
-}
+      }
 
-cart.forEach((item,i)=>{
+      cart.forEach((item, i) => {
 
-box.innerHTML += `
+        box.innerHTML += `
 
 <div class="cart-item">
 
@@ -1312,495 +1281,528 @@ onclick="changeQty(${i},1)">
 
 `;
 
-});
+      });
 
-updateShippingDisplay();
+      updateShippingDisplay();
 
-}
+    }
 
 
-/* =====================================================
-ĐỔI SỐ LƯỢNG
-===================================================== */
+    /* =====================================================
+    ĐỔI SỐ LƯỢNG
+    ===================================================== */
 
-function changeQty(i,n){
+    function changeQty(i, n) {
 
-if(!cart[i]) return;
+      if (!cart[i]) return;
 
-cart[i].qty += n;
+      cart[i].qty += n;
 
-if(cart[i].qty <= 0){
+      if (cart[i].qty <= 0) {
 
-cart.splice(i,1);
+        cart.splice(i, 1);
 
-}
+      }
 
-updateCart();
+      updateCart();
 
-renderCart();
+      renderCart();
 
-}
+    }
 
 
-/* =====================================================
-BẢN ĐỒ
-===================================================== */
+    /* =====================================================
+    BẢN ĐỒ
+    ===================================================== */
 
-const map =
-L.map("map")
-.setView(
-[10.2899,103.9840],
-12
-);
+    const map =
+      L.map("map")
+        .setView(
+          [10.2899, 103.9840],
+          12
+        );
 
-L.tileLayer(
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-{
-maxZoom:19,
-attribution:"© OpenStreetMap"
-}
-).addTo(map);
+    L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap"
+      }
+    ).addTo(map);
 
 
-/* =====================================================
-CHẠM BẢN ĐỒ
-===================================================== */
+    /* =====================================================
+    CHẠM BẢN ĐỒ
+    ===================================================== */
 
-map.on("click",function(e){
+    map.on("click", function (e) {
 
-setDeliveryLocation(
-e.latlng.lat,
-e.latlng.lng,
-"📍 Vị trí giao hàng đã chọn"
-);
+      setDeliveryLocation(
+        e.latlng.lat,
+        e.latlng.lng,
+        "📍 Vị trí giao hàng đã chọn"
+      );
 
-});
+    });
 
 
-/* =====================================================
-ĐẶT VỊ TRÍ
-===================================================== */
+    /* =====================================================
+    ĐẶT VỊ TRÍ
+    ===================================================== */
 
-function setDeliveryLocation(
-lat,
-lng,
-message
-){
+    function setDeliveryLocation(
+      lat,
+      lng,
+      message
+    ) {
 
-currentGPS.lat =
-Number(lat);
+      currentGPS.lat =
+        Number(lat);
 
-currentGPS.lng =
-Number(lng);
+      currentGPS.lng =
+        Number(lng);
 
-if(marker){
+      if (marker) {
 
-map.removeLayer(marker);
+        map.removeLayer(marker);
 
-}
+      }
 
-marker =
-L.marker([
-currentGPS.lat,
-currentGPS.lng
-])
-.addTo(map)
-.bindPopup(message)
-.openPopup();
+      marker =
+        L.marker([
+          currentGPS.lat,
+          currentGPS.lng
+        ])
+          .addTo(map)
+          .bindPopup(message)
+          .openPopup();
 
-map.setView([
-currentGPS.lat,
-currentGPS.lng
-],16);
+      map.setView([
+        currentGPS.lat,
+        currentGPS.lng
+      ], 16);
 
-document.getElementById(
-"locationText"
-).innerHTML =
+      document.getElementById(
+        "locationText"
+      ).innerHTML =
 
-"📍 <b>Vị trí giao hàng:</b><br>" +
+        "📍 <b>Vị trí giao hàng:</b><br>" +
 
-currentGPS.lat.toFixed(6) +
-", " +
-currentGPS.lng.toFixed(6);
+        currentGPS.lat.toFixed(6) +
+        ", " +
+        currentGPS.lng.toFixed(6);
 
 
-/*
-QUAN TRỌNG:
-MỖI LẦN CHỌN VỊ TRÍ
-SẼ TÍNH LẠI PHÍ SHIP
-*/
+      /*
+      QUAN TRỌNG:
+      MỖI LẦN CHỌN VỊ TRÍ
+      SẼ TÍNH LẠI PHÍ SHIP
+      */
 
-updateShippingDisplay();
+      updateShippingDisplay();
 
-}
+    }
 
 
-/* =====================================================
-GPS
-===================================================== */
+    /* =====================================================
+    GPS
+    ===================================================== */
 
-function getGPS(){
+    function getGPS() {
 
-if(!navigator.geolocation){
+      if (!navigator.geolocation) {
 
-alert(
-"❌ Thiết bị không hỗ trợ GPS."
-);
+        alert(
+          "❌ Thiết bị không hỗ trợ GPS."
+        );
 
-return;
+        return;
 
-}
+      }
 
-const button =
-document.getElementById(
-"gpsButton"
-);
+      const button =
+        document.getElementById(
+          "gpsButton"
+        );
 
-button.disabled = true;
+      button.disabled = true;
 
-button.innerText =
-"⏳ ĐANG LẤY VỊ TRÍ...";
+      button.innerText =
+        "⏳ ĐANG LẤY VỊ TRÍ...";
 
-document.getElementById(
-"locationText"
-).innerText =
-"📍 Đang lấy vị trí...";
+      document.getElementById(
+        "locationText"
+      ).innerText =
+        "📍 Đang lấy vị trí...";
 
-navigator.geolocation.getCurrentPosition(
+      navigator.geolocation.getCurrentPosition(
 
-function(position){
+        function (position) {
 
-const lat =
-position.coords.latitude;
+          const lat =
+            position.coords.latitude;
 
-const lng =
-position.coords.longitude;
+          const lng =
+            position.coords.longitude;
 
-setDeliveryLocation(
-lat,
-lng,
-"📍 Vị trí GPS hiện tại"
-);
+          setDeliveryLocation(
+            lat,
+            lng,
+            "📍 Vị trí GPS hiện tại"
+          );
 
-button.disabled = false;
+          button.disabled = false;
 
-button.innerText =
-"📍 CẬP NHẬT VỊ TRÍ";
+          button.innerText =
+            "📍 CẬP NHẬT VỊ TRÍ";
 
-},
+        },
 
-function(error){
+        function (error) {
 
-console.error(error);
+          console.error(error);
 
-let text =
-"Không lấy được GPS.";
+          let text =
+            "Không lấy được GPS.";
 
-if(error.code === 1){
+          if (error.code === 1) {
 
-text =
-"Bạn chưa cho phép trình duyệt sử dụng vị trí.";
+            text =
+              "Bạn chưa cho phép trình duyệt sử dụng vị trí.";
 
-}
+          }
 
-if(error.code === 2){
+          if (error.code === 2) {
 
-text =
-"Không xác định được vị trí.";
+            text =
+              "Không xác định được vị trí.";
 
-}
+          }
 
-if(error.code === 3){
+          if (error.code === 3) {
 
-text =
-"GPS hết thời gian chờ.";
+            text =
+              "GPS hết thời gian chờ.";
 
-}
+          }
 
-alert("⚠️ " + text);
+          alert("⚠️ " + text);
 
-document.getElementById(
-"locationText"
-).innerText =
-"⚠️ " + text;
+          document.getElementById(
+            "locationText"
+          ).innerText =
+            "⚠️ " + text;
 
-button.disabled = false;
+          button.disabled = false;
 
-button.innerText =
-"📍 LẤY VỊ TRÍ HIỆN TẠI";
+          button.innerText =
+            "📍 LẤY VỊ TRÍ HIỆN TẠI";
 
-},
+        },
 
-{
-enableHighAccuracy:true,
-timeout:15000,
-maximumAge:0
-}
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
 
-);
+      );
 
-}
+    }
 
 
-/* =====================================================
-TẠO ĐƠN
-===================================================== */
+    /* =====================================================
+    TẠO ĐƠN
+    ===================================================== */
 
-async function createOrder(){
+    async function createOrder() {
 
-if(cart.length === 0){
+      if (cart.length === 0) {
 
-alert("⚠️ Bạn chưa chọn món.");
+        alert("⚠️ Bạn chưa chọn món.");
 
-return;
+        return;
 
-}
+      }
 
-const name =
-document.getElementById("name")
-.value.trim();
+      const name =
+        document.getElementById("name")
+          .value.trim();
 
-const phone =
-document.getElementById("phone")
-.value.trim();
+      const phone =
+        document.getElementById("phone")
+          .value.trim();
 
-const address =
-document.getElementById("address")
-.value.trim();
+      const address =
+        document.getElementById("address")
+          .value.trim();
 
-const note =
-document.getElementById("note")
-.value.trim();
+      const note =
+        document.getElementById("note")
+          .value.trim();
 
-const payment =
-document.getElementById("payment")
-.value;
+      const payment =
+        document.getElementById("payment")
+          .value;
 
 
-if(!name){
+      if (!name) {
 
-alert(
-"⚠️ Vui lòng nhập họ tên."
-);
+        alert(
+          "⚠️ Vui lòng nhập họ tên."
+        );
 
-return;
+        return;
 
-}
+      }
 
-if(!phone){
+      if (!phone) {
 
-alert(
-"⚠️ Vui lòng nhập số điện thoại."
-);
+        alert(
+          "⚠️ Vui lòng nhập số điện thoại."
+        );
 
-return;
+        return;
 
-}
+      }
 
-if(!address){
+      if (!address) {
 
-alert(
-"⚠️ Vui lòng nhập địa chỉ giao hàng."
-);
+        alert(
+          "⚠️ Vui lòng nhập địa chỉ giao hàng."
+        );
 
-return;
+        return;
 
-}
+      }
 
 
-/* GPS BẮT BUỘC */
+      /* GPS BẮT BUỘC */
 
-if(
-currentGPS.lat === null ||
-currentGPS.lng === null
-){
+      if (
+        currentGPS.lat === null ||
+        currentGPS.lng === null
+      ) {
 
-alert(
-"📍 Vui lòng chọn vị trí giao hàng trên bản đồ hoặc bấm LẤY VỊ TRÍ HIỆN TẠI."
-);
+        alert(
+          "📍 Vui lòng chọn vị trí giao hàng trên bản đồ hoặc bấm LẤY VỊ TRÍ HIỆN TẠI."
+        );
 
-return;
+        return;
 
-}
+      }
 
 
-/* =====================================================
-TÍNH TIỀN
-===================================================== */
+      /* =====================================================
+      TÍNH TIỀN
+      ===================================================== */
 
-const foodTotal =
-getFoodTotal();
+      const foodTotal =
+        getFoodTotal();
 
-const shippingFee =
-calculateShippingFee();
+      const shippingFee =
+        calculateShippingFee();
 
-const total =
-foodTotal + shippingFee;
+      const total =
+        foodTotal + shippingFee;
 
 
-/* =====================================================
-TÍNH KHOẢNG CÁCH
-===================================================== */
+      /* =====================================================
+      TÍNH KHOẢNG CÁCH
+      ===================================================== */
 
-const distance =
-calculateDistance(
-10.2899,
-103.9840,
-currentGPS.lat,
-currentGPS.lng
-);
+      const distance =
+        calculateDistance(
+          10.2899,
+          103.9840,
+          currentGPS.lat,
+          currentGPS.lng
+        );
 
 
-/* =====================================================
-MÃ ĐƠN
-===================================================== */
+      /* =====================================================
+      MÃ ĐƠN
+      ===================================================== */
 
-const code =
-"CS" +
-Date.now()
-.toString()
-.slice(-6);
+      const code =
+        "CS" +
+        Date.now()
+          .toString()
+          .slice(-6);
 
 
-/* =====================================================
-ĐƠN HÀNG
-===================================================== */
+      /* =====================================================
+      ĐƠN HÀNG
+      ===================================================== */
 
-const order = {
+      const order = {
 
-code:code,
+        code: code,
 
-name:name,
+        name: name,
 
-phone:phone,
+        phone: phone,
 
-address:address,
+        address: address,
 
-note:note,
+        note: note,
 
-payment:payment,
+        payment: payment,
 
-items:JSON.stringify(cart),
+        items: JSON.stringify(cart),
 
-food_total:foodTotal,
+        food_total: foodTotal,
 
-shipping_fee:shippingFee,
+        shipping_fee: shippingFee,
 
-total:total,
+        total: total,
 
-status:"Chờ xác nhận",
+        status: "Chờ xác nhận",
 
-time:new Date().toISOString(),
+        time: new Date().toISOString(),
 
-latitude:Number(
-currentGPS.lat
-),
+        latitude: Number(
+          currentGPS.lat
+        ),
 
-longitude:Number(
-currentGPS.lng
-),
+        longitude: Number(
+          currentGPS.lng
+        ),
 
-distance_km:Number(
-distance.toFixed(2)
-)
+        distance_km: Number(
+          distance.toFixed(2)
+        )
 
-};
+      };
 
 
-/* =====================================================
-NÚT ĐẶT ĐƠN
-===================================================== */
+      /* =====================================================
+      NÚT ĐẶT ĐƠN
+      ===================================================== */
 
-const button =
-document.getElementById(
-"orderButton"
-);
+      const button =
+        document.getElementById(
+          "orderButton"
+        );
 
-button.disabled = true;
+      button.disabled = true;
 
-button.innerText =
-"⏳ ĐANG GỬI ĐƠN...";
+      button.innerText =
+        "⏳ ĐANG GỬI ĐƠN...";
 
 
-try{
+      try {
 
-const response =
-await fetch(
-SUPABASE_URL +
-"/rest/v1/orders",
-{
+        const response =
+          await fetch(
+            SUPABASE_URL +
+            "/rest/v1/orders",
+            {
 
-method:"POST",
+              method: "POST",
 
-headers:{
+              headers: {
 
-"Content-Type":
-"application/json",
+                "Content-Type":
+                  "application/json",
 
-"apikey":
-SUPABASE_KEY,
+                "apikey":
+                  SUPABASE_KEY,
 
-"Authorization":
-"Bearer " +
-SUPABASE_KEY,
+                "Authorization":
+                  "Bearer " +
+                  SUPABASE_KEY,
 
-"Prefer":
-"return=minimal"
+                "Prefer":
+                  "return=minimal"
 
-},
+              },
 
-body:
-JSON.stringify(order)
+              body:
+                JSON.stringify(order)
 
-}
-);
+            }
+          );
 
-const result =
-await response.text();
+        const result =
+          await response.text();
 
-console.log(
-"SUPABASE STATUS:",
-response.status
-);
+        console.log(
+          "SUPABASE STATUS:",
+          response.status
+        );
 
-console.log(
-"SUPABASE RESPONSE:",
-result
-);
+        console.log(
+          "SUPABASE RESPONSE:",
+          result
+        );
 
-if(!response.ok){
+        if (!response.ok) {
 
-throw new Error(
-result ||
-"Supabase từ chối đơn hàng."
-);
+          throw new Error(
+            result ||
+            "Supabase từ chối đơn hàng."
+          );
 
-}
+        }
 
 
-/* =====================================================
-LƯU ĐƠN CUỐI
-===================================================== */
+        /* =====================================================
+        LƯU ĐƠN CUỐI
+        ===================================================== */
 
-localStorage.setItem(
-"choco_ship_last_order",
-JSON.stringify(order)
-);
+        localStorage.setItem(
+          "choco_ship_last_order",
+          JSON.stringify(order)
+        );
 
 
-/* =====================================================
-THÔNG BÁO THÀNH CÔNG
-===================================================== */
+        /* =====================================================
+        GỬI THÔNG BÁO CHO SHIPPER (ONESIGNAL)
+        ===================================================== */
+        try {
+          // THAY REST_API_KEY BẰNG KEY CỦA BẠN TRÊN ONESIGNAL (Mục Settings > Keys & IDs)
+          const ONESIGNAL_APP_ID = "66bec449-f15b-4d0e-90fc-3dc470fef20c";
+          const ONESIGNAL_REST_API_KEY = "f5snlbtjoe6k5g2eewywstq4q";
 
-const successBox =
-document.getElementById(
-"successBox"
-);
+          if (ONESIGNAL_REST_API_KEY !== "f5snlbtjoe6k5g2eewywstq4q") {
+            fetch("https://onesignal.com/api/v1/notifications", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Basic " + ONESIGNAL_REST_API_KEY
+              },
+              body: JSON.stringify({
+                app_id: ONESIGNAL_APP_ID,
+                included_segments: ["Subscribed Users"], // Gửi đến tất cả Shipper đã bật thông báo
+                headings: { "en": "🚚 Đơn hàng mới: " + code },
+                contents: { "en": "Khách hàng " + name + " vừa đặt một đơn mới. Bấm để nhận ngay!" },
+                data: {
+                  url: "https://nf7rb74ybk-code.github.io/Choco-foods/shipper.html"
+                }
+              })
+            }).then(res => console.log("Gửi thông báo thành công:", res.status))
+              .catch(err => console.error("Lỗi gửi thông báo:", err));
+          }
+        } catch (err) {
+          console.error("Lỗi quá trình gửi thông báo OneSignal:", err);
+        }
 
-successBox.style.display =
-"block";
 
-successBox.innerHTML = `
+
+        /* =====================================================
+        THÔNG BÁO THÀNH CÔNG
+        ===================================================== */
+
+        const successBox =
+          document.getElementById(
+            "successBox"
+          );
+
+        successBox.style.display =
+          "block";
+
+        successBox.innerHTML = `
 
 <strong>
 🎉 ĐẶT ĐƠN THÀNH CÔNG
@@ -1856,118 +1858,119 @@ ${currentGPS.lng.toFixed(6)}
 `;
 
 
-alert(
-"🎉 ĐẶT ĐƠN THÀNH CÔNG!\n\n" +
-"Mã đơn: " +
-code +
-"\nKhoảng cách: " +
-distance.toFixed(1) +
-" km" +
-"\nPhí ship: " +
-money(shippingFee) +
-"\nTổng tiền: " +
-money(total)
-);
+        alert(
+          "🎉 ĐẶT ĐƠN THÀNH CÔNG!\n\n" +
+          "Mã đơn: " +
+          code +
+          "\nKhoảng cách: " +
+          distance.toFixed(1) +
+          " km" +
+          "\nPhí ship: " +
+          money(shippingFee) +
+          "\nTổng tiền: " +
+          money(total)
+        );
 
 
-/* =====================================================
-XÓA GIỎ
-===================================================== */
+        /* =====================================================
+        XÓA GIỎ
+        ===================================================== */
 
-cart = [];
+        cart = [];
 
-updateCart();
+        updateCart();
 
-renderCart();
-
-
-/* =====================================================
-RESET FORM
-===================================================== */
-
-document.getElementById(
-"name"
-).value = "";
-
-document.getElementById(
-"phone"
-).value = "";
-
-document.getElementById(
-"address"
-).value = "";
-
-document.getElementById(
-"note"
-).value = "";
-
-document.getElementById(
-"payment"
-).value = "cash";
+        renderCart();
 
 
-}catch(error){
+        /* =====================================================
+        RESET FORM
+        ===================================================== */
 
-console.error(
-"CHOCO SHIP ERROR:",
-error
-);
+        document.getElementById(
+          "name"
+        ).value = "";
 
-alert(
-"❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n" +
-"Lỗi Supabase:\n\n" +
-error.message
-);
+        document.getElementById(
+          "phone"
+        ).value = "";
 
-}finally{
+        document.getElementById(
+          "address"
+        ).value = "";
 
-button.disabled = false;
+        document.getElementById(
+          "note"
+        ).value = "";
 
-button.innerText =
-"🚀 ĐẶT ĐƠN";
-
-}
-
-}
-
-
-/* =====================================================
-ĐÓNG MODAL KHI CHẠM RA NGOÀI
-===================================================== */
-
-document.getElementById(
-"modal"
-).addEventListener(
-"click",
-function(e){
-
-if(e.target === this){
-
-closeCart();
-
-}
-
-});
+        document.getElementById(
+          "payment"
+        ).value = "cash";
 
 
-/* =====================================================
-KHỞI ĐỘNG
-===================================================== */
+      } catch (error) {
 
-showRestaurants();
+        console.error(
+          "CHOCO SHIP ERROR:",
+          error
+        );
 
-updateCart();
+        alert(
+          "❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n" +
+          "Lỗi Supabase:\n\n" +
+          error.message
+        );
 
-updateShippingDisplay();
+      } finally {
+
+        button.disabled = false;
+
+        button.innerText =
+          "🚀 ĐẶT ĐƠN";
+
+      }
+
+    }
 
 
-setTimeout(function(){
+    /* =====================================================
+    ĐÓNG MODAL KHI CHẠM RA NGOÀI
+    ===================================================== */
 
-map.invalidateSize();
+    document.getElementById(
+      "modal"
+    ).addEventListener(
+      "click",
+      function (e) {
 
-},500);
+        if (e.target === this) {
 
-</script>
+          closeCart();
+
+        }
+
+      });
+
+
+    /* =====================================================
+    KHỞI ĐỘNG
+    ===================================================== */
+
+    showRestaurants();
+
+    updateCart();
+
+    updateShippingDisplay();
+
+
+    setTimeout(function () {
+
+      map.invalidateSize();
+
+    }, 500);
+
+  </script>
 
 </body>
+
 </html>
