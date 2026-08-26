@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ff6b00">
+<title>CHOCO SHIP - VAPID Generator</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f4f5f7;margin:0;padding:20px;color:#222}.box{max-width:700px;margin:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 3px 15px #ddd}h2{margin-top:0}label{font-weight:700;display:block;margin:16px 0 6px}textarea,input{width:100%;box-sizing:border-box;border:1px solid #ccc;border-radius:10px;padding:12px;font:14px monospace}textarea{min-height:100px;resize:vertical}button{width:100%;padding:14px;border:0;border-radius:10px;background:#ff6b00;color:#fff;font-size:16px;font-weight:800;margin-top:16px}.copy{background:#1677ff;margin-top:8px}.warn{background:#fff3cd;border-radius:10px;padding:12px;font-size:14px;margin:14px 0}.ok{color:#166534;font-weight:700}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>🔐 CHOCO SHIP — VAPID Generator</h2>
+<div class="warn">⚠️ Key được tạo <b>hoàn toàn trên thiết bị</b>. Private Key không được gửi lên GitHub hay Supabase.</div>
+<button id="gen">🔑 TẠO CẶP KEY MỚI</button>
+<label>PUBLIC KEY — dán vào Supabase: <code>VAPID_PUBLIC_KEY</code></label>
+<textarea id="pub" readonly placeholder="Public Key sẽ xuất hiện ở đây"></textarea>
+<button class="copy" onclick="copy('pub')">📋 Sao chép Public Key</button>
+<label>PRIVATE KEY — dán vào Supabase: <code>VAPID_PRIVATE_KEY</code></label>
+<textarea id="priv" readonly placeholder="Private Key sẽ xuất hiện ở đây"></textarea>
+<button class="copy" onclick="copy('priv')">📋 Sao chép Private Key</button>
+<label>VAPID SUBJECT</label>
+<input id="subject" placeholder="mailto:email-cua-ban@example.com">
+<p class="ok">✅ Public và Private được tạo cùng một cặp.</p>
+<p style="font-size:13px;color:#666">Sau khi dán key vào Supabase, không cần gửi Private Key cho ChatGPT.</p>
+</div>
+<script>
+function b64url(a){let s='';for(const x of new Uint8Array(a))s+=String.fromCharCode(x);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+async function generate(){
+ const kp=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const pub=await crypto.subtle.exportKey('raw',kp.publicKey);
+ const pkcs8=await crypto.subtle.exportKey('pkcs8',kp.privateKey);
+ document.getElementById('pub').value=b64url(pub);
+ // Web Push VAPID private key is the 32-byte P-256 scalar, not the PKCS#8 wrapper.
+ const bytes=new Uint8Array(pkcs8);
+ // PKCS#8 EC P-256 contains the scalar after the fixed DER prefix; locate OCTET STRING 04 20.
+ let pos=-1;for(let i=0;i<bytes.length-33;i++){if(bytes[i]===4&&bytes[i+1]===32){pos=i+2;break}}
+ if(pos<0)throw Error('Không trích xuất được private key P-256');
+ document.getElementById('priv').value=b64url(bytes.slice(pos,pos+32));
+}
+async function copy(id){const el=document.getElementById(id);await navigator.clipboard.writeText(el.value);alert('Đã sao chép');}
+document.getElementById('gen').onclick=()=>generate().catch(e=>alert(e.message));
+</script>
+</body>
+</html>
