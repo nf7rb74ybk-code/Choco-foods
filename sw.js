@@ -1,147 +1,41 @@
 self.addEventListener("install", event => {
-    self.skipWaiting();
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", event => {
-    event.waitUntil(self.clients.claim());
+  event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("push", event => {
+// OneSignal manages push events for this site.
+// Do not register a second custom `push` handler here because it can
+// conflict with OneSignal's service worker and cause duplicate/missing
+// notifications.
 
-    let data = {};
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
 
-    try {
-        data = event.data
-            ? event.data.json()
-            : {};
-    } catch (error) {
+  const url =
+    event.notification?.data?.url ||
+    "https://nf7rb74ybk-code.github.io/Choco-foods/shipper.html";
 
-        data = {
-            title: "🚚 CHOCO SHIP",
-            body: event.data
-                ? event.data.text()
-                : "🔔 Có đơn hàng mới!"
-        };
-    }
-
-    const title =
-        data.title ||
-        "🚚 CHOCO SHIP";
-
-    const body =
-        data.body ||
-        "🔔 Có đơn hàng mới!";
-
-    const notificationData =
-        data.data ||
-        {};
-
-    event.waitUntil(
-
-        self.registration.showNotification(
-            title,
-            {
-                body: body,
-
-                icon:
-                    "./icon-192.png",
-
-                badge:
-                    "./icon-192.png",
-
-                vibrate:
-                    [300, 100, 300],
-
-                requireInteraction:
-                    true,
-
-                tag:
-                    notificationData.orderId
-                        ? "order-" +
-                        notificationData.orderId
-                        : "choco-ship-order",
-
-                renotify:
-                    true,
-
-                data: {
-                    url:
-                        notificationData.url ||
-                        "https://nf7rb74ybk-code.github.io/Choco-foods/shipper.html",
-
-                    orderId:
-                        notificationData.orderId ||
-                        null
-                }
+  event.waitUntil(
+    self.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    }).then(clients => {
+      for (const client of clients) {
+        if ("focus" in client) {
+          return client.focus().then(() => {
+            if ("navigate" in client && client.url !== url) {
+              return client.navigate(url);
             }
-        )
+          });
+        }
+      }
 
-    );
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
+      }
+    })
+  );
 });
-
-
-self.addEventListener(
-    "notificationclick",
-    event => {
-
-        event.notification.close();
-
-        const url =
-            event.notification.data &&
-                event.notification.data.url
-                ? event.notification.data.url
-                : "https://nf7rb74ybk-code.github.io/Choco-foods/shipper.html";
-
-        event.waitUntil(
-
-            self.clients.matchAll({
-                type: "window",
-                includeUncontrolled: true
-            }).then(clients => {
-
-                for (
-                    const client
-                    of clients
-                ) {
-
-                    if (
-                        "focus"
-                        in client
-                    ) {
-
-                        return client
-                            .focus()
-                            .then(() => {
-
-                                if (
-                                    "navigate"
-                                    in client
-                                ) {
-
-                                    return client.navigate(
-                                        url
-                                    );
-
-                                }
-
-                            });
-
-                    }
-
-                }
-
-                if (
-                    self.clients.openWindow
-                ) {
-
-                    return self.clients.openWindow(
-                        url
-                    );
-
-                }
-
-            })
-
-        );
-    }
-);
