@@ -895,6 +895,26 @@
       }
 
 
+      /* ================================
+         XÓA SUBSCRIPTION CŨ CỦA SHIPPER NÀY
+         (tránh tích lũy ID invalid)
+      ================================ */
+
+      await api(
+        "/rest/v1/shipper_push_subscriptions" +
+        "?shipper_id=eq." +
+        encodeURIComponent(USER_ID),
+        {
+          method: "DELETE",
+          headers: {}
+        }
+      );
+
+
+      /* ================================
+         INSERT SUBSCRIPTION MỚI
+      ================================ */
+
       const response =
         await api(
           "/rest/v1/shipper_push_subscriptions",
@@ -908,7 +928,7 @@
                 "application/json",
 
               "Prefer":
-                "resolution=merge-duplicates,return=representation"
+                "return=representation"
 
             },
 
