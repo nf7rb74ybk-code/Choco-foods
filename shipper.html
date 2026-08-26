@@ -1,1 +1,55 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ff6b00"><meta name="apple-mobile-web-app-capable" content="yes"><title>CHOCO SHIP - Shipper</title><style>*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f4f5f7;color:#222}header{background:#ff6b00;color:#fff;padding:14px;font-weight:800}.wrap{max-width:850px;margin:auto;padding:12px}.box,.order{background:#fff;border-radius:15px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px #ddd}.notice{border-left:5px solid #ff6b00}.push{width:100%;padding:13px;border:0;border-radius:10px;background:#16a34a;color:#fff;font-weight:800;font-size:16px}.debug{margin-top:9px;background:#f3f4f6;padding:9px;border-radius:9px;font-size:12px;word-break:break-word}.action,.map,.call{display:block;width:100%;padding:12px;border:0;border-radius:10px;margin-top:9px;text-align:center;text-decoration:none;color:#fff;font-weight:800}.action{background:#16a34a}.map{background:#1677ff}.call{background:#16a34a}.err{color:#991b1b}.ok{color:#166534}</style><script>window.OneSignalDeferred=window.OneSignalDeferred||[];</script><script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script></head><body><header>🚚 CHOCO SHIP - SHIPPER</header><main class="wrap"><div class="box"><b id="name">Shipper</b><div id="phone"></div></div><div class="box notice"><b>🔔 THÔNG BÁO ĐƠN HÀNG</b><p id="status">⏳ Đang khởi tạo OneSignal...</p><button id="push" class="push">🔔 BẬT THÔNG BÁO</button><div id="debug" class="debug">Đang chờ OneSignal...</div></div><div id="orders">Đang tải đơn...</div></main><script>'use strict';const SB='https://guwdswqaqnhzqapflvey.supabase.co',KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9',APP='66bec449-f15b-4d0e-90fc-3dc470fef20c',TOKEN=localStorage.getItem('choco_access_token')||'',UID=localStorage.getItem('choco_user_id')||'',ROLE=localStorage.getItem('choco_role')||'';const BAD=new Set(['5ed0de4f-d6f4-481a-8ea6-a9b3c40f2d26','53ca5a76-a7a3-4825-8e22-44582d7b59ba']);const $=x=>document.getElementById(x),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));async function api(p,o={}){return fetch(SB+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+TOKEN,Accept:'application/json','Content-Type':'application/json',...(o.headers||{})}})}function dbg(x){$('debug').innerHTML=x}function iosPwa(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&(navigator.standalone===true||matchMedia('(display-mode:standalone)').matches)}let OS=null,ready=new Promise((resolve,reject)=>{window.__osResolve=resolve;window.__osReject=reject});if(!TOKEN||!UID||ROLE!=='shipper'){location.replace('login.html')}window.OneSignalDeferred.push(async function(OneSignal){try{if(!UID)throw Error('Thiếu ID shipper');await OneSignal.init({appId:APP,notifyButton:{enable:false},serviceWorkerPath:'/Choco-foods/OneSignalSDKWorker.js',serviceWorkerParam:{scope:'/Choco-foods/'}});OS=OneSignal;await OS.login(String(UID));dbg('✅ OneSignal kết nối OK<br>External ID: '+esc(UID));window.__osResolve(OS)}catch(e){dbg('❌ OneSignal init/login lỗi: '+esc(e.message||e));window.__osReject(e)}});setTimeout(()=>{if(!OS)window.__osReject(Error('OneSignal init timeout'))},20000);async function disableBadSubscription(s){try{if(s?.id&&BAD.has(s.id)){dbg('♻️ Phát hiện Subscription cũ lỗi, đang đăng ký lại...');if(s.optedIn)await s.optOut();await new Promise(r=>setTimeout(r,1200));let fresh=OS.User.PushSubscription;if(!fresh.optedIn)await fresh.optIn();for(let i=0;i<40;i++){await new Promise(r=>setTimeout(r,500));fresh=OS.User.PushSubscription;if(fresh?.id&&!BAD.has(fresh.id)&&fresh.optedIn)return fresh}throw Error('OneSignal vẫn trả Subscription cũ lỗi')}}catch(e){throw e}}async function saveSubscription(x){let id=x?.id||'';if(!id||BAD.has(id))throw Error('Không lưu Subscription ID cũ/lỗi');await api('/rest/v1/shipper_push_subscriptions?shipper_id=eq.'+encodeURIComponent(UID),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({enabled:false,updated_at:new Date().toISOString()})});let r=await api('/rest/v1/shipper_push_subscriptions?subscription_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({shipper_id:UID,subscription_id:id,enabled:true,updated_at:new Date().toISOString()})});if(!r.ok)throw Error('Không lưu được Subscription vào Supabase: '+await r.text());let d=await r.json().catch(()=>[]);if(!Array.isArray(d)||d.length===0){let p=await api('/rest/v1/shipper_push_subscriptions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({shipper_id:UID,subscription_id:id,enabled:true,updated_at:new Date().toISOString()})});if(!p.ok)throw Error('Không tạo được Subscription: '+await p.text())}return true}async function enablePush(){try{if(iosPwa()===false&&/iphone|ipad|ipod/i.test(navigator.userAgent))throw Error('iPhone cần mở CHOCO SHIP từ Màn hình chính (PWA)');let x=await ready;dbg('⏳ Đang kiểm tra Subscription...');if(x.Notifications.permission!==true)await x.Notifications.requestPermission();if(x.Notifications.permission!==true)throw Error('Bạn chưa cho phép thông báo');let s=x.User.PushSubscription;if(s?.id&&BAD.has(s.id))s=await disableBadSubscription(s);if(!s.optedIn)await s.optIn();let id='';for(let i=0;i<40;i++){await new Promise(r=>setTimeout(r,500));s=x.User.PushSubscription;id=s?.id||'';if(id&&!BAD.has(id)&&s.optedIn)break}if(!id||BAD.has(id))throw Error('OneSignal chưa tạo Subscription ID mới hợp lệ');await x.login(String(UID));await saveSubscription(s);$('status').innerHTML='✅ <b>ĐÃ BẬT THÔNG BÁO</b>';$('debug').innerHTML='External ID: '+esc(UID)+'<br>Subscription ID: '+esc(id)+'<br>Permission: YES<br>Opt-in: YES<br>✅ Subscription mới đã liên kết'}catch(e){$('status').innerHTML='❌ '+esc(e.message);dbg('❌ '+esc(e.message))}}$('push').onclick=enablePush;async function checkPush(){try{let x=await ready,s=x.User.PushSubscription;if(x.Notifications.permission===true&&s?.optedIn&&s?.id&&!BAD.has(s.id)){await saveSubscription(s);$('status').innerHTML='✅ <b>THÔNG BÁO ĐANG HOẠT ĐỘNG</b>';$('debug').innerHTML='External ID: '+esc(UID)+'<br>Subscription ID: '+esc(s.id)+'<br>Permission: YES<br>Opt-in: YES'}}catch(e){}}async function loadProfile(){try{let r=await api('/rest/v1/profiles?id=eq.'+encodeURIComponent(UID)+'&select=full_name,phone'),d=await r.json();$('name').textContent=d[0]?.full_name||'Shipper';$('phone').textContent=d[0]?.phone?'📞 '+d[0].phone:''}catch(e){}}function map(a){return'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a||'')}function render(o){let pending=o.status==='Chờ xác nhận'&&!o.shipper_id,ph=o.phone||'',drop=o.dropoff||o.address||'',pick=o.pickup||'';return '<article class="order"><b>'+esc(o.code||('#'+o.id))+'</b><p>📌 '+esc(o.status||'Chờ xác nhận')+'<br>👤 '+esc(o.name||'Khách hàng')+'<br>📞 '+esc(ph)+'<br>📍 Lấy: '+esc(pick)+'<br>🏁 Giao: '+esc(drop)+'</p>'+(pending?'<button class="action" onclick="accept('+JSON.stringify(o.id)+')">✅ NHẬN ĐƠN</button>':'')+(pick?'<a class="map" target="_blank" href="'+map(pick)+'">📍 MỞ ĐIỂM LẤY</a>':'')+(drop?'<a class="map" target="_blank" href="'+map(drop)+'">🏁 MỞ ĐIỂM GIAO</a>':'')+(ph?'<a class="call" href="tel:'+esc(ph)+'">📞 GỌI KHÁCH</a>':'')+'</article>'}async function loadOrders(){try{let r=await api('/rest/v1/orders?select=*&order=created_at.desc');if(!r.ok)throw Error(await r.text());let a=await r.json();$('orders').innerHTML=a.filter(o=>(o.status==='Chờ xác nhận'&&!o.shipper_id)||String(o.shipper_id||'')===UID).map(render).join('')||'<div class="box">📭 Chưa có đơn.</div>'}catch(e){$('orders').innerHTML='<div class="box err">❌ '+esc(e.message)+'</div>'}}async function accept(id){let r=await api('/rest/v1/orders?id=eq.'+encodeURIComponent(id)+'&status=eq.Chờ%20xác%20nhận&shipper_id=is.null',{method:'PATCH',body:JSON.stringify({shipper_id:UID,status:'Đã nhận'})});if(!r.ok)alert(await r.text());loadOrders()}loadProfile();loadOrders();setInterval(loadOrders,15000);ready.then(()=>checkPush()).catch(()=>{});</script></body></html>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOCO SHIP - Shipper</title>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+</head>
+<body>
+<h2>🚚 CHOCO SHIP - Shipper</h2>
+<div id="notify">🔔 Đang khởi tạo OneSignal...</div>
+<button id="enable" disabled>BẬT THÔNG BÁO</button>
+<pre id="status"></pre>
+<script>
+const APP_ID='66bec449-f15b-4d0e-90fc-3dc470fef20c';
+const SHIPPER_ID='1775f182-c40f-4899-9fcb-d07a62f19144';
+const SB_URL='https://guwdswqaqnhzqapflvey.supabase.co';
+const SB_ANON='';
+const $=id=>document.getElementById(id);
+function show(s){$('status').textContent=s;}
+async function boot(){
+ try{
+  await OneSignal.init({appId:APP_ID,allowLocalhostAsSecureOrigin:true,notifyButton:{enable:false}});
+  $('notify').textContent='🔔 OneSignal đã sẵn sàng';
+  $('enable').disabled=false;
+  $('enable').onclick=enablePush;
+ }catch(e){$('notify').textContent='❌ OneSignal init lỗi: '+e;show(String(e));}
+}
+async function enablePush(){
+ try{
+  $('enable').disabled=true;
+  $('notify').textContent='⏳ Đang đăng ký thông báo...';
+  if(Notification.permission!=='granted') await OneSignal.Notifications.requestPermission();
+  if(Notification.permission!=='granted') throw new Error('Quyền thông báo chưa được cấp');
+  // IMPORTANT: identify the shipper BEFORE creating/reading the push subscription.
+  await OneSignal.login(SHIPPER_ID);
+  await new Promise(r=>setTimeout(r,1000));
+  const sub=OneSignal.User.PushSubscription;
+  const id=sub && sub.id ? sub.id : null;
+  const opted=sub ? !!sub.optedIn : false;
+  show('External ID: '+SHIPPER_ID+'\nSubscription ID: '+(id||'(chưa có)')+'\nPermission: '+Notification.permission+'\nOpt-in: '+opted);
+  if(!id) throw new Error('OneSignal chưa cấp Subscription ID. Hãy mở trang bằng PWA Safari và thử lại.');
+  // Persist the current subscription. Only the newest valid subscription stays enabled.
+  const r=await fetch(SB_URL+'/rest/v1/shipper_push_subscriptions?shipper_id=eq.'+encodeURIComponent(SHIPPER_ID),{
+   method:'PATCH',headers:{'Content-Type':'application/json','apikey':SB_ANON,'Prefer':'return=minimal'},body:JSON.stringify({subscription_id:id,enabled:true,updated_at:new Date().toISOString()})
+  });
+  if(!r.ok) throw new Error('Không lưu được subscription: '+await r.text());
+  $('notify').textContent='✅ Đã liên kết shipper với OneSignal';
+ }catch(e){$('notify').textContent='❌ '+e.message;show(String(e));$('enable').disabled=false;}
+}
+window.OneSignalDeferred=window.OneSignalDeferred||[];
+window.OneSignalDeferred.push(async function(OneSignal){window.OneSignal=OneSignal;boot();});
+</script>
+</body>
+</html>
