@@ -1,54 +1,302 @@
 <!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ff6b00">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>CHOCO SHIP - Shipper</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f5f7;color:#222}header{background:#ff6b00;color:#fff;padding:14px;position:sticky;top:0;z-index:20}.header,.container{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center}.logo{font-size:21px;font-weight:800}.buttons{display:flex;gap:6px}button{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}.refresh{background:#fff;color:#ff6b00}.logout{background:#dc2626;color:#fff}.container{padding:12px}.welcome,.notification-box,.order,.stat,.empty{background:#fff;border-radius:16px;box-shadow:0 2px 8px #ddd}.welcome,.notification-box,.order{padding:15px;margin-bottom:12px}.welcome small{display:block;color:#777;margin-top:5px}.welcome b{display:block;font-size:22px;margin-top:5px}.profile-phone{display:block;color:#075bd8;margin-top:6px;font-weight:700}.notification-box{border-left:5px solid #ff6b00}.notification-title{font-size:18px;font-weight:800;margin-bottom:6px}.notification-status{color:#555;font-size:14px;line-height:1.6;margin-bottom:11px}.notification-button{width:100%;background:#16a34a;color:#fff;font-size:16px;padding:14px}.notification-button.off{background:#ff6b00}.notification-button:disabled{opacity:.6}.debug{margin-top:10px;padding:10px;border-radius:10px;background:#f3f4f6;color:#555;font-size:12px;line-height:1.6;word-break:break-word}.success,.error{padding:13px;border-radius:11px;margin-bottom:12px;white-space:pre-line}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#991b1b}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.stat{text-align:center;padding:13px 5px;font-size:13px}.stat b{display:block;font-size:23px;margin-top:5px}.orders{display:flex;flex-direction:column;gap:13px}.empty{padding:38px 15px;text-align:center;color:#777}.order{margin-bottom:0}.order-top{display:flex;justify-content:space-between;gap:10px}.code{font-size:19px;font-weight:800;color:#ff6b00}.time{font-size:12px;color:#777;margin-top:4px}.total-top{font-weight:800;color:#e65100}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#f3f4f6;font-size:12px;font-weight:800;margin-top:8px}.new{background:#dcfce7;color:#166534}.mine{background:#dbeafe;color:#1d4ed8}.customer{margin-top:12px;line-height:1.75}.customer a{color:#075bd8;text-decoration:none}.box{background:#f8f8f8;border-radius:12px;padding:12px;margin-top:11px}.box-title{font-weight:800;font-size:16px;margin-bottom:8px}.food{padding:8px 0;border-bottom:1px solid #ddd}.food:last-child{border:0}.food-name{font-weight:800}.food-detail{color:#555;font-size:14px;margin-top:3px}.money{background:#fff7ed;border:1px solid #fed7aa;line-height:1.8}.money b{color:#e65100}.shipper-info{background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:10px;margin-top:11px;font-size:14px}.actions{margin-top:12px}.accept{width:100%;background:#16a34a;color:#fff;font-size:17px;padding:14px}.accept:disabled{opacity:.6}.status-label{font-weight:800;margin-bottom:6px}.status select{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-size:15px}.map,.call{display:block;text-decoration:none;text-align:center;color:#fff;padding:12px;border-radius:10px;margin-top:9px;font-weight:800}.map{background:#1677ff}.call{background:#16a34a}@media(max-width:600px){.logo{font-size:17px}.container{padding:9px}.order{padding:13px}}@media(max-width:420px){.logo{display:none}.header{justify-content:flex-end}}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f4f5f7;color:#222}header{background:#ff6b00;color:#fff;padding:14px;position:sticky;top:0;z-index:20}.header,.container{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center}.logo{font-size:21px;font-weight:800}.buttons{display:flex;gap:6px}button{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}.refresh{background:#fff;color:#ff6b00}.logout{background:#dc2626;color:#fff}.container{padding:12px}.welcome,.notification-box,.order,.stat,.empty{background:#fff;border-radius:16px;box-shadow:0 2px 8px #ddd}.welcome,.notification-box,.order{padding:15px;margin-bottom:12px}.welcome small{display:block;color:#777;margin-top:5px}.welcome b{display:block;font-size:22px;margin-top:5px}.profile-phone{display:block;color:#075bd8;margin-top:6px;font-weight:700}.notification-box{border-left:5px solid #ff6b00}.notification-title{font-size:18px;font-weight:800;margin-bottom:6px}.notification-status{color:#555;font-size:14px;line-height:1.6;margin-bottom:11px}.notification-button{width:100%;background:#16a34a;color:#fff;font-size:16px;padding:14px}.notification-button.off{background:#ff6b00}.notification-button:disabled{opacity:.6}.debug{margin-top:10px;padding:10px;border-radius:10px;background:#f3f4f6;color:#555;font-size:12px;line-height:1.6;word-break:break-word}.success,.error{padding:13px;border-radius:11px;margin-bottom:12px;white-space:pre-line}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#991b1b}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.stat{text-align:center;padding:13px 5px;font-size:13px}.stat b{display:block;font-size:23px;margin-top:5px}.orders{display:flex;flex-direction:column;gap:13px}.empty{padding:38px 15px;text-align:center;color:#777}.order{margin-bottom:0}.order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.code{font-size:19px;font-weight:800;color:#ff6b00}.time{font-size:12px;color:#777;margin-top:4px}.total-top{font-weight:800;color:#e65100;white-space:nowrap}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#f3f4f6;font-size:12px;font-weight:800;margin-top:8px}.new{background:#dcfce7;color:#166534}.mine{background:#dbeafe;color:#1d4ed8}.customer{margin-top:12px;line-height:1.75}.customer a{color:#075bd8;text-decoration:none}.box{background:#f8f8f8;border-radius:12px;padding:12px;margin-top:11px}.box-title{font-weight:800;font-size:16px;margin-bottom:8px}.food{padding:8px 0;border-bottom:1px solid #ddd}.food:last-child{border:0}.food-name{font-weight:800}.food-detail{color:#555;font-size:14px;margin-top:3px}.money{background:#fff7ed;border:1px solid #fed7aa;line-height:1.8}.money b{color:#e65100}.shipper-info{background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:10px;margin-top:11px;font-size:14px}.actions{margin-top:12px}.accept{width:100%;background:#16a34a;color:#fff;font-size:17px;padding:14px}.accept:disabled{opacity:.6}.status-label{font-weight:800;margin-bottom:6px}.status select{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-size:15px}.map,.call{display:block;text-decoration:none;text-align:center;color:#fff;padding:12px;border-radius:10px;margin-top:9px;font-weight:800}.map{background:#1677ff}.call{background:#16a34a}@media(max-width:600px){.logo{font-size:17px}.container{padding:9px}.order{padding:13px}}@media(max-width:420px){.logo{display:none}.header{justify-content:flex-end}}
 </style>
 </head>
 <body>
 <header><div class="header"><div class="logo">🚚 CHOCO SHIP</div><div class="buttons"><button class="refresh" onclick="loadOrders()">🔄</button><button class="logout" onclick="logout()">🚪</button></div></div></header>
 <div class="container">
 <div class="welcome">👋 Xin chào Shipper<small>Tài khoản: <span id="shipperEmail">Đang tải...</span></small><b id="shipperName">Đang tải...</b><span class="profile-phone" id="shipperPhone"></span></div>
-<div class="notification-box"><div class="notification-title">🔔 Thông báo đơn hàng</div><div class="notification-status" id="notificationStatus">⏳ Đang khởi động OneSignal...</div><button id="notificationButton" class="notification-button" onclick="enableNotifications()" disabled>⏳ ĐANG TẢI...</button><div id="pushDebug" class="debug">Đang kiểm tra thiết bị...</div></div>
+<div class="notification-box"><div class="notification-title">🔔 Thông báo đơn hàng</div><div class="notification-status" id="notificationStatus">⏳ Đang chuẩn bị thông báo...</div><button id="notificationButton" class="notification-button off" onclick="enableNotifications()" disabled>⏳ ĐANG KIỂM TRA...</button><div id="pushDebug" class="debug">Đang khởi động...</div></div>
 <div id="message"></div>
 <div class="stats"><div class="stat">Đơn mới<b id="newCount">0</b></div><div class="stat">Đang giao<b id="shippingCount">0</b></div><div class="stat">Hoàn thành<b id="doneCount">0</b></div></div>
 <div id="orders" class="orders"><div class="empty">⏳ Đang tải đơn...</div></div>
 </div>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-const SUPABASE_URL="https://guwdswqaqnhzqapflvey.supabase.co";
-const SUPABASE_KEY="sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
-const ONESIGNAL_APP_ID="66bec449-f15b-4d0e-90fc-3dc470fef20c";
-const TOKEN=localStorage.getItem("choco_access_token"),USER_ID=localStorage.getItem("choco_user_id"),ROLE=localStorage.getItem("choco_role"),EMAIL=localStorage.getItem("choco_email")||"";
-if(!TOKEN||!USER_ID||ROLE!=="shipper")location.replace("login.html");
-window.OneSignalDeferred=window.OneSignalDeferred||[];let OS=null,osPromise=null;
-function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
-function debug(v){document.getElementById("pushDebug").innerHTML=v;console.log("[CHOCO PUSH]",v)}
-function ios(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
-function standalone(){return navigator.standalone===true||(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)}
-function initOneSignal(){if(osPromise)return osPromise;osPromise=new Promise((resolve,reject)=>{let settled=false;const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error("OneSignal SDK không tải được. Hãy tải lại trang."))}},20000);window.OneSignalDeferred.push(async instance=>{if(settled)return;try{await instance.init({appId:ONESIGNAL_APP_ID,notifyButton:{enable:false},allowLocalhostAsSecureOrigin:false});OS=instance;if(USER_ID)await OS.login(String(USER_ID));clearTimeout(timer);settled=true;resolve(OS)}catch(e){clearTimeout(timer);settled=true;reject(e)}})});return osPromise}
-async function saveSubscription(id){if(!id)throw new Error("Không có Subscription ID.");const base=SUPABASE_URL+"/rest/v1/shipper_push_subscriptions",headers={apikey:SUPABASE_KEY,Authorization:"Bearer "+TOKEN,"Content-Type":"application/json",Prefer:"return=representation"};let r=await fetch(base,{method:"POST",headers,body:JSON.stringify({shipper_id:USER_ID,subscription_id:id,enabled:true,updated_at:new Date().toISOString()})});if(r.ok)return r.json();r=await fetch(base+"?shipper_id=eq."+encodeURIComponent(USER_ID),{method:"PATCH",headers,body:JSON.stringify({subscription_id:id,enabled:true,updated_at:new Date().toISOString()})});if(!r.ok)throw new Error("Không lưu được thiết bị: "+await r.text());return r.json()}
-async function updatePushStatus(){const s=document.getElementById("notificationStatus"),b=document.getElementById("notificationButton");if(ios()&&!standalone()){s.innerHTML="⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br>Safari → Chia sẻ → Thêm vào Màn hình chính.";b.disabled=false;b.textContent="📲 THÊM VÀO MÀN HÌNH CHÍNH";b.classList.add("off");debug("iOS chưa chạy PWA.");return}try{const os=await initOneSignal(),sub=os.User.PushSubscription,id=sub?.id||null,opt=sub?.optedIn===true,perm=os.Notifications.permission===true,ext=os.User.externalId||null;debug("External ID: "+esc(ext||"chưa có")+"<br>Subscription ID: "+esc(id||"chưa có")+"<br>Opt-in: "+(opt?"YES":"NO")+"<br>Permission: "+(perm?"YES":"NO")+"<br>Shipper ID: "+esc(USER_ID));if(perm&&opt&&id&&String(ext)===String(USER_ID)){try{await saveSubscription(String(id))}catch(e){console.warn("DB push:",e)}s.innerHTML="✅ <b>Thông báo đã được bật.</b><br>Thiết bị sẵn sàng nhận đơn mới.";b.textContent="✅ THÔNG BÁO ĐÃ BẬT";b.disabled=false;b.classList.remove("off");return}b.disabled=false;b.textContent="🔔 BẬT THÔNG BÁO";b.classList.add("off");s.innerHTML=!perm?"⚠️ Chưa cấp quyền thông báo.":!id?"⚠️ Đã cấp quyền nhưng OneSignal chưa có Subscription ID.":String(ext)!==String(USER_ID)?"⚠️ Thiết bị chưa liên kết đúng tài khoản shipper.":"⚠️ Thông báo chưa hoàn tất đăng ký."}catch(e){s.innerHTML="❌ <b>OneSignal chưa sẵn sàng.</b><br>"+esc(e.message);b.disabled=false;b.textContent="🔄 THỬ LẠI";b.classList.add("off");debug("Lỗi: "+esc(e.message))}}
-async function enableNotifications(){const s=document.getElementById("notificationStatus"),b=document.getElementById("notificationButton");if(ios()&&!standalone()){s.innerHTML="⚠️ <b>Thêm CHOCO SHIP vào Màn hình chính trước.</b><br>Safari → Chia sẻ → Thêm vào Màn hình chính.";return}b.disabled=true;b.textContent="⏳ ĐANG BẬT...";try{const os=await initOneSignal();if(os.User.externalId!==String(USER_ID))await os.login(String(USER_ID));if(os.Notifications.permission!==true)await os.Notifications.requestPermission();if(os.Notifications.permission!==true)throw new Error("Bạn chưa cho phép thông báo.");let sub=os.User.PushSubscription;if(!sub.optedIn)await sub.optIn();let id=null;for(let i=0;i<40;i++){await new Promise(r=>setTimeout(r,500));sub=os.User.PushSubscription;id=sub?.id||null;debug("Đang đăng ký... "+(i+1)+"/40<br>External ID: "+esc(os.User.externalId||"chưa có")+"<br>Subscription ID: "+esc(id||"chưa có"));if(id&&sub.optedIn===true)break}if(!id)throw new Error("OneSignal chưa tạo Subscription ID.");await saveSubscription(String(id));s.innerHTML="✅ <b>Thông báo đã được bật!</b><br>Thiết bị đã sẵn sàng nhận đơn mới.";b.textContent="✅ THÔNG BÁO ĐÃ BẬT";b.disabled=false;b.classList.remove("off");debug("✅ PUSH READY<br>External ID: "+esc(os.User.externalId)+"<br>Subscription ID: "+esc(id))}catch(e){s.innerHTML="❌ <b>Không bật được thông báo.</b><br>"+esc(e.message);b.disabled=false;b.textContent="🔔 THỬ LẠI";b.classList.add("off");debug("Lỗi: "+esc(e.message))}}
-async function api(path,opt={}){return fetch(SUPABASE_URL+path,{...opt,headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+TOKEN,Accept:"application/json",...(opt.headers||{})}})}
-function money(v){return Number(v||0).toLocaleString("vi-VN")+"đ"}function dateText(v){try{return v?new Date(v).toLocaleString("vi-VN"):""}catch(e){return String(v||"")}}function showMessage(type,text){document.getElementById("message").innerHTML='<div class="'+type+'">'+esc(text)+"</div>"}
-async function loadProfile(){document.getElementById("shipperEmail").textContent=EMAIL||"Không có email";try{const r=await api("/rest/v1/profiles?id=eq."+encodeURIComponent(USER_ID)+"&select=id,full_name,phone,role"),d=await r.json();if(!d.length){document.getElementById("shipperName").textContent="Shipper";return}const p=d[0];document.getElementById("shipperName").textContent=p.full_name||"Shipper";document.getElementById("shipperPhone").innerHTML=p.phone?'📞 <a href="tel:'+esc(p.phone)+'">'+esc(p.phone)+"</a>":"📞 Chưa có số điện thoại"}catch(e){document.getElementById("shipperName").textContent="Shipper"}}
-function getItems(raw){let d=raw;for(let i=0;i<5&&typeof d==="string";i++){try{d=JSON.parse(d)}catch(e){break}}if(Array.isArray(d))return d;if(d&&Array.isArray(d.items))return d.items;if(d&&typeof d==="object")return[d];return d?[{name:String(d),qty:1,price:0}]:[]}
-function renderItems(raw){const list=getItems(raw);if(!list.length)return '<div style="color:#777">⚠️ Không có thông tin món</div>';return list.map((x,i)=>{if(typeof x==="string")x={name:x,qty:1,price:0};const name=x.name||x.title||x.product_name||x.food_name||("Món "+(i+1)),qty=Number(x.qty??x.quantity??x.amount??1)||1,price=Number(x.price??x.unit_price??x.food_price??0)||0,total=Number(x.total??x.subtotal??price*qty)||price*qty;return '<div class="food"><div class="food-name">🍔 '+esc(name)+' × '+qty+'</div><div class="food-detail">'+(price?money(price)+" / món • ":"")+"Thành tiền: <b>"+money(total)+"</b></div></div>"}).join("")}
-function mapUrl(a){return a?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a):"#"}function gpsUrl(a,b){return "https://www.google.com/maps?q="+encodeURIComponent(a)+","+encodeURIComponent(b)}
-function renderOrder(o){const pending=o.status==="Chờ xác nhận"&&!o.shipper_id,mine=String(o.shipper_id||"")===String(USER_ID),customer=o.name||o.customer_name||"Khách hàng",phone=o.phone||o.customer_phone||"",pickup=o.pickup||o.pickup_address||"",dropoff=o.dropoff||o.dropoff_address||o.address||"",fee=Number(o.fee||o.delivery_fee||0),total=Number(o.total||o.total_amount||o.amount||0);let gps="";if(o.latitude!=null&&o.longitude!=null)gps='<a class="map" target="_blank" rel="noopener" href="'+gpsUrl(o.latitude,o.longitude)+'">📍 XEM VỊ TRÍ KHÁCH</a>';return '<div class="order" id="order-'+esc(o.id)+'"><div class="order-top"><div><div class="code">'+esc(o.code||("#"+o.id))+'</div><div class="time">🕒 '+esc(dateText(o.created_at))+'</div><span class="badge '+(pending?"new":mine?"mine":"")+'">'+esc(o.status||"Chờ xác nhận")+'</span></div>'+(total?'<div class="total-top">💰 '+money(total)+"</div>":"")+"</div><div class="customer">👤 <b>"+esc(customer)+"</b><br>📞 "+(phone?'<a href="tel:'+esc(phone)+'">'+esc(phone)+"</a>":"Chưa có số điện thoại")+"<br>📍 <b>Lấy:</b> "+esc(pickup||"Chưa có địa chỉ")+"<br>🏁 <b>Giao:</b> "+esc(dropoff||"Chưa có địa chỉ")+'</div><div class="box"><div class="box-title">🍔 MÓN TRONG ĐƠN</div>'+renderItems(o.items)+"</div>"+(fee?'<div class="box money"><div class="box-title">💰 PHÍ GIAO</div>Phí ship: <b>'+money(fee)+"</b></div>":"")+(mine?'<div class="shipper-info">👤 <b>Bạn đang nhận đơn này.</b><br>🔒 Bạn có quyền cập nhật trạng thái.</div>':"")+(pending?'<div class="actions"><button class="accept" onclick="acceptOrder('+JSON.stringify(o.id)+')">✅ NHẬN ĐƠN</button></div>':"")+(mine?'<div class="actions"><div class="status-label">🔄 Cập nhật trạng thái</div><div class="status"><select onchange="changeStatus('+JSON.stringify(o.id)+',this.value)" '+((o.status==="Hoàn thành"||o.status==="Đã hủy")?"disabled":"")+'><option value="Đã nhận" '+(o.status==="Đã nhận"?"selected":"")+'>Đã nhận</option><option value="Đang lấy hàng" '+(o.status==="Đang lấy hàng"?"selected":"")+'>Đang lấy hàng</option><option value="Đang giao" '+(o.status==="Đang giao"?"selected":"")+'>Đang giao</option><option value="Đã giao" '+(o.status==="Đã giao"?"selected":"")+'>Đã giao</option><option value="Hoàn thành" '+(o.status==="Hoàn thành"?"selected":"")+'>Hoàn thành</option></select></div></div>':"")+(pickup?'<a class="map" target="_blank" rel="noopener" href="'+mapUrl(pickup)+'">📍 MỞ ĐIỂM LẤY HÀNG</a>':"")+(dropoff?'<a class="map" target="_blank" rel="noopener" href="'+mapUrl(dropoff)+'">🏁 MỞ ĐIỂM GIAO HÀNG</a>':"")+gps+(phone?'<a class="call" href="tel:'+esc(phone)+'">📞 GỌI KHÁCH</a>':"")+"</div>"}
-async function loadOrders(){try{const r=await api("/rest/v1/orders?select=*&order=created_at.desc");if(!r.ok)throw new Error(await r.text());const orders=await r.json(),mine=orders.filter(o=>String(o.shipper_id||"")===String(USER_ID)),visible=orders.filter(o=>(o.status==="Chờ xác nhận"&&!o.shipper_id)||String(o.shipper_id||"")===String(USER_ID));document.getElementById("newCount").textContent=orders.filter(o=>o.status==="Chờ xác nhận"&&!o.shipper_id).length;document.getElementById("shippingCount").textContent=mine.filter(o=>["Đã nhận","Đang lấy hàng","Đang giao","Đã giao"].includes(o.status)).length;document.getElementById("doneCount").textContent=mine.filter(o=>o.status==="Hoàn thành").length;document.getElementById("orders").innerHTML=visible.length?visible.map(renderOrder).join(""):'<div class="empty">📭 Hiện chưa có đơn phù hợp.</div>'}catch(e){document.getElementById("orders").innerHTML='<div class="empty">❌ Không tải được đơn hàng.<br><br>'+esc(e.message)+"</div>"}}
-async function acceptOrder(id){const b=document.querySelector('#order-'+CSS.escape(String(id))+' .accept');if(b){b.disabled=true;b.textContent="⏳ ĐANG NHẬN..."}try{const r=await api("/rest/v1/orders?id=eq."+encodeURIComponent(id)+"&status=eq."+encodeURIComponent("Chờ xác nhận")+"&shipper_id=is.null",{method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({shipper_id:USER_ID,status:"Đã nhận"})});if(!r.ok)throw new Error(await r.text());const d=await r.json();if(!d.length)throw new Error("Đơn này đã được shipper khác nhận.");showMessage("success","✅ Nhận đơn thành công!");await loadOrders()}catch(e){showMessage("error","❌ Không nhận được đơn.\n"+e.message);if(b){b.disabled=false;b.textContent="✅ NHẬN ĐƠN"}}}
-async function changeStatus(id,status){if(!["Đã nhận","Đang lấy hàng","Đang giao","Đã giao","Hoàn thành"].includes(status))return;try{const r=await api("/rest/v1/orders?id=eq."+encodeURIComponent(id)+"&shipper_id=eq."+encodeURIComponent(USER_ID),{method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({status})});if(!r.ok)throw new Error(await r.text());const d=await r.json();if(!d.length)throw new Error("Đơn không thuộc shipper này.");showMessage("success","✅ Đã cập nhật: "+status);await loadOrders()}catch(e){showMessage("error","❌ Không cập nhật được.\n"+e.message);await loadOrders()}}
-function logout(){localStorage.removeItem("choco_access_token");localStorage.removeItem("choco_user_id");localStorage.removeItem("choco_role");localStorage.removeItem("choco_email");location.replace("login.html")}
-async function start(){await loadProfile();await loadOrders();try{await initOneSignal();await updatePushStatus()}catch(e){document.getElementById("notificationStatus").innerHTML="❌ OneSignal chưa khởi động.<br>"+esc(e.message);document.getElementById("notificationButton").disabled=false;document.getElementById("notificationButton").textContent="🔄 THỬ LẠI";debug("Lỗi SDK: "+esc(e.message))}}
-start();setInterval(loadOrders,15000);setInterval(updatePushStatus,30000);
+'use strict';
+const SUPABASE_URL='https://guwdswqaqnhzqapflvey.supabase.co';
+const SUPABASE_KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+const ONESIGNAL_APP_ID='66bec449-f15b-4d0e-90fc-3dc470fef20c';
+const TOKEN=localStorage.getItem('choco_access_token')||'';
+const USER_ID=localStorage.getItem('choco_user_id')||'';
+const ROLE=localStorage.getItem('choco_role')||'';
+const EMAIL=localStorage.getItem('choco_email')||'';
+window.OneSignalDeferred=window.OneSignalDeferred||[];
+let oneSignal=null;
+let oneSignalPromise=null;
+
+function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function debug(v){var e=document.getElementById('pushDebug');if(e)e.innerHTML=v;console.log('[CHOCO]',v);}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent);}
+function isStandalone(){return navigator.standalone===true||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);}
+function setStatus(text,buttonText,enabled){var s=document.getElementById('notificationStatus'),b=document.getElementById('notificationButton');if(s)s.innerHTML=text;if(b){b.disabled=!enabled;if(buttonText)b.textContent=buttonText;}}
+
+if(!TOKEN||!USER_ID||ROLE!=='shipper'){
+  location.replace('login.html');
+}
+
+aSyncCheck();
+async function aSyncCheck(){
+  if(!TOKEN||!USER_ID||ROLE!=='shipper')return;
+  document.getElementById('shipperEmail').textContent=EMAIL||'Không có email';
+  loadProfile();
+  loadOrders();
+  preparePush();
+}
+
+async function fetchWithTimeout(url,options,timeout){
+  var controller=new AbortController();
+  var timer=setTimeout(function(){controller.abort();},timeout||10000);
+  try{return await fetch(url,Object.assign({},options||{}, {signal:controller.signal}));}
+  finally{clearTimeout(timer);}
+}
+
+async function api(path,options){
+  options=options||{};
+  var headers=Object.assign({apikey:SUPABASE_KEY,Authorization:'Bearer '+TOKEN,Accept:'application/json'},options.headers||{});
+  return fetchWithTimeout(SUPABASE_URL+path,Object.assign({},options,{headers:headers}),10000);
+}
+
+function initOneSignal(){
+  if(oneSignalPromise)return oneSignalPromise;
+  oneSignalPromise=new Promise(function(resolve,reject){
+    var done=false;
+    var timer=setTimeout(function(){if(!done){done=true;reject(new Error('OneSignal SDK không tải được trong 20 giây.'));}},20000);
+    window.OneSignalDeferred.push(async function(OS){
+      if(done)return;
+      try{
+        await OS.init({
+          appId:ONESIGNAL_APP_ID,
+          notifyButton:{enable:false},
+          allowLocalhostAsSecureOrigin:false,
+          serviceWorkerPath:'/Choco-foods/OneSignalSDKWorker.js',
+          serviceWorkerParam:{scope:'/Choco-foods/'}
+        });
+        oneSignal=OS;
+        if(USER_ID)await OS.login(String(USER_ID));
+        clearTimeout(timer);done=true;resolve(OS);
+      }catch(e){clearTimeout(timer);done=true;reject(e);}
+    });
+  });
+  return oneSignalPromise;
+}
+
+async function preparePush(){
+  if(isIOS()&&!isStandalone()){
+    setStatus('⚠️ <b>iPhone cần mở CHOCO SHIP từ Màn hình chính.</b><br>Safari → Chia sẻ → Thêm vào Màn hình chính.','📲 THÊM VÀO MÀN HÌNH CHÍNH',true);
+    debug('iPhone chưa chạy ở chế độ PWA.');
+    return;
+  }
+  setStatus('⏳ Đang khởi động OneSignal...','⏳ ĐANG TẢI...',false);
+  try{
+    var OS=await initOneSignal();
+    await updatePushStatus(OS);
+  }catch(e){
+    setStatus('⚠️ OneSignal chưa sẵn sàng.<br>'+esc(e.message||e),'🔄 THỬ LẠI',true);
+    debug('Lỗi OneSignal: '+esc(e.message||e));
+  }
+}
+
+async function updatePushStatus(OS){
+  OS=OS||await initOneSignal();
+  var sub=OS.User&&OS.User.PushSubscription;
+  var id=sub&&sub.id?String(sub.id):'';
+  var opted=sub&&sub.optedIn===true;
+  var permission=OS.Notifications&&OS.Notifications.permission===true;
+  var external='';
+  try{external=OS.User.externalId||'';}catch(e){}
+  debug('External ID: '+esc(external||'chưa có')+'<br>Subscription ID: '+esc(id||'chưa có')+'<br>Opt-in: '+(opted?'YES':'NO')+'<br>Permission: '+(permission?'YES':'NO')+'<br>Shipper ID: '+esc(USER_ID));
+  if(permission&&opted&&id&&String(external)===String(USER_ID)){
+    try{await saveSubscription(id);}catch(e){console.warn('saveSubscription',e);}
+    setStatus('✅ <b>Thông báo đã được bật.</b><br>Thiết bị sẵn sàng nhận đơn mới.','✅ THÔNG BÁO ĐÃ BẬT',true);
+    document.getElementById('notificationButton').classList.remove('off');
+    return;
+  }
+  var reason=!permission?'⚠️ Chưa cấp quyền thông báo.':!id?'⚠️ Đã cấp quyền nhưng chưa có Subscription ID.':String(external)!==String(USER_ID)?'⚠️ Thiết bị chưa liên kết đúng tài khoản shipper.':'⚠️ Thông báo chưa hoàn tất đăng ký.';
+  setStatus(reason,'🔔 BẬT THÔNG BÁO',true);
+  document.getElementById('notificationButton').classList.add('off');
+}
+
+async function enableNotifications(){
+  var b=document.getElementById('notificationButton');
+  if(isIOS()&&!isStandalone()){
+    setStatus('⚠️ <b>Thêm CHOCO SHIP vào Màn hình chính trước.</b><br>Safari → Chia sẻ → Thêm vào Màn hình chính.','📲 THÊM VÀO MÀN HÌNH CHÍNH',true);
+    return;
+  }
+  b.disabled=true;b.textContent='⏳ ĐANG BẬT...';
+  try{
+    var OS=await initOneSignal();
+    if(String(OS.User.externalId||'')!==String(USER_ID))await OS.login(String(USER_ID));
+    setStatus('🔔 Đang xin quyền thông báo...','⏳ ĐANG BẬT...',false);
+    if(OS.Notifications.permission!==true)await OS.Notifications.requestPermission();
+    if(OS.Notifications.permission!==true)throw new Error('Bạn chưa cho phép thông báo.');
+    var sub=OS.User.PushSubscription;
+    if(!sub.optedIn)await sub.optIn();
+    var id='';
+    for(var i=0;i<40;i++){
+      await sleep(500);
+      sub=OS.User.PushSubscription;
+      id=sub&&sub.id?String(sub.id):'';
+      debug('Đang đăng ký... '+(i+1)+'/40<br>External ID: '+esc(OS.User.externalId||'chưa có')+'<br>Subscription ID: '+esc(id||'chưa có'));
+      if(id&&sub.optedIn===true)break;
+    }
+    if(!id)throw new Error('OneSignal chưa tạo Subscription ID.');
+    await saveSubscription(id);
+    setStatus('✅ <b>Thông báo đã được bật!</b><br>Thiết bị đã sẵn sàng nhận đơn mới.','✅ THÔNG BÁO ĐÃ BẬT',true);
+    b.classList.remove('off');
+    debug('✅ PUSH READY<br>External ID: '+esc(OS.User.externalId)+'<br>Subscription ID: '+esc(id));
+  }catch(e){
+    setStatus('❌ <b>Không bật được thông báo.</b><br>'+esc(e.message||e),'🔔 THỬ LẠI',true);
+    b.classList.add('off');
+    debug('Lỗi: '+esc(e.message||e));
+  }
+}
+
+async function saveSubscription(id){
+  if(!id)throw new Error('Không có Subscription ID.');
+  var base=SUPABASE_URL+'/rest/v1/shipper_push_subscriptions';
+  var headers={apikey:SUPABASE_KEY,Authorization:'Bearer '+TOKEN,'Content-Type':'application/json',Prefer:'return=representation'};
+  var body=JSON.stringify({shipper_id:USER_ID,subscription_id:String(id),enabled:true,updated_at:new Date().toISOString()});
+  var r=await fetchWithTimeout(base,{method:'POST',headers:headers,body:body},10000);
+  if(r.ok)return r.json();
+  var text=await r.text();
+  r=await fetchWithTimeout(base+'?shipper_id=eq.'+encodeURIComponent(USER_ID),{method:'PATCH',headers:headers,body:body},10000);
+  if(!r.ok)throw new Error('Không lưu được thiết bị: '+text+' | PATCH: '+await r.text());
+  return r.json();
+}
+
+async function loadProfile(){
+  try{
+    var r=await api('/rest/v1/profiles?id=eq.'+encodeURIComponent(USER_ID)+'&select=id,full_name,phone,role');
+    if(!r.ok)throw new Error('Profile HTTP '+r.status+': '+await r.text());
+    var d=await r.json();
+    if(!d.length){document.getElementById('shipperName').textContent='Shipper';document.getElementById('shipperPhone').textContent='📞 Chưa có thông tin';return;}
+    var p=d[0];
+    document.getElementById('shipperName').textContent=p.full_name||'Shipper';
+    document.getElementById('shipperPhone').innerHTML=p.phone?'📞 <a href="tel:'+esc(p.phone)+'">'+esc(p.phone)+'</a>':'📞 Chưa có số điện thoại';
+  }catch(e){
+    document.getElementById('shipperName').textContent='Shipper';
+    document.getElementById('shipperPhone').textContent='⚠️ Không tải được hồ sơ: '+(e.name==='AbortError'?'timeout':e.message);
+    console.error('PROFILE',e);
+  }
+}
+
+function money(v){return Number(v||0).toLocaleString('vi-VN')+'đ';}
+function dateText(v){try{return v?new Date(v).toLocaleString('vi-VN'):'';}catch(e){return String(v||'');}}
+function showMessage(type,text){document.getElementById('message').innerHTML='<div class="'+type+'">'+esc(text)+'</div>';}
+function getItems(raw){
+  var d=raw;
+  for(var i=0;i<5&&typeof d==='string';i++){try{d=JSON.parse(d);}catch(e){break;}}
+  if(Array.isArray(d))return d;
+  if(d&&Array.isArray(d.items))return d.items;
+  if(d&&typeof d==='object')return[d];
+  return d?[{name:String(d),qty:1,price:0}]:[];
+}
+function renderItems(raw){
+  var list=getItems(raw);
+  if(!list.length)return '<div style="color:#777">⚠️ Không có thông tin món</div>';
+  return list.map(function(x,i){
+    if(typeof x==='string')x={name:x,qty:1,price:0};
+    var name=x.name||x.title||x.product_name||x.food_name||('Món '+(i+1));
+    var qty=Number(x.qty!=null?x.qty:(x.quantity!=null?x.quantity:(x.amount!=null?x.amount:1)))||1;
+    var price=Number(x.price!=null?x.price:(x.unit_price!=null?x.unit_price:(x.food_price!=null?x.food_price:0)))||0;
+    var total=Number(x.total!=null?x.total:(x.subtotal!=null?x.subtotal:price*qty))||price*qty;
+    return '<div class="food"><div class="food-name">🍔 '+esc(name)+' × '+qty+'</div><div class="food-detail">'+(price?money(price)+' / món • ':'')+'Thành tiền: <b>'+money(total)+'</b></div></div>';
+  }).join('');
+}
+function mapUrl(a){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a||'');}
+function gpsUrl(a,b){return 'https://www.google.com/maps?q='+encodeURIComponent(a)+','+encodeURIComponent(b);}
+
+function renderOrder(o){
+  var pending=o.status==='Chờ xác nhận'&&!o.shipper_id;
+  var mine=String(o.shipper_id||'')===String(USER_ID);
+  var customer=o.name||o.customer_name||'Khách hàng';
+  var phone=o.phone||o.customer_phone||'';
+  var pickup=o.pickup||o.pickup_address||'';
+  var dropoff=o.dropoff||o.dropoff_address||o.address||'';
+  var fee=Number(o.fee||o.delivery_fee||0);
+  var total=Number(o.total||o.total_amount||o.amount||0);
+  var gps='';
+  if(o.latitude!=null&&o.longitude!=null)gps='<a class="map" target="_blank" rel="noopener" href="'+gpsUrl(o.latitude,o.longitude)+'">📍 XEM VỊ TRÍ KHÁCH</a>';
+  var html='<div class="order" id="order-'+esc(o.id)+'">';
+  html+='<div class="order-top"><div><div class="code">'+esc(o.code||('#'+o.id))+'</div><div class="time">🕒 '+esc(dateText(o.created_at))+'</div><span class="badge '+(pending?'new':mine?'mine':'')+'">'+esc(o.status||'Chờ xác nhận')+'</span></div>'+(total?'<div class="total-top">💰 '+money(total)+'</div>':'')+'</div>';
+  html+='<div class="customer">👤 <b>'+esc(customer)+'</b><br>📞 '+(phone?'<a href="tel:'+esc(phone)+'">'+esc(phone)+'</a>':'Chưa có số điện thoại')+'<br>📍 <b>Lấy:</b> '+esc(pickup||'Chưa có địa chỉ')+'<br>🏁 <b>Giao:</b> '+esc(dropoff||'Chưa có địa chỉ')+'</div>';
+  html+='<div class="box"><div class="box-title">🍔 MÓN TRONG ĐƠN</div>'+renderItems(o.items)+'</div>';
+  if(fee)html+='<div class="box money"><div class="box-title">💰 PHÍ GIAO</div>Phí ship: <b>'+money(fee)+'</b></div>';
+  if(mine)html+='<div class="shipper-info">👤 <b>Bạn đang nhận đơn này.</b><br>🔒 Bạn có quyền cập nhật trạng thái.</div>';
+  if(pending)html+='<div class="actions"><button class="accept" onclick="acceptOrder('+JSON.stringify(o.id)+')">✅ NHẬN ĐƠN</button></div>';
+  if(mine){
+    var disabled=(o.status==='Hoàn thành'||o.status==='Đã hủy')?' disabled':'';
+    html+='<div class="actions"><div class="status-label">🔄 Cập nhật trạng thái</div><div class="status"><select onchange="changeStatus('+JSON.stringify(o.id)+',this.value)"'+disabled+'>';
+    ['Đã nhận','Đang lấy hàng','Đang giao','Đã giao','Hoàn thành'].forEach(function(s){html+='<option value="'+esc(s)+'"'+(o.status===s?' selected':'')+'>'+s+'</option>';});
+    html+='</select></div></div>';
+  }
+  if(pickup)html+='<a class="map" target="_blank" rel="noopener" href="'+mapUrl(pickup)+'">📍 MỞ ĐIỂM LẤY HÀNG</a>';
+  if(dropoff)html+='<a class="map" target="_blank" rel="noopener" href="'+mapUrl(dropoff)+'">🏁 MỞ ĐIỂM GIAO HÀNG</a>';
+  html+=gps;
+  if(phone)html+='<a class="call" href="tel:'+esc(phone)+'">📞 GỌI KHÁCH</a>';
+  html+='</div>';
+  return html;
+}
+
+async function loadOrders(){
+  var box=document.getElementById('orders');
+  try{
+    var r=await api('/rest/v1/orders?select=*&order=created_at.desc');
+    if(!r.ok)throw new Error('Orders HTTP '+r.status+': '+await r.text());
+    var orders=await r.json();
+    var mine=orders.filter(function(o){return String(o.shipper_id||'')===String(USER_ID);});
+    var visible=orders.filter(function(o){return (o.status==='Chờ xác nhận'&&!o.shipper_id)||String(o.shipper_id||'')===String(USER_ID);});
+    document.getElementById('newCount').textContent=orders.filter(function(o){return o.status==='Chờ xác nhận'&&!o.shipper_id;}).length;
+    document.getElementById('shippingCount').textContent=mine.filter(function(o){return ['Đã nhận','Đang lấy hàng','Đang giao','Đã giao'].includes(o.status);}).length;
+    document.getElementById('doneCount').textContent=mine.filter(function(o){return o.status==='Hoàn thành';}).length;
+    box.innerHTML=visible.length?visible.map(renderOrder).join(''):'<div class="empty">📭 Hiện chưa có đơn phù hợp.</div>';
+  }catch(e){
+    box.innerHTML='<div class="empty">❌ Không tải được đơn hàng.<br><br>'+esc(e.name==='AbortError'?'Kết nối Supabase quá lâu (timeout).':e.message)+'</div>';
+    console.error('ORDERS',e);
+  }
+}
+
+async function acceptOrder(id){
+  var card=document.getElementById('order-'+id);
+  var b=card?card.querySelector('.accept'):null;
+  if(b){b.disabled=true;b.textContent='⏳ ĐANG NHẬN...';}
+  try{
+    var r=await api('/rest/v1/orders?id=eq.'+encodeURIComponent(id)+'&status=eq.'+encodeURIComponent('Chờ xác nhận')+'&shipper_id=is.null',{method:'PATCH',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({shipper_id:USER_ID,status:'Đã nhận'})});
+    if(!r.ok)throw new Error('HTTP '+r.status+': '+await r.text());
+    var d=await r.json();
+    if(!d.length)throw new Error('Đơn này đã được shipper khác nhận.');
+    showMessage('success','✅ Nhận đơn thành công!');
+    await loadOrders();
+  }catch(e){showMessage('error','❌ Không nhận được đơn.\n'+e.message);if(b){b.disabled=false;b.textContent='✅ NHẬN ĐƠN';}}
+}
+
+async function changeStatus(id,status){
+  if(!['Đã nhận','Đang lấy hàng','Đang giao','Đã giao','Hoàn thành'].includes(status))return;
+  try{
+    var r=await api('/rest/v1/orders?id=eq.'+encodeURIComponent(id)+'&shipper_id=eq.'+encodeURIComponent(USER_ID),{method:'PATCH',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({status:status})});
+    if(!r.ok)throw new Error('HTTP '+r.status+': '+await r.text());
+    var d=await r.json();
+    if(!d.length)throw new Error('Đơn không thuộc shipper này.');
+    showMessage('success','✅ Đã cập nhật: '+status);await loadOrders();
+  }catch(e){showMessage('error','❌ Không cập nhật được.\n'+e.message);await loadOrders();}
+}
+
+function logout(){localStorage.removeItem('choco_access_token');localStorage.removeItem('choco_user_id');localStorage.removeItem('choco_role');localStorage.removeItem('choco_email');location.replace('login.html');}
+
+setInterval(loadOrders,15000);
+setInterval(function(){if(oneSignal)updatePushStatus(oneSignal).catch(function(e){console.warn('push status',e);});},30000);
 </script>
 </body>
 </html>
