@@ -1765,7 +1765,7 @@ onclick="changeQty(${i},1)">
           const ONESIGNAL_APP_ID = "66bec449-f15b-4d0e-90fc-3dc470fef20c";
           const ONESIGNAL_REST_API_KEY = "f5snlbtjoe6k5g2eewywstq4q";
 
-          if (ONESIGNAL_REST_API_KEY !== "f5snlbtjoe6k5g2eewywstq4q") {
+          if (ONESIGNAL_REST_API_KEY && ONESIGNAL_REST_API_KEY !== "YOUR_ONESIGNAL_REST_API_KEY") {
             fetch("https://onesignal.com/api/v1/notifications", {
               method: "POST",
               headers: {
