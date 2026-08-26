@@ -1758,11 +1758,38 @@ onclick="changeQty(${i},1)">
 
 
         /* =====================================================
-        GỬI THÔNG BÁO CHO SHIPPER (ONESIGNAL)
+        GỬI THÔNG BÁO CHO SHIPPER (ONESIGNAL QUA EDGE FUNCTION)
         ===================================================== */
-        // Ghi chú: Chúng ta không gửi thông báo trực tiếp từ client (index.html) nữa 
-        // vì OneSignal chặn CORS để bảo mật API Key. Thay vào đó, chúng ta sẽ cấu hình 
-        // trigger gửi thông báo tự động từ phía Database Supabase.
+        try {
+
+          const notifResponse = await fetch(
+            SUPABASE_URL + "/functions/v1/send-push",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + SUPABASE_KEY
+              },
+              body: JSON.stringify({
+                order_id: code,
+                code: code,
+                title: "🚚 CHOCO SHIP - ĐƠN MỚI",
+                message: "📦 " + name + " vừa đặt đơn " + code + " • " + money(total)
+              })
+            }
+          );
+
+          const notifResult = await notifResponse.json();
+
+          console.log("SEND PUSH STATUS:", notifResponse.status);
+          console.log("SEND PUSH RESULT:", notifResult);
+
+        } catch (notifError) {
+
+          // Không block đơn hàng nếu gửi thông báo thất bại
+          console.warn("SEND PUSH WARNING:", notifError);
+
+        }
 
 
 
