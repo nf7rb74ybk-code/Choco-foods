@@ -1760,33 +1760,9 @@ onclick="changeQty(${i},1)">
         /* =====================================================
         GỬI THÔNG BÁO CHO SHIPPER (ONESIGNAL)
         ===================================================== */
-        try {
-          // THAY REST_API_KEY BẰNG KEY CỦA BẠN TRÊN ONESIGNAL (Mục Settings > Keys & IDs)
-          const ONESIGNAL_APP_ID = "66bec449-f15b-4d0e-90fc-3dc470fef20c";
-          const ONESIGNAL_REST_API_KEY = "f5snlbtjoe6k5g2eewywstq4q";
-
-          if (ONESIGNAL_REST_API_KEY && ONESIGNAL_REST_API_KEY !== "YOUR_ONESIGNAL_REST_API_KEY") {
-            fetch("https://onesignal.com/api/v1/notifications", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Basic " + ONESIGNAL_REST_API_KEY
-              },
-              body: JSON.stringify({
-                app_id: ONESIGNAL_APP_ID,
-                included_segments: ["Subscribed Users"], // Gửi đến tất cả Shipper đã bật thông báo
-                headings: { "en": "🚚 Đơn hàng mới: " + code },
-                contents: { "en": "Khách hàng " + name + " vừa đặt một đơn mới. Bấm để nhận ngay!" },
-                data: {
-                  url: "https://nf7rb74ybk-code.github.io/Choco-foods/shipper.html"
-                }
-              })
-            }).then(res => console.log("Gửi thông báo thành công:", res.status))
-              .catch(err => console.error("Lỗi gửi thông báo:", err));
-          }
-        } catch (err) {
-          console.error("Lỗi quá trình gửi thông báo OneSignal:", err);
-        }
+        // Ghi chú: Chúng ta không gửi thông báo trực tiếp từ client (index.html) nữa 
+        // vì OneSignal chặn CORS để bảo mật API Key. Thay vào đó, chúng ta sẽ cấu hình 
+        // trigger gửi thông báo tự động từ phía Database Supabase.
 
 
 
