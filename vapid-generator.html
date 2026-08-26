@@ -12,7 +12,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f
 <body>
 <div class="box">
 <h2>🔐 CHOCO SHIP — VAPID Generator</h2>
-<div class="warn">⚠️ Key được tạo <b>hoàn toàn trên thiết bị</b>. Private Key không được gửi lên GitHub hay Supabase.</div>
+<div class="warn">⚠️ Key được tạo hoàn toàn trên thiết bị. Private Key không được gửi lên GitHub hay Supabase.</div>
 <button id="gen">🔑 TẠO CẶP KEY MỚI</button>
 <label>PUBLIC KEY — dán vào Supabase: <code>VAPID_PUBLIC_KEY</code></label>
 <textarea id="pub" readonly placeholder="Public Key sẽ xuất hiện ở đây"></textarea>
@@ -21,25 +21,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f
 <textarea id="priv" readonly placeholder="Private Key sẽ xuất hiện ở đây"></textarea>
 <button class="copy" onclick="copy('priv')">📋 Sao chép Private Key</button>
 <label>VAPID SUBJECT</label>
-<input id="subject" placeholder="mailto:email-cua-ban@example.com">
-<p class="ok">✅ Public và Private được tạo cùng một cặp.</p>
+<input id="subject" value="mailto:phongheonaa@gmail.com" placeholder="mailto:email-cua-ban@example.com">
+<p class="ok">✅ Public và Private được xuất từ cùng một JWK P-256 key pair.</p>
 <p style="font-size:13px;color:#666">Sau khi dán key vào Supabase, không cần gửi Private Key cho ChatGPT.</p>
 </div>
 <script>
-function b64url(a){let s='';for(const x of new Uint8Array(a))s+=String.fromCharCode(x);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function b64url(bytes){let s='';for(const x of new Uint8Array(bytes))s+=String.fromCharCode(x);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 async function generate(){
  const kp=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
- const pub=await crypto.subtle.exportKey('raw',kp.publicKey);
- const pkcs8=await crypto.subtle.exportKey('pkcs8',kp.privateKey);
- document.getElementById('pub').value=b64url(pub);
- // Web Push VAPID private key is the 32-byte P-256 scalar, not the PKCS#8 wrapper.
- const bytes=new Uint8Array(pkcs8);
- // PKCS#8 EC P-256 contains the scalar after the fixed DER prefix; locate OCTET STRING 04 20.
- let pos=-1;for(let i=0;i<bytes.length-33;i++){if(bytes[i]===4&&bytes[i+1]===32){pos=i+2;break}}
- if(pos<0)throw Error('Không trích xuất được private key P-256');
- document.getElementById('priv').value=b64url(bytes.slice(pos,pos+32));
+ const jwk=await crypto.subtle.exportKey('jwk',kp.privateKey);
+ if(!jwk.d||!jwk.x||!jwk.y)throw new Error('Không tạo được JWK P-256 hợp lệ');
+ // VAPID public key is the uncompressed SEC1 point: 04 || X || Y.
+ const pubBytes=new Uint8Array(65);pubBytes[0]=4;
+ const x=Uint8Array.from(atob(jwk.x.replace(/-/g,'+').replace(/_/g,'/')+'=='),c=>c.charCodeAt(0));
+ const y=Uint8Array.from(atob(jwk.y.replace(/-/g,'+').replace(/_/g,'/')+'=='),c=>c.charCodeAt(0));
+ pubBytes.set(x,1);pubBytes.set(y,33);
+ if(pubBytes.length!==65)throw new Error('Public key không đúng 65 bytes');
+ const pub=b64url(pubBytes);
+ const priv=jwk.d;
+ if(priv.length!==43)throw new Error('Private key P-256 không đúng định dạng');
+ document.getElementById('pub').value=pub;
+ document.getElementById('priv').value=priv;
 }
-async function copy(id){const el=document.getElementById(id);await navigator.clipboard.writeText(el.value);alert('Đã sao chép');}
+async function copy(id){const el=document.getElementById(id);if(!el.value)return alert('Chưa tạo key');await navigator.clipboard.writeText(el.value);alert('Đã sao chép');}
 document.getElementById('gen').onclick=()=>generate().catch(e=>alert(e.message));
 </script>
 </body>
