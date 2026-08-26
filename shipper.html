@@ -764,7 +764,7 @@
                   allowLocalhostAsSecureOrigin: true,
 
                   serviceWorkerPath:
-                    "OneSignalSDKWorker.js",
+                    window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1) + "OneSignalSDKWorker.js",
 
                   serviceWorkerParam: {
                     scope:
