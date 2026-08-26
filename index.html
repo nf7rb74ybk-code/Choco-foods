@@ -2,26 +2,40 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ff6b00">
 <title>CHOCO SHIP</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f4f5f7}.box{width:100%;max-width:420px;background:#fff;padding:28px;border-radius:22px;box-shadow:0 5px 25px rgba(0,0,0,.12);text-align:center}.logo{font-size:32px;font-weight:900;color:#ff6b00;margin-bottom:8px}.sub{color:#777;margin-bottom:24px}input{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;font-size:16px;margin:7px 0}button{width:100%;padding:14px;border:0;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;margin-top:10px}.login{background:#ff6b00;color:#fff}.customer{background:#fff;color:#ff6b00;border:2px solid #ff6b00}.shipper{background:#fff;color:#555;border:1px solid #ddd}.msg{display:none;margin-top:15px;padding:12px;border-radius:10px;text-align:left;white-space:pre-line}.err{background:#fee2e2;color:#991b1b}.small{font-size:12px;color:#777;margin-top:20px}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f4f5f7;color:#222}.box{width:100%;max-width:430px;background:#fff;padding:25px;border-radius:22px;box-shadow:0 5px 25px rgba(0,0,0,.12)}.logo{text-align:center;font-size:32px;font-weight:900;color:#ff6b00}.sub{text-align:center;color:#777;margin:7px 0 20px}.tabs{display:flex;gap:8px;margin-bottom:15px}.tab{flex:1;padding:11px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;font-weight:800}.tab.active{background:#ff6b00;color:#fff;border-color:#ff6b00}label{display:block;font-weight:700;margin:11px 0 6px}input{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;font-size:16px}button{width:100%;padding:14px;border:0;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;margin-top:10px}.primary{background:#ff6b00;color:#fff}.secondary{background:#fff;color:#ff6b00;border:2px solid #ff6b00}.role{display:flex;gap:8px;margin:12px 0}.role button{margin:0;background:#f7f7f7;border:1px solid #ddd;color:#555}.role button.active{background:#fff3eb;border:2px solid #ff6b00;color:#ff6b00}.msg{display:none;margin-top:14px;padding:12px;border-radius:10px;text-align:left;white-space:pre-line}.err{background:#fee2e2;color:#991b1b}.ok{background:#dcfce7;color:#166534}.small{text-align:center;font-size:12px;color:#777;margin-top:18px}.hidden{display:none!important}
 </style>
 </head>
 <body>
 <div class="box">
 <div class="logo">🍔 CHOCO SHIP</div>
-<div class="sub">Đăng nhập một cửa — Khách hàng • Shipper • Admin</div>
-<form id="f"><input id="e" type="email" placeholder="Email" autocomplete="username" required><input id="p" type="password" placeholder="Mật khẩu" autocomplete="current-password" required><button class="login">🔐 ĐĂNG NHẬP</button></form>
-<button class="customer" onclick="location.href='customer-register.html'">👤 TẠO TÀI KHOẢN KHÁCH</button>
-<button class="shipper" onclick="location.href='register.html'">🚚 ĐĂNG KÝ SHIPPER</button>
-<div id="m" class="msg"></div><div class="small">CHOCO SHIP © 2026</div>
+<div class="sub">Một cửa cho Khách hàng • Shipper • Admin</div>
+<div class="tabs"><button id="loginTab" class="tab active" type="button">🔐 Đăng nhập</button><button id="registerTab" class="tab" type="button">📝 Đăng ký</button></div>
+<section id="loginBox">
+<form id="loginForm"><label>Email</label><input id="le" type="email" autocomplete="username" required placeholder="ban@gmail.com"><label>Mật khẩu</label><input id="lp" type="password" autocomplete="current-password" required placeholder="Mật khẩu"><button class="primary">🔐 ĐĂNG NHẬP</button></form>
+</section>
+<section id="registerBox" class="hidden">
+<div class="role"><button id="customerRole" class="active" type="button">👤 Khách hàng</button><button id="shipperRole" type="button">🚚 Shipper</button></div>
+<form id="registerForm"><label>Họ và tên</label><input id="rn" required placeholder="Nguyễn Văn A"><label>Số điện thoại</label><input id="rp" required placeholder="0900000000"><label>Email</label><input id="re" type="email" required placeholder="ban@gmail.com"><label>Mật khẩu</label><input id="rpass" type="password" minlength="6" required placeholder="Ít nhất 6 ký tự"><label>Nhập lại mật khẩu</label><input id="rpass2" type="password" minlength="6" required placeholder="Nhập lại mật khẩu"><button class="primary" id="registerBtn">👤 TẠO TÀI KHOẢN KHÁCH</button></form>
+</section>
+<div id="m" class="msg"></div>
+<div class="small">Admin không đăng ký công khai • CHOCO SHIP © 2026</div>
 </div>
 <script>
-const U='https://guwdswqaqnhzqapflvey.supabase.co',K='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9',m=document.getElementById('m');
-function err(x){m.textContent='❌ '+x;m.className='msg err';m.style.display='block'}
+const U='https://guwdswqaqnhzqapflvey.supabase.co',K='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9',m=document.getElementById('m');let regRole='customer';
+const $=id=>document.getElementById(id);
+function show(t,c){m.textContent=t;m.className='msg '+c;m.style.display='block'}
+function hide(){m.style.display='none'}
+function setMode(mode){hide();$('loginBox').classList.toggle('hidden',mode!=='login');$('registerBox').classList.toggle('hidden',mode!=='register');$('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register')}
+$('loginTab').onclick=()=>setMode('login');$('registerTab').onclick=()=>setMode('register');
+function setRole(role){regRole=role;$('customerRole').classList.toggle('active',role==='customer');$('shipperRole').classList.toggle('active',role==='shipper');$('registerBtn').textContent=role==='customer'?'👤 TẠO TÀI KHOẢN KHÁCH':'🚚 TẠO TÀI KHOẢN SHIPPER'}
+$('customerRole').onclick=()=>setRole('customer');$('shipperRole').onclick=()=>setRole('shipper');
 async function route(token,user){const r=await fetch(U+'/rest/v1/profiles?id=eq.'+encodeURIComponent(user.id)+'&select=role',{headers:{apikey:K,Authorization:'Bearer '+token}});if(!r.ok)throw Error('Không thể kiểm tra quyền tài khoản.');const a=await r.json();if(!a.length)throw Error('Tài khoản chưa có hồ sơ quyền.');const role=a[0].role;localStorage.setItem('choco_access_token',token);localStorage.setItem('choco_user_id',user.id);localStorage.setItem('choco_role',role);localStorage.setItem('choco_email',user.email||'');if(role==='admin')location.replace('admin.html');else if(role==='shipper')location.replace('shipper.html');else if(role==='customer')location.replace('customer.html');else throw Error('Role tài khoản không hợp lệ.')}
-document.getElementById('f').onsubmit=async ev=>{ev.preventDefault();m.style.display='none';try{const r=await fetch(U+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json',apikey:K},body:JSON.stringify({email:e.value.trim(),password:p.value})});const d=await r.json();if(!r.ok)throw Error(d.error_description||d.msg||d.message||'Email hoặc mật khẩu không đúng.');await route(d.access_token,d.user)}catch(x){err(x.message)}};
+$('loginForm').onsubmit=async ev=>{ev.preventDefault();hide();try{const r=await fetch(U+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json',apikey:K},body:JSON.stringify({email:$('le').value.trim(),password:$('lp').value})});const d=await r.json();if(!r.ok)throw Error(d.error_description||d.msg||d.message||'Email hoặc mật khẩu không đúng.');await route(d.access_token,d.user)}catch(x){show('❌ '+x.message,'err')}};
+$('registerForm').onsubmit=async ev=>{ev.preventDefault();hide();const name=$('rn').value.trim(),phone=$('rp').value.trim(),email=$('re').value.trim().toLowerCase(),password=$('rpass').value,password2=$('rpass2').value;if(password!==password2)return show('❌ Mật khẩu nhập lại không giống nhau.','err');const b=$('registerBtn');b.disabled=true;b.textContent='⏳ Đang tạo tài khoản...';try{const r=await fetch(U+'/auth/v1/signup',{method:'POST',headers:{'Content-Type':'application/json',apikey:K},body:JSON.stringify({email,password,data:{full_name:name,phone,account_type:regRole}})});const text=await r.text();let d={};try{d=JSON.parse(text)}catch{}if(!r.ok)throw Error(d.msg||d.message||d.error_description||text||('HTTP '+r.status));if(d.access_token&&d.user){await route(d.access_token,d.user);return}show('✅ Tạo tài khoản thành công!\n\nNếu hệ thống yêu cầu xác nhận email, hãy xác nhận email rồi đăng nhập.','ok');$('registerForm').reset();setMode('login')}catch(x){show('❌ '+x.message,'err')}finally{b.disabled=false;setRole(regRole)}};
 const t=localStorage.getItem('choco_access_token'),role=localStorage.getItem('choco_role');if(t){if(role==='admin')location.replace('admin.html');else if(role==='shipper')location.replace('shipper.html');else if(role==='customer')location.replace('customer.html')}
 </script>
 </body>
