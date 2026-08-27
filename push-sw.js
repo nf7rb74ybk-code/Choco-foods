@@ -4,8 +4,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'CHOCO SHIP';
   const options = {
     body: data.body || 'Có đơn hàng mới!',
-    icon: './icon-192.png',
-    badge: './icon-192.png',
+    icon: './icon-512x512.png?v=20260827',
+    badge: './icon-512x512.png?v=20260827',
     data: { url: data.url || './shipper.html', code: data.code || '' },
     tag: data.code ? `order-${data.code}` : 'choco-ship-order',
     renotify: true
