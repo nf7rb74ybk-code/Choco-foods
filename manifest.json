@@ -2,13 +2,14 @@
   "name": "CHOCO SHIP",
   "short_name": "CHOCO SHIP",
   "description": "Đặt đồ ăn và giao hàng tại Phú Quốc",
-  "start_url": "./",
+  "start_url": "./index.html?v=20260827",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#00AEEF",
   "icons": [
     {
-      "src": "./icon-512x512.png",
+      "src": "./icon-512x512.png?v=20260827",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
