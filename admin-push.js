@@ -26,7 +26,7 @@
     if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
     const j=sub.toJSON(),sid=endpointId(sub.endpoint);
     dbg('⏳ Đang đăng ký Admin...<br>Subscription: '+sid);
-    const r=await fetch(SB+'/functions/v1/register-push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shipper_id:UID,subscription_id:sid,subscription:{endpoint:sub.endpoint,keys:j.keys}})});
+    const r=await fetch(SB+'/functions/v1/register-push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:UID,role:'admin',subscription_id:sid,subscription:{endpoint:sub.endpoint,keys:j.keys}})});
     const text=await r.text();let body={};try{body=JSON.parse(text)}catch{}if(!r.ok||body.ok===false)throw Error(body.error||body.message||text||('HTTP '+r.status));
     $('adminPushStatus').innerHTML='✅ <b>THÔNG BÁO ADMIN ĐÃ BẬT</b>';
     dbg('Web Push native: ACTIVE<br>Permission: YES<br>Subscription: '+sid);
