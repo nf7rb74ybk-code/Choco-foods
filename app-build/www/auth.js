@@ -4,6 +4,7 @@
   window.CHOCO_AUTH={
     async signIn(email,password){const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw Error(d.error_description||d.msg||'Đăng nhập thất bại');localStorage.setItem('choco_access_token',d.access_token);localStorage.setItem('choco_refresh_token',d.refresh_token||'');localStorage.setItem('choco_user_id',d.user?.id||'');return d},
     async user(){const t=localStorage.getItem('choco_access_token');if(!t)return null;const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+t}});return r.ok?await r.json():null},
+    async profile(){const t=localStorage.getItem('choco_access_token');const id=localStorage.getItem('choco_user_id');if(!t||!id)return null;const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(id)}&select=id,role&limit=1`,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+t,Accept:'application/json'}});if(!r.ok)return null;const d=await r.json();return d[0]||null},
     logout(){['choco_access_token','choco_refresh_token','choco_user_id','choco_role'].forEach(k=>localStorage.removeItem(k));location.href='index.html'}
   };
 })();
