@@ -1,0 +1,68 @@
+name: Prepare CHOCO SHIP iOS
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'app-build/**'
+      - '.github/workflows/build-ios.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: app-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-build/package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate iOS project
+        run: npx cap add ios
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Verify iOS project
+        run: test -f ios/App/App.xcodeproj/project.pbxproj
+
+      - name: Build iOS Simulator app
+        run: |
+          cd ios/App
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Verify iOS app bundle
+        run: test -d ios/App/build/Build/Products/Debug-iphonesimulator/App.app
+
+      - name: Package simulator app
+        run: |
+          cd ios/App/build/Build/Products/Debug-iphonesimulator
+          zip -r ../../../../../../choco-ship-ios-simulator.zip App.app
+
+      - name: Upload iOS Simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-ship-ios-simulator
+          path: app-build/choco-ship-ios-simulator.zip
+          if-no-files-found: error
