@@ -1,0 +1,50 @@
+name: Build CHOCO SHIP Android
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'app-build/**'
+      - '.github/workflows/build-android.yml'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-build/package.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: ./android/gradlew assembleDebug --no-daemon
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-ship-debug-apk
+          path: app-build/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
