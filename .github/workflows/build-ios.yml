@@ -1,4 +1,4 @@
-name: Prepare CHOCO SHIP iOS
+name: Build CHOCO SHIP iOS
 
 on:
   workflow_dispatch:
@@ -24,9 +24,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: app-build/package.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: Add Capacitor iOS
         run: npx cap add ios
@@ -60,4 +62,49 @@ jobs:
         with:
           name: choco-ship-ios-simulator
           path: app-build/choco-ship-ios-simulator.zip
+          if-no-files-found: error
+
+  ios-device-prepare:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: app-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-build/package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Add Capacitor iOS
+        run: npx cap add ios
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Verify device project
+        run: test -f ios/App/App.xcodeproj/project.pbxproj
+
+      - name: Verify iOS device archive prerequisites
+        run: |
+          xcodebuild -version
+          xcodebuild -list -workspace ios/App/App.xcworkspace
+
+      - name: Package iOS project for signing on Mac
+        run: |
+          cd ..
+          ditto -c -k --sequesterRsrc --keepParent app-build/ios choco-ship-ios-project.zip
+
+      - name: Upload iOS project
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-ship-ios-project
+          path: app-build/../choco-ship-ios-project.zip
           if-no-files-found: error
