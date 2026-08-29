@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ff6b00">
+  <title>CHOCO SHIP V2 — Customer TEST</title>
+  <link rel="stylesheet" href="./assets/v2.css">
+</head>
+<body>
+  <main class="shell">
+    <a href="./index.html">← V2 TEST</a>
+    <div class="badge">CUSTOMER V2 • TEST</div>
+    <h1>👤 Đặt món</h1>
+    <p>Giao diện thử nghiệm. Chưa tạo đơn thật.</p>
+
+    <section class="card">
+      <h2>🍔 Món ăn</h2>
+      <div id="menu" class="menu"></div>
+    </section>
+
+    <section class="card">
+      <h2>🛒 Giỏ hàng</h2>
+      <div id="cart">Chưa có món.</div>
+      <div id="total" class="total">Tổng: 0đ</div>
+    </section>
+
+    <section class="card">
+      <h2>📍 Thông tin giao hàng</h2>
+      <label>Họ tên</label>
+      <input id="name" placeholder="Nguyễn Văn A">
+      <label>Số điện thoại</label>
+      <input id="phone" inputmode="tel" placeholder="0900000000">
+      <label>Địa chỉ giao hàng</label>
+      <textarea id="address" placeholder="Nhập địa chỉ giao hàng"></textarea>
+      <label>Ghi chú</label>
+      <textarea id="note" placeholder="Ví dụ: ít cay, gọi trước khi giao..."></textarea>
+      <button class="primary" id="testOrder">🧪 TẠO ĐƠN TEST</button>
+      <div id="msg" class="msg"></div>
+    </section>
+  </main>
+
+<script>
+const products=[
+  {id:1,name:'Cơm gà',price:45000},
+  {id:2,name:'Cơm sườn',price:50000},
+  {id:3,name:'Mì xào',price:40000},
+  {id:4,name:'Nước ngọt',price:15000}
+];
+let cart=[];
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('vi-VN').format(n)+'đ';
+function renderMenu(){
+  $('menu').innerHTML=products.map(p=>`<div class="item"><div><b>${p.name}</b><small>${money(p.price)}</small></div><button type="button" onclick="add(${p.id})">+ Thêm</button></div>`).join('');
+}
+function add(id){const p=products.find(x=>x.id===id),x=cart.find(x=>x.id===id);x?x.qty++:cart.push({...p,qty:1});renderCart()}
+function change(id,d){const x=cart.find(x=>x.id===id);if(!x)return;x.qty+=d;if(x.qty<=0)cart=cart.filter(x=>x.id!==id);renderCart()}
+function renderCart(){
+ if(!cart.length){$('cart').textContent='Chưa có món.';$('total').textContent='Tổng: 0đ';return}
+ $('cart').innerHTML=cart.map(x=>`<div class="item"><div><b>${x.name}</b><small>${money(x.price)} × ${x.qty}</small></div><div><button type="button" onclick="change(${x.id},-1)">−</button><button type="button" onclick="change(${x.id},1)">+</button></div></div>`).join('');
+ $('total').textContent='Tổng: '+money(cart.reduce((s,x)=>s+x.price*x.qty,0));
+}
+$('testOrder').onclick=()=>{
+ const name=$('name').value.trim(),phone=$('phone').value.trim(),address=$('address').value.trim();
+ if(!cart.length)return show('❌ Vui lòng thêm món vào giỏ.','err');
+ if(!name||!phone||!address)return show('❌ Vui lòng nhập đủ họ tên, số điện thoại và địa chỉ.','err');
+ const order={code:'V2TEST-'+Date.now().toString().slice(-6),name,phone,address,note:$('note').value.trim(),items:cart.map(({id,name,price,qty})=>({id,name,price,qty})),total:cart.reduce((s,x)=>s+x.price*x.qty,0),status:'test'};
+ sessionStorage.setItem('choco_v2_test_order',JSON.stringify(order));
+ show('✅ Đã tạo đơn TEST: '+order.code+'\n\nĐơn chỉ lưu trong trình duyệt, KHÔNG ghi vào Supabase production.','ok');
+};
+function show(t,c){$('msg').textContent=t;$('msg').className='msg '+c;$('msg').style.display='block'}
+renderMenu();renderCart();
+</script>
+</body>
+</html>
