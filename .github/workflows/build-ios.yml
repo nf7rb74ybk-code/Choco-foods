@@ -1,4 +1,4 @@
-name: Prepare CHOCO SHIP iOS
+name: Build CHOCO SHIP iOS
 
 on:
   workflow_dispatch:
@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  build-ios:
-    runs-on: macos-latest
+  ios-simulator:
+    runs-on: macos-15
     defaults:
       run:
         working-directory: app-build
@@ -28,41 +28,83 @@ jobs:
           cache-dependency-path: app-build/package.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
 
-      - name: Generate iOS project
+      - name: Add Capacitor iOS
         run: npx cap add ios
 
-      - name: Sync Capacitor
+      - name: Sync Capacitor iOS
         run: npx cap sync ios
 
       - name: Verify iOS project
         run: test -f ios/App/App.xcodeproj/project.pbxproj
 
-      - name: Build iOS Simulator app
+      - name: Build iOS Simulator
         run: |
-          cd ios/App
           xcodebuild \
-            -project App.xcodeproj \
+            -workspace ios/App/App.xcworkspace \
             -scheme App \
-            -sdk iphonesimulator \
             -configuration Debug \
-            -derivedDataPath build \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ios/build \
             CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
             build
 
-      - name: Verify iOS app bundle
-        run: test -d ios/App/build/Build/Products/Debug-iphonesimulator/App.app
+      - name: Verify iOS app
+        run: test -d ios/build/Build/Products/Debug-iphonesimulator/App.app
 
-      - name: Package simulator app
-        run: |
-          cd ios/App/build/Build/Products/Debug-iphonesimulator
-          zip -r ../../../../../../choco-ship-ios-simulator.zip App.app
+      - name: Package Simulator app
+        run: ditto -c -k --sequesterRsrc --keepParent ios/build/Build/Products/Debug-iphonesimulator/App.app choco-ship-ios-simulator.zip
 
-      - name: Upload iOS Simulator app
+      - name: Upload iOS Simulator artifact
         uses: actions/upload-artifact@v4
         with:
           name: choco-ship-ios-simulator
           path: app-build/choco-ship-ios-simulator.zip
+          if-no-files-found: error
+
+  ios-device-prepare:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: app-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-build/package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Add Capacitor iOS
+        run: npx cap add ios
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Verify device project
+        run: test -f ios/App/App.xcodeproj/project.pbxproj
+
+      - name: Verify iOS device archive prerequisites
+        run: |
+          xcodebuild -version
+          xcodebuild -list -workspace ios/App/App.xcworkspace
+
+      - name: Package iOS project for signing on Mac
+        run: |
+          cd ..
+          ditto -c -k --sequesterRsrc --keepParent app-build/ios choco-ship-ios-project.zip
+
+      - name: Upload iOS project
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-ship-ios-project
+          path: app-build/../choco-ship-ios-project.zip
           if-no-files-found: error
