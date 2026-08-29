@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ff6b00"><title>CHOCO SHIP V2 — Shipper TEST</title><link rel="stylesheet" href="./assets/v2.css">
+<style>
+.status{display:inline-block;padding:5px 9px;border-radius:999px;background:#f3f4f6;font-size:12px;font-weight:700}.order{border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin:10px 0}.order h3{margin:0 0 6px}.order p{margin:5px 0;color:#555}.actions{display:flex;gap:8px}.actions button{margin:0}.muted{color:#777}.primary{background:#ff6b00!important;color:#fff!important}
+</style></head>
+<body><main class="shell"><a href="./index.html">← V2 TEST</a><div class="badge">SHIPPER V2 • TEST</div><h1>🏍️ Shipper</h1><p>Chế độ mô phỏng. Không cập nhật đơn production.</p>
+<section class="card"><h2>📦 Đơn TEST</h2><div id="orders"></div></section>
+<section class="card"><h2>🧪 Trạng thái TEST</h2><div id="detail" class="muted">Chưa chọn đơn.</div></section></main>
+<script>
+const KEY='choco_v2_test_order';const statuses=['new','accepted','picking','delivering','completed'];const labels={new:'Đơn mới',accepted:'Đã nhận',picking:'Đang lấy hàng',delivering:'Đang giao',completed:'Hoàn thành'};let order;
+const $=id=>document.getElementById(id);
+function load(){try{order=JSON.parse(sessionStorage.getItem(KEY)||'null')}catch{order=null}render()}
+function render(){if(!order){$('orders').innerHTML='<p class="muted">Chưa có đơn TEST. Hãy tạo đơn ở Customer V2 trước.</p>';return}const s=order.status||'new';$('orders').innerHTML=`<div class="order"><h3>${order.code} <span class="status">${labels[s]||s}</span></h3><p>👤 ${order.name} • 📱 ${order.phone}</p><p>📍 ${order.address}</p><p>🛒 ${order.items.map(x=>x.name+' × '+x.qty).join(', ')}</p><p><b>💰 ${new Intl.NumberFormat('vi-VN').format(order.total)}đ</b></p><div class="actions">${nextButton(s)}</div></div>`;$('detail').textContent='Đơn '+order.code+' • '+(labels[s]||s)}
+function nextButton(s){const i=statuses.indexOf(s);if(i<0||i>=statuses.length-1)return s==='completed'?'<span class="muted">✅ Đã hoàn thành</span>':'';return `<button class="primary" onclick="nextStatus()">${labels[statuses[i+1]]}</button>`}
+function nextStatus(){const i=statuses.indexOf(order.status||'new');if(i<statuses.length-1){order.status=statuses[i+1];sessionStorage.setItem(KEY,JSON.stringify(order));render()}}
+window.addEventListener('storage',load);load();
+</script></body></html>
