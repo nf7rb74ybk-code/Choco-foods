@@ -2,6 +2,7 @@
   const SUPABASE_URL='https://guwdswqaqnhzqapflvey.supabase.co';
   const SUPABASE_KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
   const required=document.documentElement.dataset.role;
+  const routes={customer:'customer.html',shipper:'shipper.html',admin:'admin-app.html'};
   async function guard(){
     const token=localStorage.getItem('choco_access_token');
     if(!token){location.replace('login.html');return;}
@@ -15,7 +16,7 @@
       const role=rows?.[0]?.role;
       if(!role){location.replace('login.html');return;}
       localStorage.setItem('choco_role',role);
-      if(required && role!==required){location.replace(role+'.html');return;}
+      if(required && role!==required){location.replace(routes[role]||'index.html');return;}
       document.documentElement.classList.add('authorized');
     }catch(e){localStorage.removeItem('choco_access_token');localStorage.removeItem('choco_refresh_token');localStorage.removeItem('choco_user_id');localStorage.removeItem('choco_role');location.replace('login.html');}
   }
