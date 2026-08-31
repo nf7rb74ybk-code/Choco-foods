@@ -8,6 +8,9 @@
     return;
   }
 
+  var SUPABASE_URL = "https://guwdswqaqnhzqapflvey.supabase.co";
+  var REVERSE_URL = SUPABASE_URL + "/functions/v1/reverse-geocode";
+
   function setText(id, value) {
     var el = document.getElementById(id);
     if (el) el.innerText = value;
@@ -27,6 +30,26 @@
 
   function setAddressFromGPS(lat, lng) {
     setAddress("GPS: " + gpsText(lat, lng));
+  }
+
+  async function reverseViaSupabase(lat, lng) {
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 8000);
+
+    try {
+      var response = await fetch(REVERSE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat: lat, lng: lng }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      var data = await response.json();
+      return data && data.ok && data.address ? data.address : null;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   async function reverseBigDataCloud(lat, lng) {
@@ -59,32 +82,15 @@
     }
   }
 
-  async function reverseNominatim(lat, lng) {
-    var url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" +
-      encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lng) +
-      "&zoom=18&addressdetails=1&accept-language=vi";
-
-    try {
-      var response = await fetch(url, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
-      if (!response.ok) throw new Error("HTTP " + response.status);
-      var data = await response.json();
-
-      if (data && data.display_name) return data.display_name;
-      return null;
-    } catch (e) {
-      console.warn("CHOCO SHIP Nominatim reverse geocode:", e);
-      return null;
-    }
-  }
-
   async function reverseGeocode(lat, lng) {
-    // Ưu tiên API không cần key, sau đó dùng Nominatim làm dự phòng.
-    var address = await reverseBigDataCloud(lat, lng);
-    if (address) return address;
-    return await reverseNominatim(lat, lng);
+    try {
+      var address = await reverseViaSupabase(lat, lng);
+      if (address) return address;
+    } catch (e) {
+      console.warn("CHOCO SHIP Supabase reverse geocode:", e);
+    }
+
+    return await reverseBigDataCloud(lat, lng);
   }
 
   function finish(lat, lng) {
@@ -93,7 +99,7 @@
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-    // Hiện GPS ngay lập tức, không chờ reverse geocode.
+    // Hiện GPS ngay lập tức, không chờ API địa chỉ.
     setAddressFromGPS(lat, lng);
     setText(
       "cartGpsText",
@@ -104,7 +110,6 @@
       var address = document.getElementById("address");
 
       if (addressText) {
-        // Chỉ thay nếu người dùng chưa tự sửa địa chỉ.
         if (address && (!address.value || address.value.indexOf("GPS:") === 0)) {
           setAddress(addressText);
         }
@@ -158,18 +163,17 @@
         return;
       }
 
-      // Cho GPS iPhone đủ thời gian trả kết quả.
       if (tries >= 100) clearInterval(timer);
     }, 250);
   }
 
-  // Không lấy GPS lần 2; chỉ bổ sung địa chỉ sau khi GPS gốc trả kết quả.
+  // GPS chỉ lấy 1 lần; sau đó reverse geocode bằng Edge Function.
   window.getGPS = function () {
     originalGetGPS();
     watchForGPSAndAddress();
   };
 
-  // Nếu đã có GPS lưu từ trước thì tự đồng bộ địa chỉ khi mở giỏ hàng.
+  // Khôi phục GPS cũ nếu có, không tự xin GPS mới.
   try {
     var saved = JSON.parse(
       localStorage.getItem("choco_ship_delivery_gps") || "null"
