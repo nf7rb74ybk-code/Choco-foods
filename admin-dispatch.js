@@ -1,4 +1,4 @@
-/* CHOCO SHIP - Admin smart dispatch */
+/* CHOCO SHIP - Admin smart dispatch + assignment */
 'use strict';
 (function(){
   if(window.__CHOCO_ADMIN_DISPATCH__) return;
@@ -13,17 +13,31 @@
   function distance(a,b,c,d){const R=6371,la=(c-a)*Math.PI/180,lo=(d-b)*Math.PI/180,x=Math.sin(la/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(lo/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
   function ago(iso){if(!iso)return 'chưa có';const s=Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/1000));if(s<60)return s+' giây';const m=Math.floor(s/60);if(m<60)return m+' phút';return Math.floor(m/60)+' giờ';}
   const style=document.createElement('style');
-  style.textContent='.dispatch-panel{background:#fff;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px #ddd;border:1px solid #bfdbfe}.dispatch-title{font-size:18px;font-weight:800;margin-bottom:10px}.dispatch-help{font-size:12px;color:#64748b;margin-bottom:10px}.dispatch-order{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:9px}.dispatch-order-head{display:flex;justify-content:space-between;gap:8px}.dispatch-code{font-weight:800;color:#ff6b00}.dispatch-total{font-weight:800;color:#e65100}.dispatch-shipper{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin-top:9px}.dispatch-off{background:#f8fafc;border-color:#e2e8f0}.dispatch-btn{width:100%;border:0;border-radius:9px;padding:10px;margin-top:8px;background:#1677ff;color:#fff;font-weight:800}.dispatch-empty{padding:18px;text-align:center;color:#777}.dispatch-muted{font-size:12px;color:#64748b}.dispatch-near{color:#15803d;font-weight:800}.dispatch-far{color:#c2410c;font-weight:800}';
+  style.textContent='.dispatch-panel{background:#fff;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px #ddd;border:1px solid #bfdbfe}.dispatch-title{font-size:18px;font-weight:800;margin-bottom:10px}.dispatch-help{font-size:12px;color:#64748b;margin-bottom:10px}.dispatch-order{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:9px}.dispatch-order-head{display:flex;justify-content:space-between;gap:8px}.dispatch-code{font-weight:800;color:#ff6b00}.dispatch-total{font-weight:800;color:#e65100}.dispatch-shipper{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin-top:9px}.dispatch-off{background:#f8fafc;border-color:#e2e8f0}.dispatch-btn{width:100%;border:0;border-radius:9px;padding:10px;margin-top:8px;background:#1677ff;color:#fff;font-weight:800}.dispatch-assign{width:100%;border:0;border-radius:9px;padding:11px;margin-top:8px;background:#16a34a;color:#fff;font-weight:800}.dispatch-assign:disabled{opacity:.6}.dispatch-empty{padding:18px;text-align:center;color:#777}.dispatch-muted{font-size:12px;color:#64748b}.dispatch-near{color:#15803d;font-weight:800;margin-top:7px}.dispatch-far{color:#c2410c;font-weight:800}.dispatch-assigned{background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:10px;padding:10px;margin-top:9px;font-weight:800}';
   document.head.appendChild(style);
   function inject(){
     if(document.getElementById('chocoDispatchPanel'))return;
     const p=document.createElement('div');p.id='chocoDispatchPanel';p.className='dispatch-panel';
-    p.innerHTML='<div class="dispatch-title">🧭 ĐIỀU PHỐI ĐƠN THÔNG MINH</div><div class="dispatch-help">Hiển thị Shipper có GPS gần vị trí giao hàng nhất. Chỉ gợi ý, không tự nhận/gán đơn.</div><div id="dispatchStatus" class="dispatch-muted">⏳ Đang tải...</div><div id="dispatchOrders"></div>';
+    p.innerHTML='<div class="dispatch-title">🧭 ĐIỀU PHỐI ĐƠN THÔNG MINH</div><div class="dispatch-help">Gợi ý Shipper gần nhất có GPS. Admin có thể gán đơn bằng một lần bấm.</div><div id="dispatchStatus" class="dispatch-muted">⏳ Đang tải...</div><div id="dispatchOrders"></div>';
     const container=document.querySelector('.container');
     const mapPanel=document.getElementById('shipperGpsPanel');
     if(mapPanel&&mapPanel.parentElement)mapPanel.parentElement.insertBefore(p,mapPanel);else if(container)container.insertBefore(p,container.firstChild);
   }
   async function get(path){const r=await fetch(SB+path,{headers:{apikey:KEY,Authorization:'Bearer '+TOKEN(),Accept:'application/json'}});if(!r.ok)throw Error('HTTP '+r.status+' '+await r.text());return r.json();}
+  async function assignOrder(orderId,shipperId,button){
+    if(!orderId||!shipperId)return;
+    if(button.dataset.busy==='1')return;
+    if(!confirm('📤 Gán đơn này cho Shipper này?'))return;
+    button.dataset.busy='1';button.disabled=true;button.textContent='⏳ ĐANG GÁN...';
+    try{
+      const r=await fetch(SB+'/rest/v1/orders?id=eq.'+encodeURIComponent(orderId)+'&shipper_id=is.null&status=eq.Chờ%20xác%20nhận',{method:'PATCH',headers:{apikey:KEY,Authorization:'Bearer '+TOKEN(),'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({shipper_id:shipperId,status:'Đã nhận'})});
+      const text=await r.text();let data=[];try{data=JSON.parse(text)}catch{}
+      if(!r.ok)throw Error(text||('HTTP '+r.status));
+      if(!Array.isArray(data)||!data.length)throw Error('Đơn đã được nhận/gán bởi người khác.');
+      button.outerHTML='<div class="dispatch-assigned">✅ ĐÃ GÁN ĐƠN CHO SHIPPER</div>';
+      await load();
+    }catch(e){console.error('ASSIGN ORDER',e);alert('❌ Không gán được đơn.\n\n'+(e.message||e));button.disabled=false;button.dataset.busy='';button.textContent='📤 GÁN ĐƠN CHO SHIPPER';}
+  }
   async function load(){
     inject();const status=document.getElementById('dispatchStatus'),box=document.getElementById('dispatchOrders');if(!status||!box)return;
     try{
@@ -41,14 +55,22 @@
         const online=candidates.filter(s=>s.online);
         const nearest=online[0]||candidates[0];
         let html='<div class="dispatch-order"><div class="dispatch-order-head"><div class="dispatch-code">📦 '+esc(o.code||('#'+o.id))+'</div><div class="dispatch-total">'+money(o.total)+'</div></div><div style="margin-top:6px;font-size:13px">👤 '+esc(o.name||'Khách hàng')+'<br>🏁 '+esc(o.dropoff||o.address||'Chưa có địa chỉ')+'</div>';
-        if(nearest){html+='<div class="dispatch-shipper '+(nearest.online?'':'dispatch-off')+'"><b>'+ (nearest.online?'🟢':'⚫') +' '+esc(nearest.full_name||'Shipper')+'</b><br><span class="dispatch-muted">📏 '+nearest.distance.toFixed(1)+' km • '+(nearest.online?'Online':'Offline')+' • GPS '+esc(ago(nearest.last_seen))+' trước</span>'+(nearest.phone?'<br>📞 '+esc(nearest.phone):'')+'</div>';if(nearest.online)html+='<div class="dispatch-near">⭐ Gợi ý Shipper gần nhất đang Online</div>';}else html+='<div class="dispatch-empty">⚠️ Chưa có Shipper nào có GPS.</div>';
+        if(nearest){html+='<div class="dispatch-shipper '+(nearest.online?'':'dispatch-off')+'"><b>'+ (nearest.online?'🟢':'⚫') +' '+esc(nearest.full_name||'Shipper')+'</b><br><span class="dispatch-muted">📏 '+nearest.distance.toFixed(1)+' km • '+(nearest.online?'Online':'Offline')+' • GPS '+esc(ago(nearest.last_seen))+' trước</span>'+(nearest.phone?'<br>📞 '+esc(nearest.phone):'')+'</div>';if(nearest.online)html+='<div class="dispatch-near">⭐ Gợi ý Shipper gần nhất đang Online</div>';html+='<button class="dispatch-assign" data-order-id="'+esc(o.id)+'" data-shipper-id="'+esc(nearest.id)+'">📤 GÁN ĐƠN CHO SHIPPER</button>';}else html+='<div class="dispatch-empty">⚠️ Chưa có Shipper nào có GPS.</div>';
         html+='<button class="dispatch-btn" data-lat="'+lat+'" data-lng="'+lng+'">📍 XEM VỊ TRÍ ĐƠN</button></div>';
         box.innerHTML+=html;
       });
       status.textContent='🧭 '+pending.length+' đơn chờ điều phối • '+ship.filter(s=>s.online).length+' Shipper Online có GPS • Cập nhật '+new Date().toLocaleTimeString('vi-VN');
     }catch(e){console.error('ADMIN DISPATCH',e);status.textContent='❌ '+e.message;box.innerHTML='<div class="dispatch-empty">Không tải được dữ liệu điều phối.</div>';}
   }
-  document.addEventListener('click',e=>{const b=e.target.closest('.dispatch-btn');if(!b)return;const lat=Number(b.dataset.lat),lng=Number(b.dataset.lng);if(window.loadShipperGPS)window.loadShipperGPS();const map=document.getElementById('shipperGpsMap');if(map&&window.L){setTimeout(()=>{const p=document.getElementById('shipperGpsPanel');if(p)p.scrollIntoView({behavior:'smooth',block:'center'});},100)}});
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('.dispatch-assign');
+    if(a){assignOrder(a.dataset.orderId,a.dataset.shipperId,a);return;}
+    const b=e.target.closest('.dispatch-btn');
+    if(!b)return;
+    if(window.loadShipperGPS)window.loadShipperGPS();
+    const p=document.getElementById('shipperGpsPanel');
+    if(p)setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'center'}),100);
+  });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{inject();load()});else{inject();load()}
   setInterval(load,30000);
   window.loadDispatch=load;
