@@ -14,6 +14,7 @@
 <div class="admin-box"><div class="admin-title">ĐANG ĐĂNG NHẬP</div><div class="admin-name" id="adminName">Admin</div></div>
 <div class="message" id="message"></div>
 <div class="admin-box push-admin"><div class="push-title">🔔 THÔNG BÁO ADMIN</div><div class="push-status" id="adminPushStatus">Chưa bật thông báo</div><button class="push-btn native" id="adminPush">🔔 BẬT WEB PUSH NATIVE</button><button class="push-btn one" id="adminOneSignal">🟣 BẬT ONESIGNAL ADMIN RIÊNG</button><button class="push-btn test" id="adminPushTest" disabled>🧪 TEST CẢ 2 KÊNH</button><div class="debug" id="adminPushDebug">Web Push Native + OneSignal Admin riêng • Không ảnh hưởng Shipper</div></div>
+<div class="admin-box" id="chocoAccountsPanel"><div style="font-size:18px;font-weight:bold;margin-bottom:10px">👥 TÀI KHOẢN & PHÂN QUYỀN</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px"><div style="background:#f8fafc;border-radius:10px;padding:10px;text-align:center;font-size:12px">👑 Admin<b id="acctAdmin" style="display:block;font-size:21px;margin-top:4px">0</b></div><div style="background:#f8fafc;border-radius:10px;padding:10px;text-align:center;font-size:12px">🚚 Shipper<b id="acctShipper" style="display:block;font-size:21px;margin-top:4px">0</b></div><div style="background:#f8fafc;border-radius:10px;padding:10px;text-align:center;font-size:12px">👤 Khách<b id="acctCustomer" style="display:block;font-size:21px;margin-top:4px">0</b></div></div><div id="chocoAccountsStatus" style="color:#64748b;font-size:12px;margin:10px 0">Đang tải...</div><div id="chocoAccountsRows"></div></div>
 <div class="pos-card"><div class="pos-card-title">🧾 POS CHOCO SHIP</div><div class="pos-card-text">Quản lý đơn đã giao thành công và xem tổng kết tuần.</div><a class="pos-link" href="pos.html?v=20260827">MỞ POS</a></div>
 <div class="stats"><div class="stat">Đơn mới<b id="newCount">0</b></div><div class="stat">Đang giao<b id="shippingCount">0</b></div><div class="stat">Hoàn thành<b id="doneCount">0</b></div></div>
 <div class="orders" id="orders"><div class="empty">⏳ Đang tải đơn...</div></div>
@@ -25,5 +26,7 @@ function renderOrders(orders){const box=document.getElementById("orders");let n=
 async function updateStatus(id,status){try{const r=await api("/rest/v1/orders?id=eq."+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({status})});if(checkJWT(r))return;if(!r.ok)throw new Error(await r.text());document.getElementById("message").innerHTML='<div class="success">✅ Đã cập nhật trạng thái đơn.</div>';await loadOrders()}catch(e){console.error(e);alert("❌ Không cập nhật được:\n"+e.message)}}loadOrders();setInterval(loadOrders,15000);
 </script>
 <script src="./admin-push.js?v=20260831-10"></script>
+<script src="./admin-revenue.js?v=20260831-2"></script>
+<script src="./admin-accounts.js?v=20260831-1"></script>
 </body>
 </html>
