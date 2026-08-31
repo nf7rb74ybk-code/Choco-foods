@@ -106,7 +106,6 @@
     const address = document.getElementById("address");
     if (address) {
       address.placeholder = "⏳ Đang lấy GPS + địa chỉ...";
-      // Show GPS immediately, even while reverse geocoding is loading.
       syncAddressField(formatDeliveryAddress(lat, lng, "Đang lấy địa chỉ..."), false);
     }
 
@@ -115,8 +114,6 @@
 
     pendingDeliveryLocation.address = finalText;
     saveDeliveryAddress(finalText);
-
-    // GPS + human-readable address are displayed together in the cart field.
     syncAddressField(finalText, false);
 
     if (address) address.placeholder = "Ví dụ: 123 đường Trần Hưng Đạo...";
@@ -140,7 +137,6 @@
 
       if (savedGPS && Number.isFinite(Number(savedGPS.lat)) && Number.isFinite(Number(savedGPS.lng))) {
         let readable = savedAddress;
-        // Avoid nesting GPS text if the saved address already contains it.
         readable = readable.replace(/^📍 GPS:\s*[-0-9.]+,\s*[-0-9.]+\s*\|\s*🏠\s*/i, "");
         readable = readable.replace(/^📍 GPS:\s*[-0-9.]+,\s*[-0-9.]+\s*$/i, "");
 
@@ -160,7 +156,6 @@
     }
   }
 
-  // GPS setter: GPS is the source of coordinates AND updates the cart address.
   window.setDeliveryLocation = async function (lat, lng, message) {
     currentGPS.lat = Number(lat);
     currentGPS.lng = Number(lng);
@@ -183,9 +178,8 @@
     }
 
     updateShippingDisplay();
-
-    // Keep GPS + address synchronized with the newest location.
     await updateAddressFromGPS(currentGPS.lat, currentGPS.lng);
+    updateCartGPSBox();
   };
 
   window.getGPS = function () {
@@ -231,6 +225,45 @@
     );
   };
 
+  function updateCartGPSBox() {
+    const address = document.getElementById("address");
+    if (!address) return;
+
+    let box = document.getElementById("cartGPSBox");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "cartGPSBox";
+      box.style.cssText = "background:#eff6ff;border:1px solid #93c5fd;padding:12px;border-radius:10px;margin:8px 0 4px;";
+      address.parentNode.insertBefore(box, address);
+    }
+
+    const hasGPS = currentGPS && Number.isFinite(Number(currentGPS.lat)) && Number.isFinite(Number(currentGPS.lng));
+    box.innerHTML = hasGPS
+      ? "📍 <b>GPS giao hàng</b><br><span style='font-size:14px'>" + Number(currentGPS.lat).toFixed(6) + ", " + Number(currentGPS.lng).toFixed(6) + "</span>"
+      : "📍 <b>Chưa lấy vị trí GPS</b>";
+  }
+
+  function ensureCartGPSButton() {
+    const address = document.getElementById("address");
+    if (!address) return;
+
+    let button = document.getElementById("cartGPSButton");
+    if (!button) {
+      button = document.createElement("button");
+      button.id = "cartGPSButton";
+      button.type = "button";
+      button.className = "location";
+      button.style.marginTop = "8px";
+      button.innerHTML = "📍 LẤY / CẬP NHẬT GPS GIAO HÀNG";
+      button.addEventListener("click", function () {
+        window.getGPS();
+      });
+      address.parentNode.insertBefore(button, address);
+    }
+
+    updateCartGPSBox();
+  }
+
   window.createOrder = async function () {
     if (orderSubmitting) return;
 
@@ -253,7 +286,7 @@
 
     if (currentGPS.lat === null || currentGPS.lng === null ||
         !Number.isFinite(Number(currentGPS.lat)) || !Number.isFinite(Number(currentGPS.lng))) {
-      alert("📍 Vui lòng bấm LẤY VỊ TRÍ hoặc chạm vào bản đồ để chọn vị trí giao hàng.");
+      alert("📍 Vui lòng bấm LẤY / CẬP NHẬT GPS GIAO HÀNG hoặc chạm vào bản đồ để chọn vị trí giao hàng.");
       return;
     }
 
@@ -384,10 +417,14 @@
           saveDeliveryAddress(address.value.trim());
         });
       }
+
+      ensureCartGPSButton();
     });
 
     if (document.body) {
       observer.observe(document.body, { childList: true, subtree: true });
     }
+
+    ensureCartGPSButton();
   });
 })();
