@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#ff6b00">
 <title>CHOCO SHIP - VAPID Generator</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f4f5f7;margin:0;padding:20px;color:#222}.box{max-width:700px;margin:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 3px 15px #ddd}h2{margin-top:0}label{font-weight:700;display:block;margin:16px 0 6px}textarea,input{width:100%;box-sizing:border-box;border:1px solid #ccc;border-radius:10px;padding:12px;font:14px monospace}textarea{min-height:100px;resize:vertical}button{width:100%;padding:14px;border:0;border-radius:10px;background:#ff6b00;color:#fff;font-size:16px;font-weight:800;margin-top:16px}.copy{background:#1677ff;margin-top:8px}.warn{background:#fff3cd;border-radius:10px;padding:12px;font-size:14px;margin:14px 0}.ok{color:#166534;font-weight:700}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f4f5f7;margin:0;padding:20px;color:#222}.box{max-width:700px;margin:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 3px 15px #ddd}h2{margin-top:0}label{font-weight:700;display:block;margin:16px 0 6px}textarea,input{width:100%;box-sizing:border-box;border:1px solid #ccc;border-radius:10px;padding:12px;font:14px monospace}textarea{min-height:100px;resize:vertical}button{width:100%;padding:14px;border:0;border-radius:10px;background:#ff6b00;color:#fff;font-size:16px;font-weight:800;margin-top:16px}.copy{background:#1677ff;margin-top:8px}.warn{background:#fff3cd;border-radius:10px;padding:12px;font-size:14px;margin:14px 0}.ok{color:#166534;font-weight:700}.err{color:#b91c1c;font-weight:700;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -14,37 +14,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f
 <h2>🔐 CHOCO SHIP — VAPID Generator</h2>
 <div class="warn">⚠️ Key được tạo hoàn toàn trên thiết bị. Private Key không được gửi lên GitHub hay Supabase.</div>
 <button id="gen">🔑 TẠO CẶP KEY MỚI</button>
-<label>PUBLIC KEY — dán vào Supabase: <code>VAPID_PUBLIC_KEY</code></label>
+<label>PUBLIC KEY — Supabase: <code>VAPID_PUBLIC_KEY</code></label>
 <textarea id="pub" readonly placeholder="Public Key sẽ xuất hiện ở đây"></textarea>
 <button class="copy" onclick="copy('pub')">📋 Sao chép Public Key</button>
-<label>PRIVATE KEY — dán vào Supabase: <code>VAPID_PRIVATE_KEY</code></label>
+<label>PRIVATE KEY — Supabase: <code>VAPID_PRIVATE_KEY</code></label>
 <textarea id="priv" readonly placeholder="Private Key sẽ xuất hiện ở đây"></textarea>
 <button class="copy" onclick="copy('priv')">📋 Sao chép Private Key</button>
 <label>VAPID SUBJECT</label>
 <input id="subject" value="mailto:phongheonaa@gmail.com" placeholder="mailto:email-cua-ban@example.com">
-<p class="ok">✅ Public và Private được xuất từ cùng một JWK P-256 key pair.</p>
-<p style="font-size:13px;color:#666">Sau khi dán key vào Supabase, không cần gửi Private Key cho ChatGPT.</p>
+<p id="status" class="ok">✅ Public và Private được xuất từ cùng một P-256 key pair.</p>
+<p style="font-size:13px;color:#666">Sau khi dán key vào Supabase, không gửi Private Key cho ChatGPT.</p>
 </div>
 <script>
-function b64url(bytes){let s='';for(const x of new Uint8Array(bytes))s+=String.fromCharCode(x);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-async function generate(){
- const kp=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
- const jwk=await crypto.subtle.exportKey('jwk',kp.privateKey);
- if(!jwk.d||!jwk.x||!jwk.y)throw new Error('Không tạo được JWK P-256 hợp lệ');
- // VAPID public key is the uncompressed SEC1 point: 04 || X || Y.
- const pubBytes=new Uint8Array(65);pubBytes[0]=4;
- const x=Uint8Array.from(atob(jwk.x.replace(/-/g,'+').replace(/_/g,'/')+'=='),c=>c.charCodeAt(0));
- const y=Uint8Array.from(atob(jwk.y.replace(/-/g,'+').replace(/_/g,'/')+'=='),c=>c.charCodeAt(0));
- pubBytes.set(x,1);pubBytes.set(y,33);
- if(pubBytes.length!==65)throw new Error('Public key không đúng 65 bytes');
- const pub=b64url(pubBytes);
- const priv=jwk.d;
- if(priv.length!==43)throw new Error('Private key P-256 không đúng định dạng');
- document.getElementById('pub').value=pub;
- document.getElementById('priv').value=priv;
+'use strict';
+function bytesToB64Url(bytes){
+  let s='';
+  for(const b of bytes)s+=String.fromCharCode(b);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
-async function copy(id){const el=document.getElementById(id);if(!el.value)return alert('Chưa tạo key');await navigator.clipboard.writeText(el.value);alert('Đã sao chép');}
-document.getElementById('gen').onclick=()=>generate().catch(e=>alert(e.message));
+function b64UrlToBytes(s){
+  if(typeof s!=='string'||!/^[A-Za-z0-9_-]+$/.test(s))throw new Error('Base64URL có ký tự không hợp lệ');
+  const pad='='.repeat((4-(s.length%4))%4);
+  const bin=atob(s.replace(/-/g,'+').replace(/_/g,'/')+pad);
+  return Uint8Array.from(bin,c=>c.charCodeAt(0));
+}
+async function generate(){
+  const status=document.getElementById('status');
+  status.className='ok';
+  status.textContent='⏳ Đang tạo cặp VAPID P-256...';
+  const kp=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+  const jwk=await crypto.subtle.exportKey('jwk',kp.privateKey);
+  if(jwk.kty!=='EC'||jwk.crv!=='P-256'||!jwk.d||!jwk.x||!jwk.y)throw new Error('JWK P-256 không hợp lệ');
+  const x=b64UrlToBytes(jwk.x),y=b64UrlToBytes(jwk.y),d=b64UrlToBytes(jwk.d);
+  if(x.length!==32||y.length!==32||d.length!==32)throw new Error('X/Y/D phải đúng 32 bytes');
+  const pubBytes=new Uint8Array(65);pubBytes[0]=4;pubBytes.set(x,1);pubBytes.set(y,33);
+  const pub=bytesToB64Url(pubBytes),priv=bytesToB64Url(d);
+  if(pub.length!==87||priv.length!==43)throw new Error('Độ dài VAPID không hợp lệ');
+  // Round-trip validation prevents malformed Base64URL output.
+  if(b64UrlToBytes(pub).length!==65||b64UrlToBytes(priv).length!==32)throw new Error('VAPID key round-trip validation failed');
+  document.getElementById('pub').value=pub;
+  document.getElementById('priv').value=priv;
+  status.textContent='✅ Đã tạo cặp key hợp lệ. Public = 65 bytes, Private = 32 bytes.';
+}
+async function copy(id){
+  const el=document.getElementById(id);
+  if(!el.value)return alert('Chưa tạo key');
+  await navigator.clipboard.writeText(el.value.trim());
+  alert('Đã sao chép — chỉ dán giá trị, không dán nhãn.');
+}
+document.getElementById('gen').onclick=()=>generate().catch(e=>{const s=document.getElementById('status');s.className='err';s.textContent='❌ '+e.message;});
 </script>
 </body>
 </html>
