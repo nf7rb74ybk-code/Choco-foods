@@ -6,6 +6,7 @@
   "use strict";
 
   let orderSubmitting = false;
+  let addressManuallyEdited = false;
 
   function val(id) {
     const el = document.getElementById(id);
@@ -33,6 +34,44 @@
     return /^(03|05|07|08|09)[0-9]{8}$/.test(phone.replace(/\s+/g, ""));
   }
 
+  function saveDeliveryGPS(lat, lng) {
+    try {
+      localStorage.setItem("choco_ship_delivery_gps", JSON.stringify({
+        lat: Number(lat),
+        lng: Number(lng),
+        updated_at: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.warn("Không lưu được GPS vào localStorage:", e);
+    }
+  }
+
+  function saveDeliveryAddress(text) {
+    try {
+      if (text) localStorage.setItem("choco_ship_delivery_address", text);
+      else localStorage.removeItem("choco_ship_delivery_address");
+    } catch (e) {
+      console.warn("Không lưu được địa chỉ vào localStorage:", e);
+    }
+  }
+
+  function syncAddressField(text, markAsManual) {
+    const address = document.getElementById("address");
+    if (!address || !text) return false;
+
+    address.value = text;
+    addressManuallyEdited = !!markAsManual;
+    address.style.borderColor = markAsManual ? "#ddd" : "#22c55e";
+
+    // Tell the original customer page/cart that the value changed.
+    try {
+      address.dispatchEvent(new Event("input", { bubbles: true }));
+      address.dispatchEvent(new Event("change", { bubbles: true }));
+    } catch (e) {}
+
+    return true;
+  }
+
   async function reverseAddress(lat, lng) {
     try {
       const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" +
@@ -49,10 +88,40 @@
     }
   }
 
-  // Override GPS setter: GPS remains the source of coordinates and can fill address.
+  async function updateAddressFromGPS(lat, lng) {
+    const address = document.getElementById("address");
+    if (!address) return;
+
+    address.placeholder = "⏳ Đang lấy địa chỉ từ vị trí...";
+    const text = await reverseAddress(lat, lng);
+
+    // GPS update is authoritative: replace the previous cart address.
+    if (text) {
+      syncAddressField(text, false);
+      saveDeliveryAddress(text);
+    } else {
+      const fallback = "📍 GPS: " + Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6);
+      syncAddressField(fallback, false);
+      saveDeliveryAddress(fallback);
+    }
+
+    address.placeholder = "Ví dụ: 123 đường Trần Hưng Đạo...";
+
+    window.dispatchEvent(new CustomEvent("choco:delivery-location-updated", {
+      detail: {
+        lat: Number(lat),
+        lng: Number(lng),
+        address: text || ""
+      }
+    }));
+  }
+
+  // GPS setter: GPS is the source of coordinates AND updates the cart address.
   window.setDeliveryLocation = async function (lat, lng, message) {
     currentGPS.lat = Number(lat);
     currentGPS.lng = Number(lng);
+    addressManuallyEdited = false;
+    saveDeliveryGPS(currentGPS.lat, currentGPS.lng);
 
     if (marker) map.removeLayer(marker);
 
@@ -71,17 +140,8 @@
 
     updateShippingDisplay();
 
-    // Only auto-fill address when customer has not typed one.
-    const address = document.getElementById("address");
-    if (address && !address.value.trim()) {
-      address.placeholder = "⏳ Đang lấy địa chỉ từ vị trí...";
-      const text = await reverseAddress(currentGPS.lat, currentGPS.lng);
-      if (text && !address.value.trim()) {
-        address.value = text;
-        address.style.borderColor = "#22c55e";
-      }
-      address.placeholder = "Ví dụ: 123 đường Trần Hưng Đạo...";
-    }
+    // IMPORTANT: always synchronize the latest GPS position into the cart address.
+    await updateAddressFromGPS(currentGPS.lat, currentGPS.lng);
   };
 
   // Override GPS button so the existing UI works with the new setter.
@@ -270,13 +330,32 @@
     }
   };
 
-  // When address is typed manually, keep GPS if it was already selected.
+  // Keep the cart address synchronized even if the cart input is rendered later.
+  function restoreSavedDeliveryAddress() {
+    const saved = localStorage.getItem("choco_ship_delivery_address");
+    if (saved && document.getElementById("address") && !document.getElementById("address").value.trim()) {
+      syncAddressField(saved, false);
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     const address = document.getElementById("address");
     if (address) {
       address.addEventListener("input", function () {
+        addressManuallyEdited = true;
         address.style.borderColor = "#ddd";
+        saveDeliveryAddress(address.value.trim());
       });
+    }
+
+    restoreSavedDeliveryAddress();
+
+    // Some cart UIs create/recreate #address after page load.
+    const observer = new MutationObserver(function () {
+      restoreSavedDeliveryAddress();
+    });
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
     }
   });
 })();
