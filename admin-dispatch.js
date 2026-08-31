@@ -24,6 +24,14 @@
     if(mapPanel&&mapPanel.parentElement)mapPanel.parentElement.insertBefore(p,mapPanel);else if(container)container.insertBefore(p,container.firstChild);
   }
   async function get(path){const r=await fetch(SB+path,{headers:{apikey:KEY,Authorization:'Bearer '+TOKEN(),Accept:'application/json'}});if(!r.ok)throw Error('HTTP '+r.status+' '+await r.text());return r.json();}
+  async function notifyShipper(shipperId,o){
+    try{
+      const r=await fetch(SB+'/functions/v1/send-push',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN(),'apikey':KEY},body:JSON.stringify({shipper_id:String(shipperId),order_id:o.id,code:o.code,title:'🚚 CHOCO SHIP - ĐƠN ĐƯỢC GIAO',message:'📦 Bạn được giao đơn '+(o.code||('#'+o.id))+' • '+money(o.total),status:'Đã nhận'})});
+      const text=await r.text();let d={};try{d=JSON.parse(text)}catch{};
+      console.log('ASSIGN PUSH',r.status,d);
+      return r.ok&&d.ok!==false;
+    }catch(e){console.warn('ASSIGN PUSH',e);return false;}
+  }
   async function assignOrder(orderId,shipperId,button){
     if(!orderId||!shipperId)return;
     if(button.dataset.busy==='1')return;
@@ -34,7 +42,8 @@
       const text=await r.text();let data=[];try{data=JSON.parse(text)}catch{}
       if(!r.ok)throw Error(text||('HTTP '+r.status));
       if(!Array.isArray(data)||!data.length)throw Error('Đơn đã được nhận/gán bởi người khác.');
-      button.outerHTML='<div class="dispatch-assigned">✅ ĐÃ GÁN ĐƠN CHO SHIPPER</div>';
+      const pushed=await notifyShipper(shipperId,data[0]);
+      button.outerHTML='<div class="dispatch-assigned">✅ ĐÃ GÁN ĐƠN CHO SHIPPER'+(pushed?' • 🔔 ĐÃ GỬI THÔNG BÁO':' • ⚠️ PUSH CHƯA GỬI')+'</div>';
       await load();
     }catch(e){console.error('ASSIGN ORDER',e);alert('❌ Không gán được đơn.\n\n'+(e.message||e));button.disabled=false;button.dataset.busy='';button.textContent='📤 GÁN ĐƠN CHO SHIPPER';}
   }
