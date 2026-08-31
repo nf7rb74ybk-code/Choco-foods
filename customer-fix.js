@@ -7,6 +7,7 @@
 
   let orderSubmitting = false;
   let addressManuallyEdited = false;
+  let pendingDeliveryLocation = null;
 
   function val(id) {
     const el = document.getElementById(id);
@@ -63,7 +64,6 @@
     addressManuallyEdited = !!markAsManual;
     address.style.borderColor = markAsManual ? "#ddd" : "#22c55e";
 
-    // Tell the original customer page/cart that the value changed.
     try {
       address.dispatchEvent(new Event("input", { bubbles: true }));
       address.dispatchEvent(new Event("change", { bubbles: true }));
@@ -89,31 +89,61 @@
   }
 
   async function updateAddressFromGPS(lat, lng) {
+    pendingDeliveryLocation = {
+      lat: Number(lat),
+      lng: Number(lng),
+      address: ""
+    };
+
+    // The cart input may be created after the GPS button is pressed.
     const address = document.getElementById("address");
-    if (!address) return;
+    if (address) address.placeholder = "⏳ Đang lấy địa chỉ từ vị trí...";
 
-    address.placeholder = "⏳ Đang lấy địa chỉ từ vị trí...";
     const text = await reverseAddress(lat, lng);
+    const finalText = text || ("📍 GPS: " + Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6));
 
-    // GPS update is authoritative: replace the previous cart address.
-    if (text) {
-      syncAddressField(text, false);
-      saveDeliveryAddress(text);
-    } else {
-      const fallback = "📍 GPS: " + Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6);
-      syncAddressField(fallback, false);
-      saveDeliveryAddress(fallback);
-    }
+    pendingDeliveryLocation.address = finalText;
+    saveDeliveryAddress(finalText);
 
-    address.placeholder = "Ví dụ: 123 đường Trần Hưng Đạo...";
+    // Fill immediately when the cart field already exists.
+    syncAddressField(finalText, false);
+
+    if (address) address.placeholder = "Ví dụ: 123 đường Trần Hưng Đạo...";
 
     window.dispatchEvent(new CustomEvent("choco:delivery-location-updated", {
       detail: {
         lat: Number(lat),
         lng: Number(lng),
-        address: text || ""
+        address: finalText
       }
     }));
+  }
+
+  function restoreSavedDeliveryAddress() {
+    const address = document.getElementById("address");
+    if (!address) return;
+
+    const saved = localStorage.getItem("choco_ship_delivery_address");
+    if (saved) {
+      syncAddressField(saved, false);
+      return;
+    }
+
+    // If the cart was rendered after GPS was selected, use the latest location
+    // and create a guaranteed fallback address instead of leaving the field blank.
+    if (pendingDeliveryLocation && pendingDeliveryLocation.address) {
+      syncAddressField(pendingDeliveryLocation.address, false);
+      return;
+    }
+
+    try {
+      const savedGPS = JSON.parse(localStorage.getItem("choco_ship_delivery_gps") || "null");
+      if (savedGPS && Number.isFinite(Number(savedGPS.lat)) && Number.isFinite(Number(savedGPS.lng))) {
+        const fallback = "📍 GPS: " + Number(savedGPS.lat).toFixed(6) + ", " + Number(savedGPS.lng).toFixed(6);
+        syncAddressField(fallback, false);
+        saveDeliveryAddress(fallback);
+      }
+    } catch (e) {}
   }
 
   // GPS setter: GPS is the source of coordinates AND updates the cart address.
@@ -140,11 +170,10 @@
 
     updateShippingDisplay();
 
-    // IMPORTANT: always synchronize the latest GPS position into the cart address.
+    // Keep cart address synchronized with the newest GPS location.
     await updateAddressFromGPS(currentGPS.lat, currentGPS.lng);
   };
 
-  // Override GPS button so the existing UI works with the new setter.
   window.getGPS = function () {
     if (!navigator.geolocation) {
       alert("❌ Thiết bị không hỗ trợ GPS.");
@@ -188,7 +217,6 @@
     );
   };
 
-  // One-click order. The Supabase INSERT happens exactly once per click.
   window.createOrder = async function () {
     if (orderSubmitting) return;
 
@@ -247,7 +275,6 @@
     }
 
     try {
-      // IMPORTANT: exactly one order INSERT.
       const response = await fetch(SUPABASE_URL + "/rest/v1/orders", {
         method: "POST",
         headers: {
@@ -266,7 +293,6 @@
 
       localStorage.setItem("choco_ship_last_order", JSON.stringify(order));
 
-      // Notification is best-effort. Never ask customer to submit again.
       try {
         const pushResponse = await fetch(SUPABASE_URL + "/functions/v1/send-push", {
           method: "POST",
@@ -313,7 +339,6 @@
       const paymentEl = document.getElementById("payment");
       if (paymentEl) paymentEl.value = "cash";
 
-      // Close cart after successful single submission.
       setTimeout(() => {
         if (typeof closeCart === "function") closeCart();
       }, 300);
@@ -330,30 +355,23 @@
     }
   };
 
-  // Keep the cart address synchronized even if the cart input is rendered later.
-  function restoreSavedDeliveryAddress() {
-    const saved = localStorage.getItem("choco_ship_delivery_address");
-    if (saved && document.getElementById("address") && !document.getElementById("address").value.trim()) {
-      syncAddressField(saved, false);
-    }
-  }
-
   document.addEventListener("DOMContentLoaded", function () {
-    const address = document.getElementById("address");
-    if (address) {
-      address.addEventListener("input", function () {
-        addressManuallyEdited = true;
-        address.style.borderColor = "#ddd";
-        saveDeliveryAddress(address.value.trim());
-      });
-    }
-
     restoreSavedDeliveryAddress();
 
-    // Some cart UIs create/recreate #address after page load.
     const observer = new MutationObserver(function () {
       restoreSavedDeliveryAddress();
+
+      const address = document.getElementById("address");
+      if (address && !address.dataset.chocoAddressBound) {
+        address.dataset.chocoAddressBound = "1";
+        address.addEventListener("input", function () {
+          addressManuallyEdited = true;
+          address.style.borderColor = "#ddd";
+          saveDeliveryAddress(address.value.trim());
+        });
+      }
     });
+
     if (document.body) {
       observer.observe(document.body, { childList: true, subtree: true });
     }
