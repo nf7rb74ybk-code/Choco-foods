@@ -13,44 +13,113 @@
     if (el) el.innerText = value;
   }
 
-  function setAddressFromGPS(lat, lng) {
+  function setAddress(value) {
     var address = document.getElementById("address");
-    if (!address) return;
-    var coords = Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6);
-    address.value = "GPS: " + coords;
+    if (!address || !value) return;
+    address.value = value;
     address.dispatchEvent(new Event("input", { bubbles: true }));
     address.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  async function reverseGeocode(lat, lng) {
-    var url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" +
-      encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lng) +
-      "&zoom=18&addressdetails=1&accept-language=vi";
+  function gpsText(lat, lng) {
+    return Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6);
+  }
+
+  function setAddressFromGPS(lat, lng) {
+    setAddress("GPS: " + gpsText(lat, lng));
+  }
+
+  async function reverseBigDataCloud(lat, lng) {
+    var url = "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" +
+      encodeURIComponent(lat) + "&longitude=" + encodeURIComponent(lng) +
+      "&localityLanguage=vi";
+
     try {
-      var response = await fetch(url, { headers: { "Accept": "application/json" } });
+      var response = await fetch(url, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
       if (!response.ok) throw new Error("HTTP " + response.status);
       var data = await response.json();
-      return data && data.display_name ? data.display_name : null;
+
+      var parts = [];
+      if (data.locality) parts.push(data.locality);
+      if (data.city && parts.indexOf(data.city) === -1) parts.push(data.city);
+      if (data.principalSubdivision && parts.indexOf(data.principalSubdivision) === -1) {
+        parts.push(data.principalSubdivision);
+      }
+      if (data.countryName && parts.indexOf(data.countryName) === -1) {
+        parts.push(data.countryName);
+      }
+
+      return parts.length ? parts.join(", ") : null;
     } catch (e) {
-      console.warn("CHOCO SHIP reverse geocode:", e);
+      console.warn("CHOCO SHIP BigDataCloud reverse geocode:", e);
       return null;
     }
   }
 
+  async function reverseNominatim(lat, lng) {
+    var url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" +
+      encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lng) +
+      "&zoom=18&addressdetails=1&accept-language=vi";
+
+    try {
+      var response = await fetch(url, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      var data = await response.json();
+
+      if (data && data.display_name) return data.display_name;
+      return null;
+    } catch (e) {
+      console.warn("CHOCO SHIP Nominatim reverse geocode:", e);
+      return null;
+    }
+  }
+
+  async function reverseGeocode(lat, lng) {
+    // Ưu tiên API không cần key, sau đó dùng Nominatim làm dự phòng.
+    var address = await reverseBigDataCloud(lat, lng);
+    if (address) return address;
+    return await reverseNominatim(lat, lng);
+  }
+
   function finish(lat, lng) {
+    lat = Number(lat);
+    lng = Number(lng);
+
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+    // Hiện GPS ngay lập tức, không chờ reverse geocode.
     setAddressFromGPS(lat, lng);
-    setText("cartGpsText", "📍 GPS giao hàng: " + lat.toFixed(6) + ", " + lng.toFixed(6));
+    setText(
+      "cartGpsText",
+      "📍 GPS giao hàng: " + gpsText(lat, lng) + "\n⏳ Đang tìm địa chỉ..."
+    );
 
     reverseGeocode(lat, lng).then(function (addressText) {
-      if (!addressText) return;
       var address = document.getElementById("address");
-      if (address && address.value.indexOf("GPS:") === 0) {
-        address.value = addressText;
-        address.dispatchEvent(new Event("input", { bubbles: true }));
-        address.dispatchEvent(new Event("change", { bubbles: true }));
+
+      if (addressText) {
+        // Chỉ thay nếu người dùng chưa tự sửa địa chỉ.
+        if (address && (!address.value || address.value.indexOf("GPS:") === 0)) {
+          setAddress(addressText);
+        }
+        setText(
+          "cartGpsText",
+          "📍 " + addressText + "\nGPS: " + gpsText(lat, lng)
+        );
+      } else {
+        setText(
+          "cartGpsText",
+          "📍 GPS: " + gpsText(lat, lng) + "\n⚠️ Chưa tìm được tên địa chỉ tự động."
+        );
       }
-      setText("cartGpsText", "📍 " + addressText + "\nGPS: " + lat.toFixed(6) + ", " + lng.toFixed(6));
+    }).catch(function (e) {
+      console.warn("CHOCO SHIP address lookup:", e);
     });
   }
 
@@ -60,15 +129,20 @@
       document.getElementById("cartGpsText"),
       document.getElementById("locationText")
     ];
+
     for (var i = 0; i < sources.length; i++) {
       var text = sources[i] ? sources[i].innerText || "" : "";
       var match = text.match(/(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+
       if (match) {
         var lat = Number(match[1]);
         var lng = Number(match[2]);
-        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat: lat, lng: lng };
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          return { lat: lat, lng: lng };
+        }
       }
     }
+
     return null;
   }
 
@@ -77,12 +151,14 @@
     var timer = setInterval(function () {
       tries++;
       var gps = extractGPS();
+
       if (gps) {
         clearInterval(timer);
         finish(gps.lat, gps.lng);
         return;
       }
-      // Cho đủ thời gian cho GPS iPhone trả kết quả.
+
+      // Cho GPS iPhone đủ thời gian trả kết quả.
       if (tries >= 100) clearInterval(timer);
     }, 250);
   }
@@ -93,9 +169,17 @@
     watchForGPSAndAddress();
   };
 
+  // Nếu đã có GPS lưu từ trước thì tự đồng bộ địa chỉ khi mở giỏ hàng.
   try {
-    var saved = JSON.parse(localStorage.getItem("choco_ship_delivery_gps") || "null");
-    if (saved && Number.isFinite(Number(saved.lat)) && Number.isFinite(Number(saved.lng))) {
+    var saved = JSON.parse(
+      localStorage.getItem("choco_ship_delivery_gps") || "null"
+    );
+
+    if (
+      saved &&
+      Number.isFinite(Number(saved.lat)) &&
+      Number.isFinite(Number(saved.lng))
+    ) {
       finish(Number(saved.lat), Number(saved.lng));
     }
   } catch (e) {}
