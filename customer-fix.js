@@ -20,6 +20,19 @@
     });
   }
 
+  async function reverseGeocode(lat, lng) {
+    var url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lng) + "&zoom=18&addressdetails=1&accept-language=vi";
+    try {
+      var response = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      var data = await response.json();
+      if (data && data.display_name) return data.display_name;
+    } catch (e) {
+      console.warn("Reverse geocode failed:", e);
+    }
+    return "GPS: " + lat.toFixed(6) + ", " + lng.toFixed(6);
+  }
+
   function sync(lat, lng) {
     lat = Number(lat);
     lng = Number(lng);
@@ -30,9 +43,10 @@
 
     var coords = lat.toFixed(6) + ", " + lng.toFixed(6);
 
-    // Ô địa chỉ nhận luôn tọa độ GPS, không cần lấy GPS lần 2.
     var address = document.getElementById("address");
-    if (address) address.value = "GPS: " + coords;
+    if (address && (!address.value.trim() || address.value.indexOf("GPS:") === 0)) {
+      address.value = "GPS: " + coords;
+    }
 
     text("locationText", "📍 Vị trí giao hàng:\n" + coords);
     text("cartGpsText", "📍 GPS giao hàng: " + coords);
@@ -61,6 +75,16 @@
     } catch (e) {}
 
     buttons("📍 CẬP NHẬT GPS", false);
+
+    // Đổi GPS thành địa chỉ dễ đọc; nếu dịch vụ lỗi vẫn giữ GPS.
+    reverseGeocode(lat, lng).then(function (addressText) {
+      var address = document.getElementById("address");
+      if (address && (!address.value.trim() || address.value.indexOf("GPS:") === 0)) {
+        address.value = addressText;
+      }
+      text("cartGpsText", "📍 " + addressText + "\nGPS: " + coords);
+      text("locationText", "📍 " + addressText + "\n" + coords);
+    });
   }
 
   function getGPSFixed() {
@@ -102,10 +126,8 @@
     );
   }
 
-  // Các nút hiện tại đều gọi getGPS(), nên chỉ cần thay đúng hàm này.
   window.getGPS = getGPSFixed;
 
-  // Nếu đã có GPS trước đó thì dùng lại, không hỏi lại.
   try {
     var saved = JSON.parse(localStorage.getItem("choco_ship_delivery_gps") || "null");
     if (saved && Number.isFinite(Number(saved.lat)) && Number.isFinite(Number(saved.lng))) {
