@@ -13,7 +13,7 @@
   function distance(a,b,c,d){const R=6371,la=(c-a)*Math.PI/180,lo=(d-b)*Math.PI/180,x=Math.sin(la/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(lo/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
   function ago(iso){if(!iso)return 'chưa có';const s=Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/1000));if(s<60)return s+' giây';const m=Math.floor(s/60);if(m<60)return m+' phút';return Math.floor(m/60)+' giờ';}
   const style=document.createElement('style');
-  style.textContent='.dispatch-panel{background:#fff;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px #ddd;border:1px solid #bfdbfe}.dispatch-title{font-size:18px;font-weight:800;margin-bottom:10px}.dispatch-help{font-size:12px;color:#64748b;margin-bottom:10px}.dispatch-order{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:9px}.dispatch-order-head{display:flex;justify-content:space-between;gap:8px}.dispatch-code{font-weight:800;color:#ff6b00}.dispatch-total{font-weight:800;color:#e65100}.dispatch-shipper{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin-top:9px}.dispatch-off{background:#f8fafc;border-color:#e2e8f0}.dispatch-btn{width:100%;border:0;border-radius:9px;padding:10px;margin-top:8px;background:#1677ff;color:#fff;font-weight:800}.dispatch-assign{width:100%;border:0;border-radius:9px;padding:11px;margin-top:8px;background:#16a34a;color:#fff;font-weight:800}.dispatch-assign:disabled{opacity:.6}.dispatch-empty{padding:18px;text-align:center;color:#777}.dispatch-muted{font-size:12px;color:#64748b}.dispatch-near{color:#15803d;font-weight:800;margin-top:7px}.dispatch-far{color:#c2410c;font-weight:800}.dispatch-assigned{background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:10px;padding:10px;margin-top:9px;font-weight:800}';
+  style.textContent='.dispatch-panel{background:#fff;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px #ddd;border:1px solid #bfdbfe}.dispatch-title{font-size:18px;font-weight:800;margin-bottom:10px}.dispatch-help{font-size:12px;color:#64748b;margin-bottom:10px}.dispatch-order{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:9px}.dispatch-order-head{display:flex;justify-content:space-between;gap:8px}.dispatch-code{font-weight:800;color:#ff6b00}.dispatch-total{font-weight:800;color:#e65100}.dispatch-shipper{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin-top:9px}.dispatch-off{background:#f8fafc;border-color:#e2e8f0}.dispatch-btn{width:100%;border:0;border-radius:9px;padding:10px;margin-top:8px;background:#1677ff;color:#fff;font-weight:800}.dispatch-assign{width:100%;border:0;border-radius:9px;padding:11px;margin-top:8px;background:#16a34a;color:#fff;font-weight:800}.dispatch-assign:disabled{opacity:.6}.dispatch-empty{padding:18px;text-align:center;color:#777}.dispatch-muted{font-size:12px;color:#64748b}.dispatch-near{color:#15803d;font-weight:800;margin-top:7px}.dispatch-far{color:#c2410c;font-weight:800}.dispatch-assigned{background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:10px;padding:10px;margin-top:9px;font-weight:800}.live-panel{background:#fff;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px #ddd;border:1px solid #86efac}.live-title{font-size:18px;font-weight:800;margin-bottom:6px}.live-help{font-size:12px;color:#64748b;margin-bottom:10px}.live-grid{display:grid;grid-template-columns:1fr;gap:9px}.live-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px}.live-head{display:flex;justify-content:space-between;gap:8px}.live-code{font-weight:800;color:#ff6b00}.live-status{font-weight:800}.live-online{color:#15803d}.live-offline{color:#64748b}.live-shipper{margin-top:7px;line-height:1.6}.live-btn{width:100%;border:0;border-radius:9px;padding:10px;margin-top:8px;background:#1677ff;color:#fff;font-weight:800}.live-empty{text-align:center;padding:18px;color:#777}@media(min-width:700px){.live-grid{grid-template-columns:1fr 1fr}}';
   document.head.appendChild(style);
   function inject(){
     if(document.getElementById('chocoDispatchPanel'))return;
@@ -83,4 +83,65 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{inject();load()});else{inject();load()}
   setInterval(load,30000);
   window.loadDispatch=load;
+})();
+
+/* =========================================================
+   ADMIN LIVE ORDER TRACKING
+   Theo dõi đơn đang giao + Shipper hiện tại trên cùng khu vực.
+   Không thay đổi Push/GPS của khách/Shipper.
+   ========================================================= */
+(function(){
+  if(window.__CHOCO_ADMIN_LIVE_TRACKING__) return;
+  window.__CHOCO_ADMIN_LIVE_TRACKING__=true;
+  const SB='https://guwdswqaqnhzqapflvey.supabase.co';
+  const KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+  const TOKEN=()=>localStorage.getItem('choco_access_token')||'';
+  if(localStorage.getItem('choco_role')!=='admin') return;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const age=iso=>{if(!iso)return 'chưa có';const s=Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/1000));if(s<60)return s+' giây';const m=Math.floor(s/60);if(m<60)return m+' phút';return Math.floor(m/60)+' giờ';};
+  const dist=(a,b,c,d)=>{const R=6371,la=(c-a)*Math.PI/180,lo=(d-b)*Math.PI/180,x=Math.sin(la/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(lo/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));};
+  function style(){
+    if(document.getElementById('chocoLiveStyle'))return;
+    const s=document.createElement('style');s.id='chocoLiveStyle';s.textContent='.live-panel{background:#fff;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px #ddd;border:1px solid #86efac}.live-title{font-size:18px;font-weight:800;margin-bottom:6px}.live-help{font-size:12px;color:#64748b;margin-bottom:10px}.live-grid{display:grid;grid-template-columns:1fr;gap:9px}.live-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px}.live-head{display:flex;justify-content:space-between;gap:8px}.live-code{font-weight:800;color:#ff6b00}.live-status{font-weight:800}.live-online{color:#15803d}.live-offline{color:#64748b}.live-shipper{margin-top:7px;line-height:1.6}.live-btn{width:100%;border:0;border-radius:9px;padding:10px;margin-top:8px;background:#1677ff;color:#fff;font-weight:800}.live-empty{text-align:center;padding:18px;color:#777}@media(min-width:700px){.live-grid{grid-template-columns:1fr 1fr}}';document.head.appendChild(s);
+  }
+  function inject(){
+    if(document.getElementById('chocoLivePanel'))return;
+    const p=document.createElement('div');p.id='chocoLivePanel';p.className='live-panel';
+    p.innerHTML='<div class="live-title">📦 LIVE THEO DÕI ĐƠN ĐANG GIAO</div><div class="live-help">Theo dõi đơn đã nhận, đang lấy hàng, đang giao và vị trí Shipper hiện tại.</div><div id="liveStatus" class="live-help">⏳ Đang tải...</div><div id="liveOrders" class="live-grid"></div>';
+    const dispatch=document.getElementById('chocoDispatchPanel');
+    const container=document.querySelector('.container');
+    if(dispatch&&dispatch.parentElement)dispatch.parentElement.insertBefore(p,dispatch.nextSibling);else if(container)container.insertBefore(p,container.firstChild);
+  }
+  async function get(path){const r=await fetch(SB+path,{headers:{apikey:KEY,Authorization:'Bearer '+TOKEN(),Accept:'application/json'}});if(!r.ok)throw Error('HTTP '+r.status);return r.json();}
+  async function loadLive(){
+    inject();const status=document.getElementById('liveStatus'),box=document.getElementById('liveOrders');if(!status||!box)return;
+    try{
+      const [orders,profiles]=await Promise.all([
+        get('/rest/v1/orders?status=in.(%22Đã%20nhận%22,%22Đang%20lấy%20hàng%22,%22Đang%20giao%22,%22Đã%20giao%22)&select=id,code,name,address,dropoff,status,shipper_id,latitude,longitude,created_at&order=created_at.desc&limit=100'),
+        get('/rest/v1/profiles?role=eq.shipper&select=id,full_name,phone,is_online,last_seen,latitude,longitude')
+      ]);
+      const byId={};profiles.forEach(p=>byId[String(p.id)]=p);
+      if(!orders.length){box.innerHTML='<div class="live-empty">📭 Hiện không có đơn đang xử lý.</div>';status.textContent='🟢 Hệ thống đang hoạt động';return;}
+      box.innerHTML=orders.map(o=>{
+        const p=o.shipper_id?byId[String(o.shipper_id)]:null;
+        const hasOrderGPS=Number.isFinite(Number(o.latitude))&&Number.isFinite(Number(o.longitude));
+        const hasShipperGPS=p&&Number.isFinite(Number(p.latitude))&&Number.isFinite(Number(p.longitude));
+        let near='';
+        if(hasOrderGPS&&hasShipperGPS)near='<div>📏 Shipper cách khách khoảng <b>'+dist(Number(o.latitude),Number(o.longitude),Number(p.latitude),Number(p.longitude)).toFixed(1)+' km</b></div>';
+        const online=!!p?.is_online&&p?.last_seen&&(Date.now()-new Date(p.last_seen).getTime()<90000);
+        const statusClass=online?'live-online':'live-offline';
+        return '<div class="live-card"><div class="live-head"><div class="live-code">📦 '+esc(o.code||('#'+o.id))+'</div><div class="live-status">'+esc(o.status||'')+'</div></div><div style="margin-top:7px">👤 '+esc(o.name||'Khách hàng')+'<br>🏁 '+esc(o.dropoff||o.address||'Chưa có địa chỉ')+'</div>'+(p?'<div class="live-shipper">🚚 <b>'+esc(p.full_name||'Shipper')+'</b><br>📞 '+esc(p.phone||'Chưa có SĐT')+'<br><span class="'+statusClass+'">'+(online?'🟢 Online':'⚫ Offline')+'</span> • GPS '+esc(age(p.last_seen))+' trước'+near+'</div>':'<div class="live-shipper">🚚 ⚠️ Chưa có Shipper</div>')+(hasShipperGPS?'<button class="live-btn" data-live-lat="'+Number(p.latitude)+'" data-live-lng="'+Number(p.longitude)+'">📍 XEM SHIPPER TRÊN BẢN ĐỒ</button>':'')+'</div>';
+      }).join('');
+      status.textContent='📦 '+orders.length+' đơn đang xử lý • Cập nhật '+new Date().toLocaleTimeString('vi-VN');
+    }catch(e){console.error('ADMIN LIVE',e);status.textContent='❌ Không tải được dữ liệu theo dõi';box.innerHTML='<div class="live-empty">Không tải được dữ liệu live.</div>';}
+  }
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('.live-btn');if(!b)return;
+    const lat=Number(b.dataset.liveLat),lng=Number(b.dataset.liveLng);
+    if(window.map&&typeof window.map.setView==='function'){window.map.setView([lat,lng],16);return;}
+    const panel=document.getElementById('shipperGpsPanel');if(panel)panel.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{style();inject();loadLive()});else{style();inject();loadLive()}
+  setInterval(loadLive,30000);
+  window.loadAdminLive=loadLive;
 })();
