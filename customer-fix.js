@@ -56,6 +56,14 @@
     }
   }
 
+  function formatDeliveryAddress(lat, lng, addressText) {
+    const gpsText = "📍 GPS: " + Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6);
+    const cleanAddress = String(addressText || "").trim();
+    return cleanAddress && !cleanAddress.startsWith("📍 GPS:")
+      ? gpsText + " | 🏠 " + cleanAddress
+      : gpsText;
+  }
+
   function syncAddressField(text, markAsManual) {
     const address = document.getElementById("address");
     if (!address || !text) return false;
@@ -95,17 +103,20 @@
       address: ""
     };
 
-    // The cart input may be created after the GPS button is pressed.
     const address = document.getElementById("address");
-    if (address) address.placeholder = "⏳ Đang lấy địa chỉ từ vị trí...";
+    if (address) {
+      address.placeholder = "⏳ Đang lấy GPS + địa chỉ...";
+      // Show GPS immediately, even while reverse geocoding is loading.
+      syncAddressField(formatDeliveryAddress(lat, lng, "Đang lấy địa chỉ..."), false);
+    }
 
     const text = await reverseAddress(lat, lng);
-    const finalText = text || ("📍 GPS: " + Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6));
+    const finalText = formatDeliveryAddress(lat, lng, text || "Chưa xác định được địa chỉ");
 
     pendingDeliveryLocation.address = finalText;
     saveDeliveryAddress(finalText);
 
-    // Fill immediately when the cart field already exists.
+    // GPS + human-readable address are displayed together in the cart field.
     syncAddressField(finalText, false);
 
     if (address) address.placeholder = "Ví dụ: 123 đường Trần Hưng Đạo...";
@@ -123,27 +134,30 @@
     const address = document.getElementById("address");
     if (!address) return;
 
-    const saved = localStorage.getItem("choco_ship_delivery_address");
-    if (saved) {
-      syncAddressField(saved, false);
-      return;
-    }
-
-    // If the cart was rendered after GPS was selected, use the latest location
-    // and create a guaranteed fallback address instead of leaving the field blank.
-    if (pendingDeliveryLocation && pendingDeliveryLocation.address) {
-      syncAddressField(pendingDeliveryLocation.address, false);
-      return;
-    }
-
     try {
       const savedGPS = JSON.parse(localStorage.getItem("choco_ship_delivery_gps") || "null");
+      const savedAddress = localStorage.getItem("choco_ship_delivery_address") || "";
+
       if (savedGPS && Number.isFinite(Number(savedGPS.lat)) && Number.isFinite(Number(savedGPS.lng))) {
-        const fallback = "📍 GPS: " + Number(savedGPS.lat).toFixed(6) + ", " + Number(savedGPS.lng).toFixed(6);
-        syncAddressField(fallback, false);
-        saveDeliveryAddress(fallback);
+        let readable = savedAddress;
+        // Avoid nesting GPS text if the saved address already contains it.
+        readable = readable.replace(/^📍 GPS:\s*[-0-9.]+,\s*[-0-9.]+\s*\|\s*🏠\s*/i, "");
+        readable = readable.replace(/^📍 GPS:\s*[-0-9.]+,\s*[-0-9.]+\s*$/i, "");
+
+        const combined = formatDeliveryAddress(savedGPS.lat, savedGPS.lng, readable);
+        syncAddressField(combined, false);
+        saveDeliveryAddress(combined);
+        return;
       }
-    } catch (e) {}
+
+      if (savedAddress) syncAddressField(savedAddress, false);
+    } catch (e) {
+      console.warn("Không khôi phục được địa chỉ/GPS:", e);
+    }
+
+    if (pendingDeliveryLocation && pendingDeliveryLocation.address) {
+      syncAddressField(pendingDeliveryLocation.address, false);
+    }
   }
 
   // GPS setter: GPS is the source of coordinates AND updates the cart address.
@@ -170,7 +184,7 @@
 
     updateShippingDisplay();
 
-    // Keep cart address synchronized with the newest GPS location.
+    // Keep GPS + address synchronized with the newest location.
     await updateAddressFromGPS(currentGPS.lat, currentGPS.lng);
   };
 
