@@ -2,67 +2,132 @@
 (function () {
   "use strict";
 
-  /*
-   * customer.html already loads this file.
-   * Attach the authenticated customer's UUID to every new orders POST.
-   * Prefer choco_user_id; if it is missing, recover auth.uid() from the
-   * Supabase access-token JWT `sub`. This fixes accounts where the login
-   * flow did not persist choco_user_id.
-   */
+  var SUPABASE_URL = "https://guwdswqaqnhzqapflvey.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+
+  function decodeJwt(token) {
+    try {
+      var parts = String(token || "").split(".");
+      if (parts.length !== 3) return null;
+      var b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      b64 += "=".repeat((4 - b64.length % 4) % 4);
+      return JSON.parse(atob(b64));
+    } catch (e) {
+      return null;
+    }
+  }
+
   function getCustomerId() {
     var uid = localStorage.getItem("choco_user_id") || "";
+    var token = localStorage.getItem("choco_access_token") || "";
+
+    /* Existing login value wins, but validate it as a UUID-like value. */
+    if (uid && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(uid)) return uid;
+
+    /* Recover the authenticated Supabase user id directly from the access token. */
+    var claims = decodeJwt(token);
+    if (claims && typeof claims.sub === "string" && claims.sub) {
+      uid = claims.sub;
+      localStorage.setItem("choco_user_id", uid);
+      localStorage.setItem("choco_access_token", token);
+      return uid;
+    }
+
+    return "";
+  }
+
+  /* Make the helper used by customer.html use the same robust identity logic. */
+  window.getCustomerId = getCustomerId;
+
+  /*
+   * If a valid Supabase access token exists but choco_user_id was lost,
+   * recover it from /auth/v1/user as a second, authoritative fallback.
+   */
+  async function restoreCustomerSession() {
+    var token = localStorage.getItem("choco_access_token") || "";
+    if (!token) return "";
+
+    var uid = getCustomerId();
     if (uid) return uid;
 
-    var token = localStorage.getItem("choco_access_token") || "";
     try {
-      var parts = token.split(".");
-      if (parts.length === 3) {
-        var b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-        b64 += "=".repeat((4 - b64.length % 4) % 4);
-        var claims = JSON.parse(atob(b64));
-        if (claims && typeof claims.sub === "string" && claims.sub) {
-          uid = claims.sub;
-          localStorage.setItem("choco_user_id", uid);
-          console.log("[CHOCO SHIP] recovered customer_id from auth token:", uid);
-          return uid;
+      var r = await fetch(SUPABASE_URL + "/auth/v1/user", {
+        method: "GET",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + token,
+          Accept: "application/json"
         }
+      });
+      if (!r.ok) return "";
+      var user = await r.json();
+      if (user && user.id) {
+        localStorage.setItem("choco_user_id", String(user.id));
+        if (user.email) localStorage.setItem("choco_email", user.email);
+        console.log("[CHOCO SHIP] customer session restored:", user.id);
+        return String(user.id);
       }
     } catch (e) {
-      console.warn("[CHOCO SHIP] cannot recover auth.uid():", e);
+      console.warn("[CHOCO SHIP] customer session restore failed:", e);
     }
     return "";
   }
 
+  restoreCustomerSession();
+
+  /*
+   * Attach customer_id to every order POST and, importantly, send the real
+   * Supabase access token instead of using the publishable key as the bearer.
+   * This makes the request compatible with authenticated RLS policies.
+   */
   if (!window.__chocoCustomerOrderIdentityInstalled) {
     window.__chocoCustomerOrderIdentityInstalled = true;
     var originalFetchForIdentity = window.fetch.bind(window);
+
     window.fetch = function (input, init) {
       init = init || {};
+
       try {
         var url = typeof input === "string" ? input : (input && input.url) || "";
-        var method = String(init.method || (typeof input !== "string" && input && input.method) || "GET").toUpperCase();
+        var method = String(
+          init.method ||
+          (typeof input !== "string" && input && input.method) ||
+          "GET"
+        ).toUpperCase();
+
         if (method === "POST" && /\/rest\/v1\/orders(?:\?|$)/i.test(url) && init.body) {
           var uid = getCustomerId();
-          if (uid) {
-            var payload = null;
-            if (typeof init.body === "string") {
-              try { payload = JSON.parse(init.body); } catch (e) {}
-            }
-            if (payload && typeof payload === "object" && !Array.isArray(payload)) {
-              payload.customer_id = uid;
-              init = Object.assign({}, init, { body: JSON.stringify(payload) });
-              var headers = new Headers(init.headers || {});
-              headers.set("Content-Type", "application/json");
-              init.headers = headers;
-              console.log("[CHOCO SHIP] customer_id attached:", uid);
-            }
-          } else {
-            console.warn("[CHOCO SHIP] Không tìm thấy customer UUID; đơn sẽ không có customer_id.");
+          var token = localStorage.getItem("choco_access_token") || "";
+          var payload = null;
+
+          if (typeof init.body === "string") {
+            try { payload = JSON.parse(init.body); } catch (e) {}
+          }
+
+          if (uid && payload && typeof payload === "object" && !Array.isArray(payload)) {
+            payload.customer_id = uid;
+            init = Object.assign({}, init, { body: JSON.stringify(payload) });
+
+            var headers = new Headers(init.headers || {});
+            headers.set("Content-Type", "application/json");
+            if (token) headers.set("Authorization", "Bearer " + token);
+            headers.set("apikey", SUPABASE_KEY);
+            init.headers = headers;
+
+            console.log("[CHOCO SHIP] order customer_id attached:", uid);
+          } else if (token && payload && typeof payload === "object") {
+            /* If JWT parsing is temporarily unavailable, don't downgrade to the publishable key. */
+            var headersFallback = new Headers(init.headers || {});
+            headersFallback.set("Content-Type", "application/json");
+            headersFallback.set("Authorization", "Bearer " + token);
+            headersFallback.set("apikey", SUPABASE_KEY);
+            init.headers = headersFallback;
           }
         }
       } catch (e) {
         console.warn("[CHOCO SHIP] customer identity hook:", e);
       }
+
       return originalFetchForIdentity(input, init);
     };
   }
@@ -73,7 +138,6 @@
     return;
   }
 
-  var SUPABASE_URL = "https://guwdswqaqnhzqapflvey.supabase.co";
   var REVERSE_URL = SUPABASE_URL + "/functions/v1/reverse-geocode";
 
   function setText(id, value) {
@@ -102,9 +166,14 @@
     var timeout = setTimeout(function () { controller.abort(); }, 8000);
 
     try {
+      var token = localStorage.getItem("choco_access_token") || "";
+      var headers = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = "Bearer " + token;
+      headers.apikey = SUPABASE_KEY;
+
       var response = await fetch(REVERSE_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({ lat: lat, lng: lng }),
         signal: controller.signal
       });
