@@ -3,11 +3,36 @@
   "use strict";
 
   /*
-   * The live customer.html already loads this file.
-   * Attach the logged-in customer's UUID directly to every new orders POST.
-   * This avoids relying on a separately loaded identity script and keeps
-   * the existing GPS/address logic unchanged.
+   * customer.html already loads this file.
+   * Attach the authenticated customer's UUID to every new orders POST.
+   * Prefer choco_user_id; if it is missing, recover auth.uid() from the
+   * Supabase access-token JWT `sub`. This fixes accounts where the login
+   * flow did not persist choco_user_id.
    */
+  function getCustomerId() {
+    var uid = localStorage.getItem("choco_user_id") || "";
+    if (uid) return uid;
+
+    var token = localStorage.getItem("choco_access_token") || "";
+    try {
+      var parts = token.split(".");
+      if (parts.length === 3) {
+        var b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        b64 += "=".repeat((4 - b64.length % 4) % 4);
+        var claims = JSON.parse(atob(b64));
+        if (claims && typeof claims.sub === "string" && claims.sub) {
+          uid = claims.sub;
+          localStorage.setItem("choco_user_id", uid);
+          console.log("[CHOCO SHIP] recovered customer_id from auth token:", uid);
+          return uid;
+        }
+      }
+    } catch (e) {
+      console.warn("[CHOCO SHIP] cannot recover auth.uid():", e);
+    }
+    return "";
+  }
+
   if (!window.__chocoCustomerOrderIdentityInstalled) {
     window.__chocoCustomerOrderIdentityInstalled = true;
     var originalFetchForIdentity = window.fetch.bind(window);
@@ -17,7 +42,7 @@
         var url = typeof input === "string" ? input : (input && input.url) || "";
         var method = String(init.method || (typeof input !== "string" && input && input.method) || "GET").toUpperCase();
         if (method === "POST" && /\/rest\/v1\/orders(?:\?|$)/i.test(url) && init.body) {
-          var uid = localStorage.getItem("choco_user_id") || "";
+          var uid = getCustomerId();
           if (uid) {
             var payload = null;
             if (typeof init.body === "string") {
@@ -32,7 +57,7 @@
               console.log("[CHOCO SHIP] customer_id attached:", uid);
             }
           } else {
-            console.warn("[CHOCO SHIP] Không có choco_user_id; đơn sẽ không có customer_id.");
+            console.warn("[CHOCO SHIP] Không tìm thấy customer UUID; đơn sẽ không có customer_id.");
           }
         }
       } catch (e) {
