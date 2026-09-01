@@ -1,6 +1,46 @@
-/* CHOCO SHIP - GPS + ADDRESS FIX */
+/* CHOCO SHIP - GPS + ADDRESS FIX + CUSTOMER ID */
 (function () {
   "use strict";
+
+  /*
+   * The live customer.html already loads this file.
+   * Attach the logged-in customer's UUID directly to every new orders POST.
+   * This avoids relying on a separately loaded identity script and keeps
+   * the existing GPS/address logic unchanged.
+   */
+  if (!window.__chocoCustomerOrderIdentityInstalled) {
+    window.__chocoCustomerOrderIdentityInstalled = true;
+    var originalFetchForIdentity = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      init = init || {};
+      try {
+        var url = typeof input === "string" ? input : (input && input.url) || "";
+        var method = String(init.method || (typeof input !== "string" && input && input.method) || "GET").toUpperCase();
+        if (method === "POST" && /\/rest\/v1\/orders(?:\?|$)/i.test(url) && init.body) {
+          var uid = localStorage.getItem("choco_user_id") || "";
+          if (uid) {
+            var payload = null;
+            if (typeof init.body === "string") {
+              try { payload = JSON.parse(init.body); } catch (e) {}
+            }
+            if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+              payload.customer_id = uid;
+              init = Object.assign({}, init, { body: JSON.stringify(payload) });
+              var headers = new Headers(init.headers || {});
+              headers.set("Content-Type", "application/json");
+              init.headers = headers;
+              console.log("[CHOCO SHIP] customer_id attached:", uid);
+            }
+          } else {
+            console.warn("[CHOCO SHIP] Không có choco_user_id; đơn sẽ không có customer_id.");
+          }
+        }
+      } catch (e) {
+        console.warn("[CHOCO SHIP] customer identity hook:", e);
+      }
+      return originalFetchForIdentity(input, init);
+    };
+  }
 
   var originalGetGPS = window.getGPS;
   if (typeof originalGetGPS !== "function") {
@@ -99,7 +139,6 @@
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-    // Hiện GPS ngay lập tức, không chờ API địa chỉ.
     setAddressFromGPS(lat, lng);
     setText(
       "cartGpsText",
@@ -167,13 +206,11 @@
     }, 250);
   }
 
-  // GPS chỉ lấy 1 lần; sau đó reverse geocode bằng Edge Function.
   window.getGPS = function () {
     originalGetGPS();
     watchForGPSAndAddress();
   };
 
-  // Khôi phục GPS cũ nếu có, không tự xin GPS mới.
   try {
     var saved = JSON.parse(
       localStorage.getItem("choco_ship_delivery_gps") || "null"
