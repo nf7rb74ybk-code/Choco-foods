@@ -1,4 +1,4 @@
-/* CHOCO SHIP - Shipper V2 status bridge */
+/* CHOCO SHIP - Shipper V2 status bridge + GPS */
 'use strict';
 (function () {
   const SB = 'https://guwdswqaqnhzqapflvey.supabase.co';
@@ -81,7 +81,88 @@
     });
   }
 
+  // GPS V2: update own live position and append history while the Shipper page is open.
+  let watchId = null;
+  let lastHistoryAt = 0;
+  let lastLat = null;
+  let lastLng = null;
+
+  function ensureGpsUI() {
+    if (document.getElementById('shipperV2Gps')) return;
+    const box = document.createElement('div');
+    box.id = 'shipperV2Gps';
+    box.className = 'box';
+    box.innerHTML = '<b>📍 GPS SHIPPER V2</b><div id="shipperV2GpsStatus" class="small" style="margin:7px 0">Chưa bật GPS.</div><button id="shipperV2GpsBtn" class="action">📍 BẬT GPS SHIPPER</button>';
+    const main = document.querySelector('main') || document.body;
+    main.insertBefore(box, main.firstChild);
+    document.getElementById('shipperV2GpsBtn').onclick = startGps;
+  }
+
+  function gpsStatus(text, ok) {
+    const el = document.getElementById('shipperV2GpsStatus');
+    const btn = document.getElementById('shipperV2GpsBtn');
+    if (el) { el.textContent = text; el.style.color = ok ? '#166534' : '#991b1b'; }
+    if (btn) btn.textContent = ok ? '✅ GPS ĐANG HOẠT ĐỘNG' : '📍 BẬT GPS SHIPPER';
+  }
+
+  async function saveGps(lat, lng) {
+    try {
+      const r = await api('/rest/v1/profiles?id=eq.' + encodeURIComponent(UID), {
+        method: 'PATCH',
+        body: JSON.stringify({ latitude: lat, longitude: lng, is_online: true, last_seen: new Date().toISOString() })
+      });
+      if (!r.ok) throw Error(await r.text());
+
+      if (Date.now() - lastHistoryAt >= 25000) {
+        const h = await api('/rest/v1/shipper_gps_history', {
+          method: 'POST',
+          body: JSON.stringify({ shipper_id: UID, latitude: lat, longitude: lng })
+        });
+        if (!h.ok) console.warn('GPS history:', await h.text());
+        else lastHistoryAt = Date.now();
+      }
+    } catch (e) {
+      console.warn('GPS save:', e);
+      gpsStatus('⚠️ GPS lấy được nhưng chưa lưu được lên máy chủ.', false);
+    }
+  }
+
+  function onGps(position) {
+    lastLat = Number(position.coords.latitude);
+    lastLng = Number(position.coords.longitude);
+    gpsStatus('🟢 GPS hoạt động • ' + lastLat.toFixed(6) + ', ' + lastLng.toFixed(6), true);
+    saveGps(lastLat, lastLng);
+  }
+
+  function onGpsError(err) {
+    const msg = err.code === 1 ? '❌ Bạn chưa cho phép quyền vị trí.' : err.code === 2 ? '❌ Không xác định được vị trí.' : '❌ GPS hết thời gian chờ.';
+    gpsStatus(msg, false);
+  }
+
+  function startGps() {
+    if (!navigator.geolocation) return gpsStatus('❌ Thiết bị không hỗ trợ GPS.', false);
+    if (watchId !== null) return gpsStatus('🟢 GPS hoạt động.', true);
+    const btn = document.getElementById('shipperV2GpsBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ ĐANG LẤY GPS...'; }
+    navigator.geolocation.getCurrentPosition(onGps, onGpsError, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+    watchId = navigator.geolocation.watchPosition(onGps, onGpsError, { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
+  }
+
   const observer = new MutationObserver(addButtons);
   observer.observe(document.documentElement, { childList: true, subtree: true });
   setTimeout(addButtons, 1200);
+  setTimeout(ensureGpsUI, 500);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && lastLat !== null) saveGps(lastLat, lastLng);
+  });
+
+  window.addEventListener('pagehide', () => {
+    if (watchId !== null) { try { navigator.geolocation.clearWatch(watchId); } catch {} }
+    fetch(SB + '/rest/v1/profiles?id=eq.' + encodeURIComponent(UID), {
+      method: 'PATCH', keepalive: true,
+      headers: { apikey: KEY, Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ is_online: false, last_seen: new Date().toISOString() })
+    }).catch(() => {});
+  });
 })();
