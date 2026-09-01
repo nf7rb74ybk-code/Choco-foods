@@ -1,0 +1,1 @@
+Backup of customer-fix.js before GPS/address fix on 2026-09-01. Source SHA: ff704db03c286c876d9625617badbb5f666897bb
