@@ -49,7 +49,6 @@
     }
   }
 
-  // Override GPS setter: GPS remains the source of coordinates and can fill address.
   window.setDeliveryLocation = async function (lat, lng, message) {
     currentGPS.lat = Number(lat);
     currentGPS.lng = Number(lng);
@@ -71,7 +70,6 @@
 
     updateShippingDisplay();
 
-    // Only auto-fill address when customer has not typed one.
     const address = document.getElementById("address");
     if (address && !address.value.trim()) {
       address.placeholder = "⏳ Đang lấy địa chỉ từ vị trí...";
@@ -84,7 +82,6 @@
     }
   };
 
-  // Override GPS button so the existing UI works with the new setter.
   window.getGPS = function () {
     if (!navigator.geolocation) {
       alert("❌ Thiết bị không hỗ trợ GPS.");
@@ -128,7 +125,6 @@
     );
   };
 
-  // One-click order. The Supabase INSERT happens exactly once per click.
   window.createOrder = async function () {
     if (orderSubmitting) return;
 
@@ -187,7 +183,6 @@
     }
 
     try {
-      // IMPORTANT: exactly one order INSERT.
       const response = await fetch(SUPABASE_URL + "/rest/v1/orders", {
         method: "POST",
         headers: {
@@ -206,7 +201,6 @@
 
       localStorage.setItem("choco_ship_last_order", JSON.stringify(order));
 
-      // Notification is best-effort. Never ask customer to submit again.
       try {
         const pushResponse = await fetch(SUPABASE_URL + "/functions/v1/send-push", {
           method: "POST",
@@ -253,7 +247,6 @@
       const paymentEl = document.getElementById("payment");
       if (paymentEl) paymentEl.value = "cash";
 
-      // Close cart after successful single submission.
       setTimeout(() => {
         if (typeof closeCart === "function") closeCart();
       }, 300);
@@ -270,13 +263,31 @@
     }
   };
 
-  // When address is typed manually, keep GPS if it was already selected.
   document.addEventListener("DOMContentLoaded", function () {
     const address = document.getElementById("address");
     if (address) {
       address.addEventListener("input", function () {
         address.style.borderColor = "#ddd";
       });
+    }
+
+    // Customer tracking shortcut: only appears for an authenticated customer.
+    const token = localStorage.getItem("choco_access_token");
+    const role = localStorage.getItem("choco_role");
+    if (token && role === "customer") {
+      const bottom = document.querySelector(".bottom");
+      if (bottom && !document.getElementById("trackingShortcut")) {
+        const btn = document.createElement("button");
+        btn.id = "trackingShortcut";
+        btn.innerHTML = "<span>🚚</span>Theo dõi";
+        btn.onclick = function () {
+          const last = localStorage.getItem("choco_ship_last_order");
+          let code = "";
+          try { code = JSON.parse(last || "null")?.code || ""; } catch {}
+          location.href = "./tracking.html" + (code ? "?code=" + encodeURIComponent(code) : "");
+        };
+        bottom.appendChild(btn);
+      }
     }
   });
 })();
