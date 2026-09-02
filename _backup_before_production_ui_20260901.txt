@@ -1,0 +1,1 @@
+This marker identifies the pre-publication commit. The branch itself is the backup point.
