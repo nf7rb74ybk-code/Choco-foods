@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ff6b00">
+<title>CHOCO SHIP V2 — Tạo tài khoản POS</title>
+<link rel="stylesheet" href="./assets/v2.css">
+<style>
+body{background:#f7f7f8}.card{margin:14px 0}.field{margin:10px 0}.field label{display:block;font-weight:700;margin-bottom:6px}.field input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px}.primary{width:100%;margin-top:10px}.result{white-space:pre-wrap;word-break:break-word}.ok{color:#087f23;font-weight:700}.err{color:#b42318;font-weight:700}
+</style>
+</head>
+<body>
+<main class="shell">
+<a href="./admin.html">← Admin V2</a>
+<div class="badge">ADMIN ONLY</div>
+<section class="card">
+<h2>👤 TẠO TÀI KHOẢN POS V2</h2>
+<p id="who">🔐 Đang xác thực Admin...</p>
+<div class="field"><label>Email</label><input id="email" type="email" autocomplete="off" value="poschoco@gmail.com"></div>
+<div class="field"><label>Họ tên</label><input id="name" type="text" autocomplete="off" value="Le thanh dt"></div>
+<div class="field"><label>Số điện thoại (tuỳ chọn)</label><input id="phone" type="tel" autocomplete="off"></div>
+<div class="field"><label>Mật khẩu</label><input id="password" type="password" autocomplete="new-password"></div>
+<button id="create" class="primary" type="button">➕ TẠO TÀI KHOẢN POS</button>
+<p id="result" class="result"></p>
+</section>
+</main>
+<script src="./assets/v2-supabase.js"></script>
+<script src="./assets/v2-auth.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+async function boot(){
+  try{
+    const me=await v2RequireRole('admin');
+    if(!me)return;
+    $('who').textContent='🛠️ '+(me.display_name||'Admin')+' · admin';
+  }catch(e){$('who').textContent='❌ '+e.message;return}
+  $('create').onclick=create;
+}
+async function create(){
+  const btn=$('create');btn.disabled=true;$('result').textContent='⏳ Đang tạo...';
+  try{
+    const token=v2GetAccessToken();
+    if(!token)throw new Error('Không có phiên Admin');
+    const r=await fetch(V2_SUPABASE_CONFIG.url+'/functions/v1/v2-create-user',{method:'POST',headers:{apikey:V2_SUPABASE_CONFIG.anonKey,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value.trim(),display_name:$('name').value.trim(),phone:$('phone').value.trim(),password:$('password').value,role:'pos'})});
+    const text=await r.text();let data;try{data=JSON.parse(text)}catch{data={error:text}};
+    if(!r.ok||!data.ok)throw new Error(data.error||('HTTP '+r.status));
+    $('result').innerHTML='<span class="ok">✅ Tạo tài khoản POS thành công</span>\nEmail: '+data.email+'\nTên: '+data.display_name+'\nRole: '+data.role+'\nUser ID: '+data.user_id;
+    $('password').value='';
+  }catch(e){$('result').innerHTML='<span class="err">❌ '+String(e.message||e)+'</span>'}
+  finally{btn.disabled=false}
+}
+boot();
+</script>
+</body>
+</html>
