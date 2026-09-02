@@ -9,6 +9,33 @@
 </style>
 </head>
 <body>
+<script>
+(async function(){
+  document.body.style.display="none";
+  const URL="https://guwdswqaqnhzqapflvey.supabase.co";
+  const KEY="sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
+  const token=String(localStorage.getItem("choco_access_token")||"").trim();
+  if(!token){location.replace("./login.html");return;}
+  try{
+    const auth=await fetch(URL+"/auth/v1/user",{headers:{apikey:KEY,Authorization:"Bearer "+token,Accept:"application/json"}});
+    if(!auth.ok)throw Error("SESSION_INVALID");
+    const user=await auth.json();
+    if(!user?.id)throw Error("SESSION_INVALID");
+    const p=await fetch(URL+"/rest/v1/profiles?id=eq."+encodeURIComponent(user.id)+"&select=role",{headers:{apikey:KEY,Authorization:"Bearer "+token,Accept:"application/json"}});
+    if(!p.ok)throw Error("ROLE_CHECK_FAILED");
+    const rows=await p.json();
+    if(!Array.isArray(rows)||rows.length!==1||rows[0].role!=="admin"){location.replace("./index.html");return;}
+    localStorage.setItem("choco_user_id",user.id);
+    localStorage.setItem("choco_role","admin");
+    if(user.email)localStorage.setItem("choco_email",user.email);
+    document.body.style.display="";
+  }catch(e){
+    ["choco_access_token","choco_user_id","choco_role","choco_email"].forEach(k=>localStorage.removeItem(k));
+    sessionStorage.clear();
+    location.replace("./login.html");
+  }
+})();
+</script>
 <header><div class="header"><div class="logo">🚚 CHOCO SHIP</div><div><button class="refresh" onclick="loadOrders()">🔄</button><button class="pos" onclick="openPOS()">🧾 POS</button><button class="logout" onclick="logout()">🚪</button></div></div></header>
 <div class="container">
 <div class="admin-box"><div class="admin-title">ĐANG ĐĂNG NHẬP</div><div class="admin-name" id="adminName">Admin</div></div>
@@ -32,4 +59,3 @@ async function updateStatus(id,status){try{const r=await api("/rest/v1/orders?id
 <script src="./admin-live-route.js?v=20260831-1"></script>
 </body>
 </html>
-
