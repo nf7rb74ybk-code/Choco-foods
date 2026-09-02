@@ -1,1 +1,0 @@
-Backup checkpoint before publishing Production UI from choco-ship-v2. Main commit: a5e3d790fe5c3ec91651519dbfe9a810b88c7d96. Do not delete until Production UI verification is complete.
