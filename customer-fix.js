@@ -37,9 +37,7 @@
     try {
       const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" +
         encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lng) + "&zoom=18&addressdetails=1";
-      const response = await fetch(url, {
-        headers: { "Accept": "application/json" }
-      });
+      const response = await fetch(url, { headers: { "Accept": "application/json" } });
       if (!response.ok) throw new Error("Reverse geocoding failed");
       const data = await response.json();
       return data.display_name || "";
@@ -156,6 +154,16 @@
     const total = foodTotal + shippingFee;
     const distance = calculateDistance(10.2899, 103.9840, currentGPS.lat, currentGPS.lng);
     const code = "CS" + Date.now().toString().slice(-6);
+    const authToken = localStorage.getItem("choco_access_token") || "";
+    let customerId = "";
+    if (authToken) {
+      try {
+        const payload = JSON.parse(atob(authToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+        if (payload?.sub) customerId = payload.sub;
+      } catch (e) {
+        console.warn("Không đọc được customer_id từ access token:", e);
+      }
+    }
 
     const order = {
       code,
@@ -174,6 +182,8 @@
       longitude: Number(currentGPS.lng),
       distance_km: Number(distance.toFixed(2))
     };
+
+    if (customerId) order.customer_id = customerId;
 
     const button = document.getElementById("orderButton");
     orderSubmitting = true;
@@ -271,7 +281,6 @@
       });
     }
 
-    // Customer tracking shortcut: only appears for an authenticated customer.
     const token = localStorage.getItem("choco_access_token");
     const role = localStorage.getItem("choco_role");
     if (token && role === "customer") {
