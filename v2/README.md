@@ -1,20 +1,18 @@
 # CHOCO SHIP V2
 
-Khu vực phát triển/test riêng, không thay thế production.
-
-## Nguyên tắc
-- Production ở branch `main` giữ nguyên.
-- V2 phát triển trên branch `choco-ship-v2`.
-- Không sửa trực tiếp các file production trong V2.
-- Không thay đổi database production khi chưa có xác nhận.
-- Mọi module V2 phải test OK trước khi xem xét đưa vào production.
+Khu vực phát triển riêng trên branch `choco-ship-v2`. Production branch `main` không bị thay đổi.
 
 ## Modules
-- Customer V2
-- Shipper V2
-- Admin V2
-- POS V2
-- Backend/Push V2
+- Customer V2: đăng nhập, giỏ hàng, tạo đơn, thông tin giao hàng.
+- Admin V2: thống kê, lọc đơn, xác nhận/huỷ đơn, theo dõi shipper.
+- Shipper V2: nhận đơn, cập nhật trạng thái, GPS và push.
+- POS V2: tạo đơn tại quầy và lịch sử POS.
+- Auth/Backend: Supabase Auth + role profile + data layer.
 
 ## Trạng thái
-Scaffold only — chưa kết nối thao tác ghi vào production.
+V2 đã được nối các luồng chính. Phần còn lại là kiểm thử end-to-end trên thiết bị thật và rà soát bảo mật trước khi xem xét merge production.
+
+## Nguyên tắc an toàn
+- Không merge vào `main` trong giai đoạn test.
+- Không đổi Push/OneSignal/VAPID đang hoạt động của production.
+- Không thêm cột giả vào production để che lỗi frontend/cache.
