@@ -6,6 +6,21 @@ self.addEventListener('activate', event => {
   event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener('message', event => {
+  if (event.data?.type !== 'LOCAL_TEST_NOTIFICATION') return;
+  event.waitUntil(
+    self.registration.showNotification('🔔 CHOCO SHIP - TEST', {
+      body: 'Nếu bạn thấy thông báo này thì iPhone/PWA + Service Worker đang hiển thị notification bình thường.',
+      icon: './icon-512x512.png?v=20260827',
+      badge: './icon-512x512.png?v=20260827',
+      tag: 'choco-ship-local-test',
+      renotify: true,
+      silent: false,
+      data: { url: './shipper.html' }
+    })
+  );
+});
+
 self.addEventListener('push', event => {
   let data = {};
   try {
