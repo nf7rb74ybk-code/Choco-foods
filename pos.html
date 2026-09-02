@@ -6,16 +6,16 @@
 <meta name="theme-color" content="#ff6b00">
 <title>CHOCO SHIP - POS</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f4f6;color:#222}header{background:#ff6b00;color:#fff;padding:15px;position:sticky;top:0;z-index:10}.header{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}.logo{font-size:20px;font-weight:bold}.header button{border:0;border-radius:9px;padding:10px 12px;font-weight:bold;cursor:pointer}.refresh{background:#fff;color:#ff6b00}.logout{background:#dc2626;color:#fff}.container{max-width:900px;margin:auto;padding:14px}.card{background:#fff;border-radius:15px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #ddd}.title{font-size:20px;font-weight:bold;margin-bottom:5px}.muted{color:#777;font-size:13px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{background:#fff;border-radius:13px;padding:14px 7px;text-align:center;box-shadow:0 2px 7px #ddd;font-size:12px}.stat b{display:block;font-size:20px;margin-top:6px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.field{flex:1;min-width:150px}.field label{display:block;font-size:12px;color:#666;margin-bottom:5px}.field input{width:100%;padding:11px;border:1px solid #ddd;border-radius:9px;background:#fff}.btn{border:0;border-radius:9px;padding:11px 14px;font-weight:bold;background:#ff6b00;color:#fff;cursor:pointer}.orders{display:flex;flex-direction:column;gap:10px}.order{border:1px solid #eee;border-radius:13px;padding:13px}.row{display:flex;justify-content:space-between;gap:10px}.code{font-size:18px;font-weight:bold;color:#ff6b00}.amount{font-weight:bold;color:#e65100}.items{background:#f8f8f8;border-radius:10px;padding:10px;margin-top:9px;white-space:pre-wrap}.empty{text-align:center;padding:30px;color:#777}.message{margin-bottom:12px}.error{background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px}.success{background:#dcfce7;color:#166534;padding:12px;border-radius:10px}.range{font-weight:bold}.small{font-size:12px;color:#777}@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}.row{flex-direction:column;gap:4px}}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f4f6;color:#222}header{background:#ff6b00;color:#fff;padding:15px;position:sticky;top:0;z-index:10}.header{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}.logo{font-size:20px;font-weight:bold}.header button{border:0;border-radius:9px;padding:10px 12px;font-weight:bold;cursor:pointer}.refresh{background:#fff;color:#ff6b00}.logout{background:#dc2626;color:#fff}.container{max-width:900px;margin:auto;padding:14px}.card{background:#fff;border-radius:15px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #ddd}.title{font-size:20px;font-weight:bold;margin-bottom:5px}.muted{color:#777;font-size:13px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{background:#fff;border-radius:13px;padding:14px 7px;text-align:center;box-shadow:0 2px 7px #ddd;font-size:12px}.stat b{display:block;font-size:20px;margin-top:6px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.field{flex:1;min-width:150px}.field label{display:block;font-size:12px;color:#666;margin-bottom:5px}.field input,.field select{width:100%;padding:11px;border:1px solid #ddd;border-radius:9px;background:#fff}.btn{border:0;border-radius:9px;padding:11px 14px;font-weight:bold;background:#ff6b00;color:#fff;cursor:pointer}.orders{display:flex;flex-direction:column;gap:10px}.order{border:1px solid #eee;border-radius:13px;padding:13px}.row{display:flex;justify-content:space-between;gap:10px}.code{font-size:18px;font-weight:bold;color:#ff6b00}.amount{font-weight:bold;color:#e65100}.items{background:#f8f8f8;border-radius:10px;padding:10px;margin-top:9px;white-space:pre-wrap}.empty{text-align:center;padding:30px;color:#777}.message{margin-bottom:12px}.error{background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px}.success{background:#dcfce7;color:#166534;padding:12px}.range{font-weight:bold}.small{font-size:12px;color:#777}@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}.row{flex-direction:column;gap:4px}}
 </style>
 </head>
 <body>
 <header><div class="header"><div class="logo">🧾 CHOCO SHIP POS</div><div><button class="refresh" onclick="loadPOS()">🔄</button><button class="logout" onclick="logout()">🚪</button></div></div></header>
 <div class="container">
 <div id="message" class="message"></div>
-<div class="card"><div class="title">📊 Tổng kết tuần</div><div class="muted">Chu kỳ cố định: Chủ nhật 08:00 → Chủ nhật 08:00 tuần kế tiếp</div><div id="weekRange" class="range" style="margin-top:8px">Đang tính...</div></div>
+<div class="card"><div class="title">📊 Báo cáo POS</div><div class="muted">Doanh thu được tính theo <b>thời điểm tạo đơn trong orders</b>, không theo thời điểm đồng bộ POS.</div><div id="weekRange" class="range" style="margin-top:8px">Đang tính...</div></div>
 <div class="stats"><div class="stat">Số đơn<b id="count">0</b></div><div class="stat">Tiền hàng<b id="foodTotal">0đ</b></div><div class="stat">Phí giao<b id="shipTotal">0đ</b></div><div class="stat">Tổng đơn<b id="grandTotal">0đ</b></div></div>
-<div class="card"><div class="title">🔎 Chọn tuần</div><div class="toolbar"><div class="field"><label>Chủ nhật của tuần</label><input id="weekDate" type="date"></div><button class="btn" onclick="loadPOS()">Xem báo cáo</button></div></div>
+<div class="card"><div class="title">🔎 Bộ lọc</div><div class="toolbar"><div class="field"><label>Loại báo cáo</label><select id="reportType" onchange="updateFilterUI()"><option value="week">📆 Tuần</option><option value="day">📅 Ngày</option><option value="month">🗓️ Tháng</option><option value="all">📊 Tất cả</option></select></div><div class="field" id="dateField"><label id="dateLabel">Chủ nhật của tuần</label><input id="reportDate" type="date"></div><button class="btn" onclick="loadPOS()">Xem báo cáo</button></div></div>
 <div class="card"><div class="title">📦 Đơn đã vào POS</div><div id="orders" class="orders"><div class="empty">⏳ Đang tải...</div></div></div>
 </div>
 <script>
@@ -26,35 +26,56 @@ const ROLE=localStorage.getItem('choco_role');
 if(!TOKEN||ROLE!=='admin') location.href='login.html';
 function api(path,options={}){return fetch(SUPABASE_URL+path,{...options,headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+TOKEN,Accept:'application/json',...(options.headers||{})}})}
 function money(v){return Number(v||0).toLocaleString('vi-VN')+'đ'}
-function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}
 function logout(){['choco_access_token','choco_user_id','choco_role','choco_email'].forEach(k=>localStorage.removeItem(k));location.href='login.html'}
 function localDateString(d){let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
-function sundayAt8(date){let d=new Date(date);d.setHours(8,0,0,0);let day=d.getDay();let diff=day===0?0:-day;d.setDate(d.getDate()+diff);if(date.getDay()===0 && date.getHours()<8)d.setDate(d.getDate()-7);return d}
-function getWeekStart(){let input=document.getElementById('weekDate').value;if(input){let d=new Date(input+'T12:00:00');return sundayAt8(d)}let now=new Date();return sundayAt8(now)}
+function sundayAt8(date){let d=new Date(date);d.setHours(8,0,0,0);let day=d.getDay();let diff=day===0?0:-day;d.setDate(d.getDate()+diff);if(date.getDay()===0&&date.getHours()<8)d.setDate(d.getDate()-7);return d}
+function getBounds(){
+ const type=document.getElementById('reportType').value;
+ if(type==='all')return {start:null,end:null,label:'Tất cả đơn đã vào POS'};
+ const raw=document.getElementById('reportDate').value;
+ const base=raw?new Date(raw+'T12:00:00'):new Date();
+ if(type==='day'){
+  const start=new Date(raw+'T00:00:00'); const end=new Date(start); end.setDate(end.getDate()+1);
+  return {start,end,label:`Ngày ${start.toLocaleDateString('vi-VN')}`};
+ }
+ if(type==='month'){
+  const start=new Date(base.getFullYear(),base.getMonth(),1,0,0,0,0); const end=new Date(base.getFullYear(),base.getMonth()+1,1,0,0,0,0);
+  return {start,end,label:`Tháng ${String(start.getMonth()+1).padStart(2,'0')}/${start.getFullYear()}`};
+ }
+ const start=sundayAt8(base); const end=new Date(start.getTime()+7*24*60*60*1000);
+ return {start,end,label:`Tuần: ${fmt(start)} → ${fmt(end)}`};
+}
 function fmt(d){return d.toLocaleString('vi-VN',{dateStyle:'short',timeStyle:'short'})}
+function updateFilterUI(){const type=document.getElementById('reportType').value;const f=document.getElementById('dateField');const l=document.getElementById('dateLabel');if(type==='all'){f.style.display='none'}else{f.style.display='block';l.textContent=type==='week'?'Chủ nhật của tuần':type==='day'?'Ngày cần xem':'Tháng cần xem'}}
 function decodeItems(v){if(Array.isArray(v))return v;if(typeof v==='string'){try{let x=JSON.parse(v);if(Array.isArray(x))return x}catch(e){}}return []}
 function itemText(items){return decodeItems(items).map(x=>{let name=x.name||x.foodName||x.title||x.item_name||x.restaurant||'Món hàng';let qty=x.quantity??x.qty??x.count??1;return `${name} × ${qty}`}).join('\n')||'Không có dữ liệu món'}
 async function loadPOS(){
  const msg=document.getElementById('message'),box=document.getElementById('orders');msg.innerHTML='';box.innerHTML='<div class="empty">⏳ Đang tải...</div>';
  try{
-  const start=getWeekStart(),end=new Date(start.getTime()+7*24*60*60*1000);
-  document.getElementById('weekRange').textContent=`${fmt(start)} → ${fmt(end)}`;
-  const from=encodeURIComponent(start.toISOString()),to=encodeURIComponent(end.toISOString());
-  let r=await api(`/rest/v1/pos_orders?select=*&synced_at=gte.${from}&synced_at=lt.${to}&order=synced_at.desc`);
-  if(r.status===401){localStorage.removeItem('choco_access_token');location.href='login.html';return}
-  if(!r.ok)throw new Error('Không đọc được POS: HTTP '+r.status+' '+await r.text());
-  const pos=await r.json();
-  let orders=[];
-  if(pos.length){const ids=pos.map(x=>x.order_id).filter(Boolean).join(',');let q=await api(`/rest/v1/orders?select=id,total,food_total,shipping_fee&order=id.desc&id=in.(${ids})`);if(q.ok)orders=await q.json()}
-  const byId={};orders.forEach(o=>byId[String(o.id)]=o);
-  let food=0,ship=0,total=0;
-  pos.forEach(p=>{let o=byId[String(p.order_id)]||{};let ft=Number(o.food_total??(Number(o.total||0)-Number(p.shipping_fee||0)));let sf=Number(p.shipping_fee||o.shipping_fee||0);let gt=Number(o.total||ft+sf);food+=ft;ship+=sf;total+=gt});
-  document.getElementById('count').textContent=pos.length;document.getElementById('foodTotal').textContent=money(food);document.getElementById('shipTotal').textContent=money(ship);document.getElementById('grandTotal').textContent=money(total);
-  if(!pos.length){box.innerHTML='<div class="empty">Chưa có đơn nào trong tuần này.</div>';return}
-  box.innerHTML=pos.map(p=>{let o=byId[String(p.order_id)]||{};let sf=Number(p.shipping_fee||o.shipping_fee||0);let gt=Number(o.total||0);return `<div class="order"><div class="row"><div><div class="code">${esc(p.order_code)}</div><div class="small">Ghi nhận: ${esc(new Date(p.synced_at).toLocaleString('vi-VN'))}</div></div><div class="amount">${money(gt)}</div></div><div class="items">${esc(itemText(p.items))}</div><div class="small" style="margin-top:8px">Phí giao: <b>${money(sf)}</b></div></div>`}).join('');
+  const bounds=getBounds(); document.getElementById('weekRange').textContent=bounds.label;
+  // IMPORTANT: pos_orders.synced_at can be backfilled in one batch, so historical reports must use orders.created_at.
+  const p=await api('/rest/v1/pos_orders?select=id,order_id,order_code,items,shipping_fee,status,synced_at&order=id.desc');
+  if(p.status===401){localStorage.removeItem('choco_access_token');location.href='login.html';return}
+  if(!p.ok)throw new Error('Không đọc được POS: HTTP '+p.status+' '+await p.text());
+  const pos=await p.json();
+  if(!pos.length){render([]);return}
+  const ids=pos.map(x=>x.order_id).filter(Boolean);
+  const q=await api(`/rest/v1/orders?select=id,code,total,food_total,shipping_fee,created_at&order=id.desc&id=in.(${ids.join(',')})`);
+  if(!q.ok)throw new Error('Không đọc được đơn gốc: HTTP '+q.status+' '+await q.text());
+  const source=await q.json(); const byId={};source.forEach(o=>byId[String(o.id)]=o);
+  let rows=pos.map(p=>({p,o:byId[String(p.order_id)]||{}})).filter(x=>x.o.id!=null);
+  if(bounds.start)rows=rows.filter(x=>{const t=new Date(x.o.created_at).getTime();return t>=bounds.start.getTime()&&t<bounds.end.getTime()});
+  render(rows);
  }catch(e){console.error(e);msg.innerHTML='<div class="error">❌ '+esc(e.message)+'</div>';box.innerHTML='<div class="empty">Không thể tải dữ liệu.</div>'}
 }
-(function init(){let now=new Date();let s=sundayAt8(now);document.getElementById('weekDate').value=localDateString(s);loadPOS()})();
+function render(rows){
+ let food=0,ship=0,total=0;rows.forEach(x=>{const o=x.o,p=x.p;const ft=Number(o.food_total??(Number(o.total||0)-Number(p.shipping_fee||0)));const sf=Number(o.shipping_fee??p.shipping_fee??0);const gt=Number(o.total??(ft+sf));food+=ft;ship+=sf;total+=gt});
+ document.getElementById('count').textContent=rows.length;document.getElementById('foodTotal').textContent=money(food);document.getElementById('shipTotal').textContent=money(ship);document.getElementById('grandTotal').textContent=money(total);
+ const box=document.getElementById('orders');if(!rows.length){box.innerHTML='<div class="empty">Chưa có đơn nào trong khoảng đã chọn.</div>';return}
+ box.innerHTML=rows.map(x=>{const p=x.p,o=x.o;const sf=Number(o.shipping_fee??p.shipping_fee??0);const gt=Number(o.total||0);return `<div class="order"><div class="row"><div><div class="code">${esc(p.order_code||o.code||p.order_id)}</div><div class="small">Đặt: ${esc(o.created_at?new Date(o.created_at).toLocaleString('vi-VN'):'—')}</div><div class="small">Vào POS: ${esc(p.synced_at?new Date(p.synced_at).toLocaleString('vi-VN'):'—')}</div></div><div class="amount">${money(gt)}</div></div><div class="items">${esc(itemText(p.items))}</div><div class="small" style="margin-top:8px">Phí giao: <b>${money(sf)}</b></div></div>`}).join('');
+}
+(function init(){const now=new Date();document.getElementById('reportType').value='week';document.getElementById('reportDate').value=localDateString(sundayAt8(now));updateFilterUI();loadPOS()})();
 </script>
 </body>
 </html>
