@@ -1,0 +1,18 @@
+CHOCO SHIP PUSH STABLE BACKUP
+Date: 2026-09-02
+
+Production Supabase project: guwdswqaqnhzqapflvey
+
+send-push:
+- Version: 109
+- Status: ACTIVE
+- verify_jwt: false
+- ezbr_sha256: 498e9bbb6808bb1580cd4ba06186f09d966c1d361d45818764177949eb11e909
+- Web Push contentEncoding: aes128gcm
+
+Result:
+- Shipper notification confirmed working again on iPhone/PWA.
+- Do not change push configuration unless a new issue is reproduced.
+
+Previous backup marker:
+backups/20260902-pre-push-fix.txt
