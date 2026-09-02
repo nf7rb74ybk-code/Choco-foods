@@ -51,7 +51,7 @@
     inject();const status=document.getElementById('dispatchStatus'),box=document.getElementById('dispatchOrders');if(!status||!box)return;
     try{
       const [orders,profiles]=await Promise.all([
-        get('/rest/v1/orders?select=id,code,name,phone,address,dropoff,latitude,longitude,status,shipper_id,created_at,total&order=created_at.desc&limit=50'),
+        get('/rest/v1/orders?select=id,code,name,phone,address,latitude,longitude,status,shipper_id,created_at,total&order=created_at.desc&limit=50'),
         get('/rest/v1/profiles?select=id,full_name,phone,is_online,last_seen,latitude,longitude&role=eq.shipper&order=full_name.asc')
       ]);
       const ship=profiles.map(p=>({...p,lat:Number(p.latitude),lng:Number(p.longitude),online:!!p.is_online&&p.last_seen&&(Date.now()-new Date(p.last_seen).getTime()<90000)})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));
@@ -63,7 +63,7 @@
         const candidates=ship.map(s=>({...s,distance:distance(lat,lng,s.lat,s.lng)})).sort((a,b)=>a.distance-b.distance);
         const online=candidates.filter(s=>s.online);
         const nearest=online[0]||candidates[0];
-        let html='<div class="dispatch-order"><div class="dispatch-order-head"><div class="dispatch-code">📦 '+esc(o.code||('#'+o.id))+'</div><div class="dispatch-total">'+money(o.total)+'</div></div><div style="margin-top:6px;font-size:13px">👤 '+esc(o.name||'Khách hàng')+'<br>🏁 '+esc(o.dropoff||o.address||'Chưa có địa chỉ')+'</div>';
+        let html='<div class="dispatch-order"><div class="dispatch-order-head"><div class="dispatch-code">📦 '+esc(o.code||('#'+o.id))+'</div><div class="dispatch-total">'+money(o.total)+'</div></div><div style="margin-top:6px;font-size:13px">👤 '+esc(o.name||'Khách hàng')+'<br>🏁 '+esc(o.address||'Chưa có địa chỉ')+'</div>';
         if(nearest){html+='<div class="dispatch-shipper '+(nearest.online?'':'dispatch-off')+'"><b>'+ (nearest.online?'🟢':'⚫') +' '+esc(nearest.full_name||'Shipper')+'</b><br><span class="dispatch-muted">📏 '+nearest.distance.toFixed(1)+' km • '+(nearest.online?'Online':'Offline')+' • GPS '+esc(ago(nearest.last_seen))+' trước</span>'+(nearest.phone?'<br>📞 '+esc(nearest.phone):'')+'</div>';if(nearest.online)html+='<div class="dispatch-near">⭐ Gợi ý Shipper gần nhất đang Online</div>';html+='<button class="dispatch-assign" data-order-id="'+esc(o.id)+'" data-shipper-id="'+esc(nearest.id)+'">📤 GÁN ĐƠN CHO SHIPPER</button>';}else html+='<div class="dispatch-empty">⚠️ Chưa có Shipper nào có GPS.</div>';
         html+='<button class="dispatch-btn" data-lat="'+lat+'" data-lng="'+lng+'">📍 XEM VỊ TRÍ ĐƠN</button></div>';
         box.innerHTML+=html;
@@ -117,7 +117,7 @@
     inject();const status=document.getElementById('liveStatus'),box=document.getElementById('liveOrders');if(!status||!box)return;
     try{
       const [orders,profiles]=await Promise.all([
-        get('/rest/v1/orders?status=in.(%22Đã%20nhận%22,%22Đang%20lấy%20hàng%22,%22Đang%20giao%22,%22Đã%20giao%22)&select=id,code,name,address,dropoff,status,shipper_id,latitude,longitude,created_at&order=created_at.desc&limit=100'),
+        get('/rest/v1/orders?status=in.(%22Đã%20nhận%22,%22Đang%20lấy%20hàng%22,%22Đang%20giao%22,%22Đã%20giao%22)&select=id,code,name,address,status,shipper_id,latitude,longitude,created_at&order=created_at.desc&limit=100'),
         get('/rest/v1/profiles?role=eq.shipper&select=id,full_name,phone,is_online,last_seen,latitude,longitude')
       ]);
       const byId={};profiles.forEach(p=>byId[String(p.id)]=p);
@@ -130,7 +130,7 @@
         if(hasOrderGPS&&hasShipperGPS)near='<div>📏 Shipper cách khách khoảng <b>'+dist(Number(o.latitude),Number(o.longitude),Number(p.latitude),Number(p.longitude)).toFixed(1)+' km</b></div>';
         const online=!!p?.is_online&&p?.last_seen&&(Date.now()-new Date(p.last_seen).getTime()<90000);
         const statusClass=online?'live-online':'live-offline';
-        return '<div class="live-card"><div class="live-head"><div class="live-code">📦 '+esc(o.code||('#'+o.id))+'</div><div class="live-status">'+esc(o.status||'')+'</div></div><div style="margin-top:7px">👤 '+esc(o.name||'Khách hàng')+'<br>🏁 '+esc(o.dropoff||o.address||'Chưa có địa chỉ')+'</div>'+(p?'<div class="live-shipper">🚚 <b>'+esc(p.full_name||'Shipper')+'</b><br>📞 '+esc(p.phone||'Chưa có SĐT')+'<br><span class="'+statusClass+'">'+(online?'🟢 Online':'⚫ Offline')+'</span> • GPS '+esc(age(p.last_seen))+' trước'+near+'</div>':'<div class="live-shipper">🚚 ⚠️ Chưa có Shipper</div>')+(hasShipperGPS?'<button class="live-btn" data-live-lat="'+Number(p.latitude)+'" data-live-lng="'+Number(p.longitude)+'">📍 XEM SHIPPER TRÊN BẢN ĐỒ</button>':'')+'</div>';
+        return '<div class="live-card"><div class="live-head"><div class="live-code">📦 '+esc(o.code||('#'+o.id))+'</div><div class="live-status">'+esc(o.status||'')+'</div></div><div style="margin-top:7px">👤 '+esc(o.name||'Khách hàng')+'<br>🏁 '+esc(o.address||'Chưa có địa chỉ')+'</div>'+(p?'<div class="live-shipper">🚚 <b>'+esc(p.full_name||'Shipper')+'</b><br>📞 '+esc(p.phone||'Chưa có SĐT')+'<br><span class="'+statusClass+'">'+(online?'🟢 Online':'⚫ Offline')+'</span> • GPS '+esc(age(p.last_seen))+' trước'+near+'</div>':'<div class="live-shipper">🚚 ⚠️ Chưa có Shipper</div>')+(hasShipperGPS?'<button class="live-btn" data-live-lat="'+Number(p.latitude)+'" data-live-lng="'+Number(p.longitude)+'">📍 XEM SHIPPER TRÊN BẢN ĐỒ</button>':'')+'</div>';
       }).join('');
       status.textContent='📦 '+orders.length+' đơn đang xử lý • Cập nhật '+new Date().toLocaleTimeString('vi-VN');
     }catch(e){console.error('ADMIN LIVE',e);status.textContent='❌ Không tải được dữ liệu theo dõi';box.innerHTML='<div class="live-empty">Không tải được dữ liệu live.</div>';}
