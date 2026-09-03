@@ -1,11 +1,6 @@
 const SUPABASE_URL="https://guwdswqaqnhzqapflvey.supabase.co";
 const SUPABASE_KEY="sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9";
-const targets=[
-  ["Customer","../index.html"],
-  ["Admin","../admin.html"],
-  ["Shipper","../shipper.html"],
-  ["POS","../pos.html"]
-];
+const targets=[["Customer","../index.html"],["Admin","../admin.html"],["Shipper","../shipper.html"],["POS","../pos.html"]];
 const dbTables=["orders","profiles","subscriptions","shipper_push_subscriptions","push_delivery_logs","pos_orders","admin_status_push_queue","admin_push_subscriptions","admin_push_events","native_push_devices"];
 const checksEl=document.getElementById("checks"),incidentsEl=document.getElementById("incidents"),overallEl=document.getElementById("overall");
 let incidents=[];
@@ -15,48 +10,54 @@ async function timedFetch(url,options={}){const t=performance.now();try{const r=
 async function websiteChecks(){for(const [name,path] of targets){const x=await timedFetch(path,{method:"GET"});if(x.r&&x.r.ok){checksEl.insertAdjacentHTML("beforeend",card("🌐 "+name,"OK",`HTTP ${x.r.status} • ${x.ms} ms`))}else{incidents.push(`${name}: website không phản hồi (${x.r?.status||x.error?.message||"unknown"})`);checksEl.insertAdjacentHTML("beforeend",card("🌐 "+name,"ERROR",`HTTP ${x.r?.status||"failed"} • ${x.ms} ms`))}}}
 async function supabaseCheck(){const x=await timedFetch(SUPABASE_URL+"/auth/v1/settings",{headers:{apikey:SUPABASE_KEY,Accept:"application/json"}});if(x.r&&x.r.ok)checksEl.insertAdjacentHTML("beforeend",card("🗄️ Supabase API","OK",`HTTP ${x.r.status} • ${x.ms} ms`));else{incidents.push(`Supabase API: health check failed (${x.r?.status||x.error?.message||"unknown"})`);checksEl.insertAdjacentHTML("beforeend",card("🗄️ Supabase API","ERROR",`HTTP ${x.r?.status||"failed"} • ${x.ms} ms`))}}
 async function tableChecks(){for(const table of dbTables){const x=await timedFetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=1`,{headers:{apikey:SUPABASE_KEY,Accept:"application/json"}});if(x.r&&x.r.ok){let rows=[];try{rows=await x.r.json()}catch{}checksEl.insertAdjacentHTML("beforeend",card("📊 "+table,"OK",`READ-ONLY • ${Array.isArray(rows)?"readable":"response received"} • ${x.ms} ms`))}else if(x.r&&[401,403].includes(x.r.status)){checksEl.insertAdjacentHTML("beforeend",card("📊 "+table,"WARN",`READ bị RLS/Auth chặn • HTTP ${x.r.status} • ${x.ms} ms`))}else{incidents.push(`${table}: database probe failed (${x.r?.status||x.error?.message||"unknown"})`);checksEl.insertAdjacentHTML("beforeend",card("📊 "+table,"ERROR",`HTTP ${x.r?.status||"failed"} • ${x.ms} ms`))}}}
-
 function minutesSince(value){const t=Date.parse(value);return Number.isFinite(t)?Math.max(0,(Date.now()-t)/60000):null}
 function normalizedStatus(value){return String(value||"").trim().toLowerCase()}
 function isFinalStatus(status){return ["giao thành công","giao thanh cong","completed","delivered","hoàn thành","hoan thanh","cancelled","canceled","đã hủy","da huy"].includes(status)}
 function isActiveStatus(status){return !isFinalStatus(status)}
-
 async function orderHealthCheck(){
   const select="id,code,status,time,created_at,shipper_id,shipper_name,shipper_phone,total";
   const x=await timedFetch(`${SUPABASE_URL}/rest/v1/orders?select=${encodeURIComponent(select)}&order=created_at.desc&limit=200`,{headers:{apikey:SUPABASE_KEY,Accept:"application/json"}});
-  if(!(x.r&&x.r.ok)){
-    const detail=x.r?.status===401||x.r?.status===403?`READ bị RLS/Auth chặn • HTTP ${x.r.status}`:`HTTP ${x.r?.status||"failed"} • ${x.error?.message||"unknown"}`;
-    checksEl.insertAdjacentHTML("beforeend",card("📦 Order Health","WARN",detail));
-    return;
-  }
-  let orders=[];try{orders=await x.r.json()}catch(e){orders=[]}
-  if(!Array.isArray(orders))orders=[];
+  if(!(x.r&&x.r.ok)){const detail=x.r?.status===401||x.r?.status===403?`READ bị RLS/Auth chặn • HTTP ${x.r.status}`:`HTTP ${x.r?.status||"failed"} • ${x.error?.message||"unknown"}`;checksEl.insertAdjacentHTML("beforeend",card("📦 Order Health","WARN",detail));return}
+  let orders=[];try{orders=await x.r.json()}catch(e){orders=[]}if(!Array.isArray(orders))orders=[];
   let stuck=0,noShipper=0,invalid=0,oldActive=0;
-  const now=Date.now();
-  for(const o of orders){
-    const status=normalizedStatus(o.status);
-    if(!status)invalid++;
-    const age=minutesSince(o.created_at||o.time);
-    const active=isActiveStatus(status);
-    if(active && age!==null && age>120)oldActive++;
-    if(active && !o.shipper_id && age!==null && age>30)noShipper++;
-    if(active && age!==null && age>180)stuck++;
-    if(o.total!==null && o.total!==undefined && Number.isNaN(Number(o.total)))invalid++;
-  }
-  const problems=[];
-  if(stuck>0)problems.push(`${stuck} đơn active > 180 phút`);
-  if(noShipper>0)problems.push(`${noShipper} đơn active > 30 phút chưa có shipper`);
-  if(oldActive>0 && !stuck)problems.push(`${oldActive} đơn active > 120 phút`);
-  if(invalid>0)problems.push(`${invalid} đơn có dữ liệu trạng thái/tổng tiền bất thường`);
-  const status=problems.length?"WARN":"OK";
-  if(stuck>0)incidents.push(`Orders: phát hiện ${stuck} đơn có dấu hiệu bị kẹt > 180 phút`);
-  if(noShipper>0)incidents.push(`Orders: ${noShipper} đơn active quá 30 phút chưa được gán shipper`);
-  if(invalid>0)incidents.push(`Orders: ${invalid} bản ghi có dữ liệu cần kiểm tra`);
-  checksEl.insertAdjacentHTML("beforeend",card("📦 Order Health",status,`${orders.length} đơn gần nhất • ${problems.length?problems.join(" • "):"Không thấy bất thường theo rule hiện tại"} • ${x.ms} ms`));
-  const summary=document.getElementById("orderSummary");
-  if(summary)summary.innerHTML=`<div class="metric"><b>${orders.length}</b><span>đơn đã quét</span></div><div class="metric"><b>${stuck}</b><span>đơn >180 phút</span></div><div class="metric"><b>${noShipper}</b><span>chưa có shipper >30 phút</span></div><div class="metric"><b>${invalid}</b><span>dữ liệu bất thường</span></div>`;
+  for(const o of orders){const status=normalizedStatus(o.status);if(!status)invalid++;const age=minutesSince(o.created_at||o.time);const active=isActiveStatus(status);if(active&&age!==null&&age>120)oldActive++;if(active&&!o.shipper_id&&age!==null&&age>30)noShipper++;if(active&&age!==null&&age>180)stuck++;if(o.total!==null&&o.total!==undefined&&Number.isNaN(Number(o.total)))invalid++}
+  const problems=[];if(stuck>0)problems.push(`${stuck} đơn active > 180 phút`);if(noShipper>0)problems.push(`${noShipper} đơn active > 30 phút chưa có shipper`);if(oldActive>0&&!stuck)problems.push(`${oldActive} đơn active > 120 phút`);if(invalid>0)problems.push(`${invalid} đơn có dữ liệu trạng thái/tổng tiền bất thường`);
+  if(stuck>0)incidents.push(`Orders: phát hiện ${stuck} đơn có dấu hiệu bị kẹt > 180 phút`);if(noShipper>0)incidents.push(`Orders: ${noShipper} đơn active quá 30 phút chưa được gán shipper`);if(invalid>0)incidents.push(`Orders: ${invalid} bản ghi có dữ liệu cần kiểm tra`);
+  checksEl.insertAdjacentHTML("beforeend",card("📦 Order Health",problems.length?"WARN":"OK",`${orders.length} đơn gần nhất • ${problems.length?problems.join(" • "):"Không thấy bất thường theo rule hiện tại"} • ${x.ms} ms`));
+  const summary=document.getElementById("orderSummary");if(summary)summary.innerHTML=`<div class="metric"><b>${orders.length}</b><span>đơn đã quét</span></div><div class="metric"><b>${stuck}</b><span>đơn >180 phút</span></div><div class="metric"><b>${noShipper}</b><span>chưa có shipper >30 phút</span></div><div class="metric"><b>${invalid}</b><span>dữ liệu bất thường</span></div>`;
 }
-
+function pushStatusFromRate(total,fail){if(!total)return "OK";const rate=fail/total;if(rate>0.5)return "ERROR";if(rate>0.2)return "WARN";return "OK"}
+async function readRows(table,select,order="created_at.desc",limit=200){const url=`${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(select)}&order=${encodeURIComponent(order)}&limit=${limit}`;const x=await timedFetch(url,{headers:{apikey:SUPABASE_KEY,Accept:"application/json"}});if(!(x.r&&x.r.ok))return {rows:null,x};let rows=[];try{rows=await x.r.json()}catch{}return {rows:Array.isArray(rows)?rows:[],x}}
+async function pushHealthCheck(){
+  const [subs,shipSubs,adminSubs,native,logs,adminEvents,shipEvents]=await Promise.all([
+    readRows("subscriptions","id,user_id,endpoint,p256dh,auth,created_at,updated_at"),
+    readRows("shipper_push_subscriptions","id,shipper_id,subscription_id,enabled,endpoint,p256dh,auth,created_at,updated_at"),
+    readRows("admin_push_subscriptions","id,user_id,endpoint,p256dh,auth,created_at,updated_at"),
+    readRows("native_push_devices","id,user_id,role,platform,token,enabled,created_at,updated_at"),
+    readRows("push_delivery_logs","id,created_at,order_id,code,http_status,ok,error", "created_at.desc", 200),
+    readRows("admin_push_events","id,event_type,order_id,code,sent_at,created_at", "created_at.desc", 200),
+    readRows("shipper_push_events","id,event_type,order_id,code,sent_at,created_at", "created_at.desc", 200)
+  ]);
+  const failedReads=[subs,shipSubs,adminSubs,native,logs,adminEvents,shipEvents].filter(v=>v.rows===null);
+  if(failedReads.length){checksEl.insertAdjacentHTML("beforeend",card("🔔 Push Health","WARN",`${failedReads.length}/7 nguồn push bị RLS/Auth chặn hoặc không đọc được • READ-ONLY`));return}
+  const badSub=[...subs.rows.filter(r=>!r.endpoint||!r.p256dh||!r.auth),...shipSubs.rows.filter(r=>r.enabled!==false&&(!r.endpoint||!r.p256dh||!r.auth)),...adminSubs.rows.filter(r=>!r.endpoint||!r.p256dh||!r.auth)];
+  const recentCut=Date.now()-24*60*60*1000;
+  const recentLogs=logs.rows.filter(r=>{const t=Date.parse(r.created_at);return Number.isFinite(t)&&t>=recentCut});
+  const failedLogs=recentLogs.filter(r=>r.ok===false||String(r.error||"").trim()!=="");
+  const recentAdmin=adminEvents.rows.filter(r=>Date.parse(r.created_at)>=recentCut);
+  const recentShipper=shipEvents.rows.filter(r=>Date.parse(r.created_at)>=recentCut);
+  const unsentAdmin=adminEvents.rows.filter(r=>!r.sent_at&&minutesSince(r.created_at)!==null&&minutesSince(r.created_at)>15);
+  const unsentShipper=shipEvents.rows.filter(r=>!r.sent_at&&minutesSince(r.created_at)!==null&&minutesSince(r.created_at)>15);
+  const total=recentLogs.length,fail=failedLogs.length,rate=total?Math.round((fail/total)*100):0;
+  const status=badSub.length||unsentAdmin.length||unsentShipper.length?"WARN":pushStatusFromRate(total,fail);
+  if(badSub.length)incidents.push(`Push: ${badSub.length} subscription thiếu endpoint/p256dh/auth`);
+  if(fail>0&&rate>20)incidents.push(`Push: tỷ lệ lỗi delivery 24h là ${rate}% (${fail}/${total})`);
+  if(unsentAdmin.length)incidents.push(`Push Admin: ${unsentAdmin.length} event quá 15 phút chưa sent`);
+  if(unsentShipper.length)incidents.push(`Push Shipper: ${unsentShipper.length} event quá 15 phút chưa sent`);
+  checksEl.insertAdjacentHTML("beforeend",card("🔔 Push Health",status,`${total} delivery logs/24h • ${fail} lỗi • ${rate}% lỗi • ${badSub.length} subscription bất thường • Admin events 24h: ${recentAdmin.length} • Shipper events 24h: ${recentShipper.length}`));
+  const summary=document.getElementById("pushSummary");if(summary)summary.innerHTML=`<div class="metric"><b>${total}</b><span>delivery 24h</span></div><div class="metric"><b>${fail}</b><span>delivery lỗi</span></div><div class="metric"><b>${rate}%</b><span>tỷ lệ lỗi</span></div><div class="metric"><b>${badSub.length}</b><span>subscription lỗi</span></div>`;
+  const pushDetail=document.getElementById("pushDetail");if(pushDetail)pushDetail.textContent=`Subscriptions: ${subs.rows.length} • Shipper: ${shipSubs.rows.length} • Admin: ${adminSubs.rows.length} • Native: ${native.rows.length} • Event chưa gửi >15 phút: ${unsentAdmin.length+unsentShipper.length} • Không gửi push nào từ Monitor.`;
+}
 function renderIncidents(){if(!incidents.length){incidentsEl.innerHTML='<div class="empty">🟢 Không phát hiện incident trong lần kiểm tra này.</div>';overallEl.textContent="HEALTHY";overallEl.className="badge green";return}incidentsEl.innerHTML=incidents.map(x=>`<div class="incident">🚨 ${esc(x)}</div>`).join("");overallEl.textContent=`${incidents.length} VẤN ĐỀ`;overallEl.className="badge red"}
-async function run(){checksEl.innerHTML="";incidents=[];overallEl.textContent="ĐANG KIỂM TRA";overallEl.className="badge neutral";incidentsEl.innerHTML='<div class="empty">⏳ Đang phân tích...</div>';await supabaseCheck();await websiteChecks();await tableChecks();await orderHealthCheck();renderIncidents()}
+async function run(){checksEl.innerHTML="";incidents=[];overallEl.textContent="ĐANG KIỂM TRA";overallEl.className="badge neutral";incidentsEl.innerHTML='<div class="empty">⏳ Đang phân tích...</div>';await supabaseCheck();await websiteChecks();await tableChecks();await orderHealthCheck();await pushHealthCheck();renderIncidents()}
 document.getElementById("refresh").addEventListener("click",run);run();
