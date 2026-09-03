@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CHOCO FOOD — ADMIN LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f7f9;color:#17181a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{max-width:760px;margin:auto;padding:16px 16px 40px}.top{background:#fff;border-radius:18px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.05)}.brand{font-size:23px;font-weight:800}.lab{font-size:11px;background:#111;color:#fff;padding:4px 7px;border-radius:6px}.sub{color:#64748b;font-size:13px;margin-top:6px}.card{background:#fff;border-radius:16px;padding:16px;margin-top:14px;box-shadow:0 2px 10px rgba(0,0,0,.04)}.empty{text-align:center;color:#64748b;padding:25px}.code{font-size:18px;font-weight:800}.badge{display:inline-block;background:#f1f5f9;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700}.head{display:flex;justify-content:space-between;gap:12px;align-items:center}.line{display:flex;justify-content:space-between;gap:15px;padding:9px 0;border-bottom:1px solid #eee}.line:last-child{border-bottom:0}.muted{color:#64748b;font-size:13px}.timeline{margin-top:14px}.step{display:flex;gap:11px;position:relative;padding-bottom:15px}.step:last-child{padding-bottom:0}.dot{width:27px;height:27px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;flex:0 0 27px;z-index:2}.done .dot,.current .dot{background:#111;color:#fff}.step:not(:last-child):before{content:"";position:absolute;left:12px;top:27px;bottom:0;width:2px;background:#e5e7eb}.done:not(:last-child):before{background:#111}.title{font-weight:700}.time{font-size:12px;color:#777;margin-top:3px}.actions{display:flex;gap:8px;margin-top:15px}.btn{flex:1;border:0;border-radius:11px;padding:12px;font-weight:700}.next{background:#111;color:#fff}.reset{background:#fee2e2;color:#991b1b}.refresh{background:#e5e7eb}.note{font-size:12px;color:#64748b;line-height:1.5;margin-top:12px}.item{font-size:14px;margin:5px 0}.danger{color:#991b1b}
+</style>
+</head>
+<body><main class="app">
+<header class="top"><div class="brand">🍫 CHOCO FOOD <span class="lab">ADMIN LAB</span></div><div class="sub">Bảng điều khiển đơn TEST — tách khỏi Admin Production</div></header>
+<section id="orderBox" class="card"></section>
+<section class="card"><b>🔒 An toàn LAB</b><div class="note">Trang này chỉ đọc/ghi đơn TEST trong localStorage của trình duyệt với key <b>choco_food_lab_order_v1</b>. Không truy cập bảng <b>orders</b> Production, không gọi Push/OneSignal và không sửa dữ liệu CHOCO SHIP.</div></section>
+</main>
+<script>
+const KEY='choco_food_lab_order_v1';
+const STATUSES=['Đã nhận đơn','Đang chuẩn bị','Đang tìm shipper','Shipper đang giao','Đã giao'];
+const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('vi-VN').format(Number(n||0))+'đ';
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');return x&&x.code?x:null}catch{return null}}
+function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+function render(){const o=load();if(!o){$('orderBox').innerHTML='<div class="empty">📭 Chưa có đơn TEST.<br><span class="muted">Hãy tạo một đơn từ Customer LAB trước.</span><div class="actions"><button class="btn refresh" onclick="render()">🔄 Làm mới</button></div></div>';return}
+const idx=Math.max(0,Math.min(Number(o.statusIndex||0),STATUSES.length-1));const items=(o.items||[]).map(x=>`<div class="item">• ${x.name} × ${x.qty} — <b>${money(Number(x.price)*Number(x.qty))}</b></div>`).join('');
+$('orderBox').innerHTML=`<div class="head"><div><div class="code">📦 ${o.code}</div><div class="muted">Tạo lúc: ${new Date(o.createdAt).toLocaleString('vi-VN')}</div></div><span class="badge">${STATUSES[idx]}</span></div>
+<div class="line"><span>Khách hàng</span><b>${o.name||'—'}</b></div><div class="line"><span>SĐT</span><b>${o.phone||'—'}</b></div><div class="line"><span>Địa chỉ</span><b>${o.address||'—'}</b></div><div class="line"><span>Thanh toán</span><b>${o.payment==='bank'?'Chuyển khoản':'Tiền mặt'}</b></div><div style="padding-top:10px"><b>🍔 Món đã đặt</b>${items||'<div class="muted">Không có món</div>'}</div><div class="line"><span>Tiền món</span><b>${money(o.foodTotal)}</b></div><div class="line"><span>Phí ship</span><b>${money(o.shippingFee)}</b></div><div class="line"><span>Tổng</span><b>${money(o.total)}</b></div>
+<div class="timeline">${STATUSES.map((s,i)=>`<div class="step ${i<idx?'done':''} ${i===idx?'current':''}"><div class="dot">${i<idx?'✓':i===idx?'●':'○'}</div><div><div class="title">${s}</div><div class="time">${o.timestamps?.[i]?new Date(o.timestamps[i]).toLocaleString('vi-VN'):i===idx?'Đang xử lý TEST':'Chờ trạng thái trước'}</div></div></div>`).join('')}</div>
+<div class="actions"><button class="btn next" onclick="next()" ${idx>=STATUSES.length-1?'disabled':''}>${idx>=STATUSES.length-1?'✅ Đã giao':'➡️ Chuyển trạng thái'}</button><button class="btn refresh" onclick="render()">🔄 Làm mới</button></div><div class="actions"><button class="btn reset" onclick="resetOrder()">🗑️ Xóa đơn TEST</button></div>`}
+function next(){const o=load();if(!o)return;if(o.statusIndex>=STATUSES.length-1)return;o.statusIndex++;o.timestamps=o.timestamps||[];o.timestamps[o.statusIndex]=new Date().toISOString();save(o);render()}
+function resetOrder(){if(!confirm('Xóa đơn TEST khỏi trình duyệt?'))return;localStorage.removeItem(KEY);render()}
+render();window.addEventListener('storage',render);
+</script></body></html>
