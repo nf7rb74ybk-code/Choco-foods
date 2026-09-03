@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOCO MONITOR LAB</title>
+<link rel="stylesheet" href="./monitor.css">
+</head>
+<body>
+<header><div><strong>🛡️ CHOCO MONITOR</strong><small>LAB • READ-ONLY</small></div><button id="refresh">🔄 Kiểm tra lại</button></header>
+<main>
+<section class="hero"><div><h1>System Health</h1><p>Giám sát độc lập • Không sửa production • Không tự động chữa lỗi</p></div><div id="overall" class="badge neutral">CHƯA KIỂM TRA</div></section>
+<section class="grid" id="checks"></section>
+<section class="panel"><h2>🚨 Incident Preview</h2><div id="incidents"><div class="empty">Chưa phát hiện sự cố.</div></div></section>
+<section class="panel"><h2>ℹ️ Phạm vi Bước 2</h2><ul><li>Website availability</li><li>Supabase API availability</li><li>Database READ-ONLY probe</li><li>Không INSERT / UPDATE / DELETE</li><li>Không gọi service_role</li><li>Chưa gửi cảnh báo ra production</li></ul></section>
+</main>
+<script src="./monitor.js"></script>
+</body>
+</html>
