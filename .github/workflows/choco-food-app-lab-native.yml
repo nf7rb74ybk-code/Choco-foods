@@ -1,0 +1,88 @@
+name: CHOCO FOOD APP LAB — Native Project Check
+
+on:
+  push:
+    branches:
+      - choco-food-app-lab
+    paths:
+      - 'app-lab/**'
+      - '.github/workflows/choco-food-app-lab-native.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-native:
+    name: Android native project
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app-lab
+    steps:
+      - name: Checkout LAB
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-lab/package.json
+
+      - name: Install pinned dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate Capacitor config
+        run: npx cap doctor
+
+      - name: Generate Android native project
+        run: npx cap add android
+
+      - name: Sync web bundle into Android
+        run: npx cap sync android
+
+      - name: Upload Android native project
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-food-lab-android-native
+          path: app-lab/android
+          if-no-files-found: error
+          retention-days: 7
+
+  ios-native:
+    name: iOS native project
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: app-lab
+    steps:
+      - name: Checkout LAB
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-lab/package.json
+
+      - name: Install pinned dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate Capacitor config
+        run: npx cap doctor
+
+      - name: Generate iOS native project
+        run: npx cap add ios
+
+      - name: Sync web bundle into iOS
+        run: npx cap sync ios
+
+      - name: Upload iOS native project
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-food-lab-ios-native
+          path: app-lab/ios
+          if-no-files-found: error
+          retention-days: 7
