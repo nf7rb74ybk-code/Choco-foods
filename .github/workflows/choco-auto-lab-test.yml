@@ -1,0 +1,33 @@
+name: CHOCO AUTO LAB — Step 18 Verification
+
+on:
+  push:
+    branches:
+      - choco-auto-lab
+    paths:
+      - 'auto/**'
+      - '.github/workflows/choco-auto-lab-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: auto
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: auto/package.json
+
+      - name: Verify Step 15 + Step 17
+        run: npm run test:auto
