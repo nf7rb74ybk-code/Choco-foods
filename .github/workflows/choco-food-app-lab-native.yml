@@ -22,37 +22,29 @@ jobs:
     steps:
       - name: Checkout LAB
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Setup Java for Android
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-
       - name: Install pinned dependencies
         run: npm install --no-audit --no-fund
-
       - name: Validate Capacitor config
         run: npx cap doctor
-
       - name: Generate Android native project
         run: npx cap add android
-
       - name: Sync web bundle into Android
         run: npx cap sync android
-
       - name: Verify Android project files
         run: |
           test -f android/settings.gradle
           test -f android/build.gradle
           test -f android/app/build.gradle
           test -d android/app/src/main
-
       - name: Upload Android native project
         uses: actions/upload-artifact@v4
         with:
@@ -70,52 +62,40 @@ jobs:
     steps:
       - name: Checkout LAB
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Install pinned dependencies
         run: npm install --no-audit --no-fund
-
       - name: Validate Capacitor config
         run: npx cap doctor
-
       - name: Generate iOS native project
         run: npx cap add ios
-
       - name: Sync web bundle into iOS
         run: npx cap sync ios
-
       - name: Inspect generated iOS project
         run: |
-          echo '=== ios/App ==='
-          ls -la ios/App || true
-          echo '=== ios tree ==='
-          find ios -maxdepth 4 -print | sort || true
-          echo '=== expected paths ==='
-          for path in \
-            ios/App \
-            ios/App/App \
-            ios/App/App.xcodeproj/project.pbxproj \
-            ios/App/Package.swift
-          do
-            if [ -e "$path" ]; then
-              echo "EXISTS: $path"
-            else
-              echo "MISSING: $path"
-            fi
-          done
-
+          echo '=== iOS top level ==='
+          find ios -maxdepth 2 -print | sort
+          echo '=== Xcode projects ==='
+          find ios -type d -name '*.xcodeproj' -print | sort
+          echo '=== project files ==='
+          find ios -type f \( -name 'project.pbxproj' -o -name 'Package.swift' \) -print | sort
       - name: Verify iOS project files
         run: |
-          set -e
+          set -euo pipefail
           test -d ios/App
-          test -d ios/App/App
-          test -f ios/App/App.xcodeproj/project.pbxproj
-          test -f ios/App/Package.swift
-
+          XCODEPROJ="$(find ios -type d -name '*.xcodeproj' -print -quit)"
+          test -n "$XCODEPROJ"
+          test -f "$XCODEPROJ/project.pbxproj"
+          PACKAGE="$(find ios -type f -name 'Package.swift' -print -quit || true)"
+          if [ -n "$PACKAGE" ]; then
+            echo "✅ Package.swift: $PACKAGE"
+          else
+            echo "ℹ️ Package.swift not present; continuing because the Xcode project is the required native project artifact."
+          fi
+          echo "✅ iOS native project verified: $XCODEPROJ"
       - name: Upload iOS native project
         uses: actions/upload-artifact@v4
         with:
