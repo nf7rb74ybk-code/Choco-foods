@@ -17,9 +17,11 @@
 <section class="grid" id="checks"></section>
 <section class="panel"><h2>🚨 Incident Preview</h2><div id="incidents"><div class="empty">Chưa phát hiện sự cố.</div></div></section>
 <section class="panel"><h2>🧠 Incident Engine v2</h2><p class="muted">Gom incident từ Orders + Push + Shipper, loại trùng, phân cấp CRITICAL/WARN và phát hiện tương quan. READ-ONLY.</p><div id="incidentEngine"><div class="empty">Đang chờ phân tích...</div></div></section>
-<section class="panel"><h2>ℹ️ Phạm vi Bước 7</h2><ul><li>Gom nhiều tín hiệu thành incident duy nhất</li><li>Phân cấp CRITICAL / WARN</li><li>Loại trùng incident theo nguồn và bản ghi</li><li>Phát hiện tương quan Push + Orders để ưu tiên điều tra</li><li>Không gửi thông báo và không tự sửa lỗi</li><li>READ-ONLY • Không sửa Database / RLS / Production UI</li></ul></section>
+<section class="panel"><h2>📣 Admin Alert Engine — Step 8</h2><p class="muted">Mô phỏng cảnh báo Admin từ incident. Có dedupe/cooldown preview nhưng chưa dispatch thật.</p><div id="adminAlertEngine"><div class="empty">Đang chờ mô phỏng alert...</div></div></section>
+<section class="panel"><h2>ℹ️ Phạm vi Bước 8</h2><ul><li>Tạo Admin Alert Preview từ Orders + Push + Shipper</li><li>Phân loại CRITICAL / WARN</li><li>Tạo dedupe key để tránh spam</li><li>Mô phỏng cooldown</li><li>Hiển thị message mà Admin sẽ nhận</li><li>TEST/LAB ONLY • Không gửi Push thật</li><li>Không ghi admin_status_push_queue / admin_push_events / admin_push_subscriptions</li><li>Không sửa Database / RLS / Production UI</li></ul></section>
 </main>
 <script src="./monitor.js"></script>
 <script src="./incident-engine.js"></script>
+<script src="./admin-alert-engine.js"></script>
 </body>
 </html>
