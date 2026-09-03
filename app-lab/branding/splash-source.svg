@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 2400">
+  <rect width="1600" height="2400" fill="#F7E7CE"/>
+  <circle cx="800" cy="980" r="330" fill="#6B3F24"/>
+  <circle cx="800" cy="980" r="275" fill="#F7E7CE"/>
+  <path d="M610 940c45-80 335-80 380 0" fill="none" stroke="#C99A55" stroke-width="34" stroke-linecap="round"/>
+  <path d="M640 1030c45 70 275 70 320 0" fill="none" stroke="#6B3F24" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="710" cy="980" r="20" fill="#6B3F24"/>
+  <circle cx="890" cy="980" r="20" fill="#6B3F24"/>
+  <text x="800" y="1510" text-anchor="middle" font-family="Arial, sans-serif" font-size="150" font-weight="700" fill="#6B3F24">CHOCO FOOD</text>
+  <text x="800" y="1660" text-anchor="middle" font-family="Arial, sans-serif" font-size="92" font-weight="700" fill="#C99A55">APP LAB</text>
+  <text x="800" y="1880" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" fill="#6B3F24">iOS • Android • LAB</text>
+</svg>
