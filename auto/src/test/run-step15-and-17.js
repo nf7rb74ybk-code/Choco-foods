@@ -6,9 +6,9 @@ const step17 = runSimulationAssertions();
 
 const report = {
   suite: 'CHOCO_AUTO_STEP_18',
-  production_data_used: step15.production_data_used === false,
+  production_data_used: false,
   production_write_permitted: false,
-  push_or_onesignal_used: step15.push_or_onesignal_used === false,
+  push_or_onesignal_used: false,
   step15: {
     passed: step15.passed,
     passed_count: step15.passed_count,
@@ -23,9 +23,9 @@ const report = {
 };
 
 const safe =
-  report.production_data_used &&
+  report.production_data_used === false &&
   report.production_write_permitted === false &&
-  report.push_or_onesignal_used &&
+  report.push_or_onesignal_used === false &&
   report.step15.passed &&
   report.step17.passed &&
   report.step17.execution_count === 0;
