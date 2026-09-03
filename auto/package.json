@@ -1,0 +1,8 @@
+{
+  "name": "choco-auto-lab",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:auto": "node ./src/test/run-step15-and-17.js"
+  }
+}
