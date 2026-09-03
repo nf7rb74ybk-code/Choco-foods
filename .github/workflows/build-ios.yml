@@ -1,23 +1,26 @@
-name: Prepare CHOCO SHIP iOS
+name: CHOCO FOOD APP LAB — Build iOS + Android
 
 on:
   workflow_dispatch:
   push:
+    branches:
+      - choco-food-app-lab
     paths:
-      - 'app-build/**'
+      - 'app-lab/**'
       - '.github/workflows/build-ios.yml'
 
 permissions:
   contents: read
 
 jobs:
-  build-ios:
-    runs-on: macos-latest
+  android-build:
+    name: Android APK build
+    runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app-build
+        working-directory: app-lab
     steps:
-      - name: Checkout
+      - name: Checkout LAB
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -25,10 +28,64 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: app-build/package.json
+          cache-dependency-path: app-lab/package.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Verify Android project
+        run: |
+          test -f android/settings.gradle
+          test -f android/app/build.gradle
+
+      - name: Build Android Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Verify Android APK
+        run: test -f android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-food-lab-android-apk
+          path: app-lab/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  ios-build:
+    name: iOS Simulator app build
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: app-lab
+    steps:
+      - name: Checkout LAB
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-lab/package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
 
       - name: Generate iOS project
         run: npx cap add ios
@@ -37,7 +94,10 @@ jobs:
         run: npx cap sync ios
 
       - name: Verify iOS project
-        run: test -f ios/App/App.xcodeproj/project.pbxproj
+        run: |
+          XCODEPROJ="$(find ios -type d -name '*.xcodeproj' -print -quit)"
+          test -n "$XCODEPROJ"
+          test -f "$XCODEPROJ/project.pbxproj"
 
       - name: Build iOS Simulator app
         run: |
@@ -55,14 +115,15 @@ jobs:
       - name: Verify iOS app bundle
         run: test -d ios/App/build/Build/Products/Debug-iphonesimulator/App.app
 
-      - name: Package simulator app
+      - name: Package iOS Simulator app
         run: |
           cd ios/App/build/Build/Products/Debug-iphonesimulator
-          zip -r ../../../../../../choco-ship-ios-simulator.zip App.app
+          zip -r ../../../../../../choco-food-lab-ios-simulator.zip App.app
 
       - name: Upload iOS Simulator app
         uses: actions/upload-artifact@v4
         with:
-          name: choco-ship-ios-simulator
-          path: app-build/choco-ship-ios-simulator.zip
+          name: choco-food-lab-ios-simulator
+          path: app-lab/choco-food-lab-ios-simulator.zip
           if-no-files-found: error
+          retention-days: 7
