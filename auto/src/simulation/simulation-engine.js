@@ -1,3 +1,7 @@
+// CHOCO AUTO LAB — Step 17 simulation engine
+// Pure in-memory simulation of observation -> analysis -> proposal -> approval.
+// No Supabase client, production mutation, RPC, Edge Function, Push, or OneSignal.
+
 import { analyzeSnapshot } from '../engine/analysis.js';
 import {
   APPROVAL_STATUS,
@@ -71,7 +75,7 @@ export function runSimulationAssertions() {
   const result = simulateAutoFlow(buildSimulationSnapshot(), APPROVAL_STATUS.APPROVED);
   const checks = {
     simulation_only: result.simulation_only === true,
-    findings_created: result.analysis.finding_count >= 1,
+    findings_created: (result.analysis.summary?.finding_count ?? 0) >= 1,
     proposal_created: result.proposals.length >= 1,
     approval_created: result.approval_requests.length === result.proposals.length,
     approved_in_simulation: result.reviewed_approvals.every(
