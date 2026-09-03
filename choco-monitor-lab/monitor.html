@@ -20,12 +20,14 @@
 <section class="panel"><h2>📣 Admin Alert Engine — Step 8</h2><p class="muted">Mô phỏng cảnh báo Admin từ incident. Có dedupe/cooldown preview nhưng chưa dispatch thật.</p><div id="adminAlertEngine"><div class="empty">Đang chờ mô phỏng alert...</div></div></section>
 <section class="panel"><h2>🧩 Root Cause Engine — Step 9</h2><p class="muted">Xếp hạng giả thuyết nguyên nhân dựa trên tương quan Orders + Push + Shipper. Chỉ đề xuất, không tự sửa.</p><div id="rootCauseEngine"><div class="empty">Đang chờ phân tích nguyên nhân...</div></div></section>
 <section class="panel"><h2>🕒 Incident History — Step 10</h2><p class="muted">Timeline sự cố quan sát được: lần đầu thấy → lần cuối thấy → thời gian kéo dài → ACTIVE/CLEARED. Chỉ lưu cục bộ trên trình duyệt LAB.</p><div id="incidentHistory"><div class="empty">Đang chờ lịch sử...</div></div></section>
-<section class="panel"><h2>ℹ️ Phạm vi Bước 10</h2><ul><li>Ghi nhận timeline incident từ các lần kiểm tra của Monitor</li><li>Theo dõi first seen, last seen, cleared và duration</li><li>Dùng dedupe key để nối các lần phát hiện cùng sự cố</li><li>Lưu tối đa 100 event trong localStorage của trình duyệt</li><li>LAB/READ-ONLY • Không tự sửa hệ thống</li><li>Không gửi Push và không ghi Database/production</li></ul></section>
+<section class="panel"><h2>📊 Incident Analytics — Step 11</h2><p class="muted">Thống kê tần suất, severity, nguồn phát sinh, thời gian xử lý trung bình và khung giờ hay xuất hiện lỗi.</p><div id="incidentAnalytics"><div class="empty">Đang chờ phân tích...</div></div></section>
+<section class="panel"><h2>ℹ️ Phạm vi Bước 11</h2><ul><li>Phân tích lịch sử incident đã ghi ở Step 10</li><li>Top nguồn gây incident và severity</li><li>Duration trung bình của incident đã CLEARED</li><li>Khung giờ có nhiều incident nhất</li><li>LAB/READ-ONLY • Không tự sửa hệ thống</li><li>Không gửi Push và không ghi Database/production</li></ul></section>
 </main>
 <script src="./monitor.js"></script>
 <script src="./incident-engine.js"></script>
 <script src="./admin-alert-engine.js"></script>
 <script src="./root-cause-engine.js"></script>
 <script src="./incident-history.js"></script>
+<script src="./incident-analytics.js"></script>
 </body>
 </html>
