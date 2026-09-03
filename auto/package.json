@@ -5,6 +5,7 @@
   "scripts": {
     "test:auto": "node ./src/test/run-step15-and-17.js",
     "test:step19": "node ./src/test/step19-decision-center-test.js",
-    "test:step20": "node ./src/test/step20-dashboard-test.js"
+    "test:step20": "node ./src/test/step20-dashboard-test.js",
+    "test:step21": "node ./src/test/step21-dashboard-ui-test.js"
   }
 }
