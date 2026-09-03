@@ -4,15 +4,16 @@
   "private": true,
   "description": "CHOCO FOOD cross-platform app LAB",
   "scripts": {
-    "web": "echo Use app-lab/app-shell-v1.html as the LAB web entry point",
-    "android": "npx cap open android",
-    "ios": "npx cap open ios",
-    "sync": "npx cap sync"
+    "web": "echo Use app-lab/www/index.html as the LAB web entry point",
+    "cap:init": "cap init",
+    "sync": "cap sync",
+    "android": "cap open android",
+    "ios": "cap open ios"
   },
   "dependencies": {
-    "@capacitor/core": "latest"
+    "@capacitor/core": "8.0.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "latest"
+    "@capacitor/cli": "8.0.0"
   }
 }
