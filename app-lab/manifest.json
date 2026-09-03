@@ -1,0 +1,25 @@
+{
+  "name": "CHOCO FOOD",
+  "short_name": "CHOCO FOOD",
+  "description": "CHOCO FOOD — đặt món ăn nhanh",
+  "start_url": "./customer.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#6B3F24",
+  "background_color": "#F7E7CE",
+  "icons": [
+    {
+      "src": "./branding/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./branding/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
