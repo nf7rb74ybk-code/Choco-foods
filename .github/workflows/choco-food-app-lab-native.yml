@@ -27,8 +27,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: app-lab/package.json
+
+      - name: Setup Java for Android
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
 
       - name: Install pinned dependencies
         run: npm install --no-audit --no-fund
@@ -41,6 +45,13 @@ jobs:
 
       - name: Sync web bundle into Android
         run: npx cap sync android
+
+      - name: Verify Android project files
+        run: |
+          test -f android/settings.gradle
+          test -f android/build.gradle
+          test -f android/app/build.gradle
+          test -d android/app/src/main
 
       - name: Upload Android native project
         uses: actions/upload-artifact@v4
@@ -64,8 +75,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: app-lab/package.json
 
       - name: Install pinned dependencies
         run: npm install --no-audit --no-fund
@@ -78,6 +87,13 @@ jobs:
 
       - name: Sync web bundle into iOS
         run: npx cap sync ios
+
+      - name: Verify iOS project files
+        run: |
+          test -d ios/App
+          test -d ios/App/App
+          test -f ios/App/Podfile
+          test -f ios/App/App.xcodeproj/project.pbxproj
 
       - name: Upload iOS native project
         uses: actions/upload-artifact@v4
