@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 18 Verification
+name: CHOCO AUTO LAB — Step 19 Verification
 
 on:
   push:
@@ -31,3 +31,6 @@ jobs:
 
       - name: Verify Step 15 + Step 17
         run: npm run test:auto
+
+      - name: Verify Step 19 Decision Center
+        run: npm run test:step19
