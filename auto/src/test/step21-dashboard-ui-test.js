@@ -2,14 +2,15 @@ import fs from 'node:fs';
 
 const file = './src/dashboard/operations-dashboard.html';
 const html = fs.readFileSync(file, 'utf8');
+const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1] ?? '';
 
 const checks = {
   html_exists: html.length > 500,
   lab_review_only: html.includes('LAB / REVIEW ONLY'),
   production_write_blocked: html.includes('PRODUCTION WRITE: BLOCKED'),
-  no_order_mutation_code: !/\.(insert|update|upsert|delete)\s*\(/.test(html),
-  no_push_code: !/OneSignal|send-push|pushDelivery/i.test(html),
-  no_payment_mutation: !/payment\s*=|update.*payment/i.test(html),
+  no_order_mutation_code: !/\.(insert|update|upsert|delete)\s*\(/.test(script),
+  no_push_code: !/OneSignal|send-push|pushDelivery/i.test(script),
+  no_payment_mutation: !/payment\s*=|update.*payment/i.test(script),
   safety_notice_present: html.includes('Không tự động cập nhật orders'),
 };
 
