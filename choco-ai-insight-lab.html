@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOCO AI — Insight LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f6;color:#111827}.wrap{max-width:900px;margin:auto;padding:18px}.head,.card{background:#fff;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 3px 14px #0000000d}.head{background:#111827;color:#fff}.badge{display:inline-block;background:#f59e0b;color:#111827;font-weight:800;padding:5px 9px;border-radius:999px;font-size:12px}.head h1{margin:8px 0 5px}.button{border:0;border-radius:12px;padding:12px 16px;background:#111827;color:#fff;font-weight:800;width:100%}.status{font-size:13px;color:#6b7280;margin-top:10px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:#f9fafb;border-radius:14px;padding:14px}.stat b{display:block;font-size:20px;margin-top:5px}.insight{padding:12px;border-radius:12px;background:#fffbeb;margin:8px 0;line-height:1.45}.shipper{background:#f9fafb;border-radius:12px;padding:12px;margin:8px 0}.anomaly{background:#fef2f2;border-radius:12px;padding:12px;margin:8px 0}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><div class="wrap">
+<section class="head"><span class="badge">LAB • READ ONLY</span><h1>🧠 CHOCO AI Insight Engine</h1><div>Phân tích tổng hợp — không ghi dữ liệu production</div></section>
+<section id="loginCard" class="card"><h3>🔐 Đăng nhập V2 TEST</h3><input id="email" type="email" placeholder="Email" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:12px;margin:5px 0"><input id="password" type="password" placeholder="Mật khẩu" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:12px;margin:5px 0"><button class="button" id="loginBtn">ĐĂNG NHẬP</button><div id="loginMsg" class="status"></div></section>
+<section class="card"><button class="button" id="analyze">🧠 PHÂN TÍCH AI NGAY</button><div id="status" class="status">Đang kiểm tra phiên đăng nhập…</div></section>
+<section class="card"><h3>📊 Tổng quan</h3><div class="grid"><div class="stat">Tổng đơn<b id="orders">—</b></div><div class="stat">Doanh thu<b id="revenue">—</b></div><div class="stat">Hoàn thành<b id="completed">—</b></div><div class="stat">Tỷ lệ hoàn thành<b id="rate">—</b></div></div></section>
+<section class="card"><h3>💡 Insight</h3><div id="insights">Chưa phân tích.</div></section>
+<section class="card"><h3>🚚 Shipper</h3><div id="shippers">Chưa có dữ liệu.</div></section>
+<section class="card"><h3>⚠️ Bất thường</h3><div id="anomalies">Không có dữ liệu.</div></section>
+</div>
+<script src="./v2/assets/v2-supabase.js?v=loginfix3"></script><script src="./v2/assets/v2-auth.js?v=loginfix3"></script>
+<script>
+const URL='https://guwdswqaqnhzqapflvey.supabase.co/functions/v1/choco-ai-insight-lab';
+function session(){try{return JSON.parse(sessionStorage.getItem('choco_v2_session')||'null')}catch{return null}}
+function money(n){return Number(n||0).toLocaleString('vi-VN')+'đ'}
+function authUI(){const s=session();document.getElementById('loginCard').style.display=s?.access_token?'none':'block';document.getElementById('status').textContent=s?.access_token?'✅ Đã đăng nhập V2 TEST.':'🔐 Chưa đăng nhập V2 TEST.'}
+async function login(){const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;try{document.getElementById('loginMsg').textContent='⏳ Đang đăng nhập…';const s=await v2SignIn(email,password);if(!s?.access_token)throw new Error('Không nhận được session.');v2SaveSession(s);document.getElementById('loginMsg').textContent='✅ Thành công.';authUI()}catch(e){document.getElementById('loginMsg').textContent='❌ '+(e.message||e)}}
+function render(j){const d=j.data||{};const s=d.summary||{};document.getElementById('orders').textContent=s.total_orders??'—';document.getElementById('revenue').textContent=money(s.total_revenue);document.getElementById('completed').textContent=s.completed_orders??'—';document.getElementById('rate').textContent=s.completion_rate!==undefined?s.completion_rate+'%':'—';document.getElementById('insights').innerHTML=(d.insights||[]).map(x=>'<div class="insight">'+String(x).replace(/</g,'&lt;')+'</div>').join('')||'Không có insight.';const sh=d.shippers||[];document.getElementById('shippers').innerHTML=sh.map((x,i)=>'<div class="shipper"><b>'+((i===0?'🥇 ':'')+(x.shipper_name||'Chưa phân công'))+'</b><br>📦 '+(x.total_orders||0)+' đơn • ✅ '+(x.completed_orders||0)+' hoàn thành • 💰 '+money(x.total_order_value)+'</div>').join('')||'Không có dữ liệu.';const an=d.anomalies||[];document.getElementById('anomalies').innerHTML=an.map(x=>'<div class="anomaly">⚠️ '+x.type+' — '+x.order_date+' — '+x.total_orders+' đơn (baseline '+x.baseline_average+')</div>').join('')||'✅ Không phát hiện bất thường.'}
+async function analyze(){const s=session();if(!s?.access_token){authUI();return}const st=document.getElementById('status');st.textContent='⏳ Đang chạy Insight Engine V1…';try{const r=await fetch(URL,{method:'POST',mode:'cors',cache:'no-store',headers:{apikey:V2_SUPABASE_CONFIG.anonKey,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json'},body:JSON.stringify({})});const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch{throw new Error('Backend trả dữ liệu không hợp lệ.')}if(!r.ok||j.ok===false)throw new Error(j.error||'HTTP '+r.status);render(j);st.textContent='✅ Phân tích LAB hoàn tất — READ ONLY.'}catch(e){st.textContent='❌ '+(e.message||e)}}
+document.getElementById('loginBtn').onclick=login;document.getElementById('analyze').onclick=analyze;authUI();
+</script></body></html>
