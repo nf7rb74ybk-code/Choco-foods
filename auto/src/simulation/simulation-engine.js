@@ -19,21 +19,11 @@ function assertSimulationSnapshot(snapshot) {
   }
 }
 
-/**
- * Runs the complete AUTO LAB flow in memory only:
- * snapshot -> analysis -> proposal -> approval request -> decision.
- * This function never calls Supabase, RPC, Edge Functions, Push, or OneSignal.
- */
 export function simulateAutoFlow(snapshot, decision = APPROVAL_STATUS.APPROVED) {
   assertSimulationSnapshot(snapshot);
-
   const analysis = analyzeSnapshot(snapshot);
   const proposals = analysis.proposals ?? [];
-
-  const approvalRequests = proposals.map((proposal) =>
-    createApprovalRequest(proposal),
-  );
-
+  const approvalRequests = proposals.map((proposal) => createApprovalRequest(proposal));
   const reviewedApprovals = approvalRequests.map((request) =>
     reviewApproval(request, decision, 'simulation-admin'),
   );
@@ -62,7 +52,7 @@ export function buildSimulationSnapshot() {
       potentially_stuck_over_30m: [
         { id: 101, code: 'SIM-101', status: 'Chờ xác nhận', age_minutes: 42 },
       ],
-      byStatus: {
+      by_status: {
         'Chờ xác nhận': 2,
         'Đã giao': 1,
         UNKNOWN: 0,
@@ -79,7 +69,6 @@ export function buildSimulationSnapshot() {
 
 export function runSimulationAssertions() {
   const result = simulateAutoFlow(buildSimulationSnapshot(), APPROVAL_STATUS.APPROVED);
-
   const checks = {
     simulation_only: result.simulation_only === true,
     findings_created: result.analysis.finding_count >= 1,
