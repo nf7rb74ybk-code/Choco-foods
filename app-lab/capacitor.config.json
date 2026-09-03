@@ -1,0 +1,8 @@
+{
+  "appId": "vn.chocofood.lab",
+  "appName": "CHOCO FOOD LAB",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
