@@ -10,9 +10,10 @@
 <header><div><strong>🛡️ CHOCO MONITOR</strong><small>LAB • READ-ONLY</small></div><button id="refresh">🔄 Kiểm tra lại</button></header>
 <main>
 <section class="hero"><div><h1>System Health</h1><p>Giám sát độc lập • Không sửa production • Không tự động chữa lỗi</p></div><div id="overall" class="badge neutral">CHƯA KIỂM TRA</div></section>
+<section class="panel"><h2>📦 Order Health</h2><div id="orderSummary" class="metrics"><div class="metric"><b>—</b><span>đơn đã quét</span></div><div class="metric"><b>—</b><span>đơn &gt;180 phút</span></div><div class="metric"><b>—</b><span>chưa có shipper &gt;30 phút</span></div><div class="metric"><b>—</b><span>dữ liệu bất thường</span></div></div><p class="muted">Rule chỉ đọc dữ liệu 200 đơn gần nhất. Không thay đổi đơn hàng.</p></section>
 <section class="grid" id="checks"></section>
 <section class="panel"><h2>🚨 Incident Preview</h2><div id="incidents"><div class="empty">Chưa phát hiện sự cố.</div></div></section>
-<section class="panel"><h2>ℹ️ Phạm vi Bước 2</h2><ul><li>Website availability</li><li>Supabase API availability</li><li>Database READ-ONLY probe</li><li>Không INSERT / UPDATE / DELETE</li><li>Không gọi service_role</li><li>Chưa gửi cảnh báo ra production</li></ul></section>
+<section class="panel"><h2>ℹ️ Phạm vi Bước 3</h2><ul><li>Phân tích tối đa 200 orders gần nhất</li><li>Phát hiện đơn active quá lâu</li><li>Phát hiện đơn active lâu nhưng chưa có shipper</li><li>Phát hiện status/dữ liệu cơ bản bất thường</li><li>READ-ONLY • Không INSERT / UPDATE / DELETE</li><li>Không sửa RLS / Edge Functions / Push / Production UI</li></ul></section>
 </main>
 <script src="./monitor.js"></script>
 </body>
