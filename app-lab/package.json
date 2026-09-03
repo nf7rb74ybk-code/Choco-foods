@@ -1,0 +1,18 @@
+{
+  "name": "choco-food-app-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CHOCO FOOD cross-platform app LAB",
+  "scripts": {
+    "web": "echo Use app-lab/app-shell-v1.html as the LAB web entry point",
+    "android": "npx cap open android",
+    "ios": "npx cap open ios",
+    "sync": "npx cap sync"
+  },
+  "dependencies": {
+    "@capacitor/core": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "latest"
+  }
+}
