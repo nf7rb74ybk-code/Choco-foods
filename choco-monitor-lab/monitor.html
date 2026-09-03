@@ -18,10 +18,12 @@
 <section class="panel"><h2>🚨 Incident Preview</h2><div id="incidents"><div class="empty">Chưa phát hiện sự cố.</div></div></section>
 <section class="panel"><h2>🧠 Incident Engine v2</h2><p class="muted">Gom incident từ Orders + Push + Shipper, loại trùng, phân cấp CRITICAL/WARN và phát hiện tương quan. READ-ONLY.</p><div id="incidentEngine"><div class="empty">Đang chờ phân tích...</div></div></section>
 <section class="panel"><h2>📣 Admin Alert Engine — Step 8</h2><p class="muted">Mô phỏng cảnh báo Admin từ incident. Có dedupe/cooldown preview nhưng chưa dispatch thật.</p><div id="adminAlertEngine"><div class="empty">Đang chờ mô phỏng alert...</div></div></section>
-<section class="panel"><h2>ℹ️ Phạm vi Bước 8</h2><ul><li>Tạo Admin Alert Preview từ Orders + Push + Shipper</li><li>Phân loại CRITICAL / WARN</li><li>Tạo dedupe key để tránh spam</li><li>Mô phỏng cooldown</li><li>Hiển thị message mà Admin sẽ nhận</li><li>TEST/LAB ONLY • Không gửi Push thật</li><li>Không ghi admin_status_push_queue / admin_push_events / admin_push_subscriptions</li><li>Không sửa Database / RLS / Production UI</li></ul></section>
+<section class="panel"><h2>🧩 Root Cause Engine — Step 9</h2><p class="muted">Xếp hạng giả thuyết nguyên nhân dựa trên tương quan Orders + Push + Shipper. Chỉ đề xuất, không tự sửa.</p><div id="rootCauseEngine"><div class="empty">Đang chờ phân tích nguyên nhân...</div></div></section>
+<section class="panel"><h2>ℹ️ Phạm vi Bước 9</h2><ul><li>Xếp hạng nguyên nhân gốc theo bằng chứng hiện có</li><li>Ưu tiên Push khi Push lỗi mạnh đồng thời có đơn active</li><li>Phân biệt nguyên nhân chính và tín hiệu phụ</li><li>Đưa ra hướng kiểm tra tiếp theo</li><li>LAB/READ-ONLY • Không tự sửa hệ thống</li><li>Không gửi Push và không ghi Database</li></ul></section>
 </main>
 <script src="./monitor.js"></script>
 <script src="./incident-engine.js"></script>
 <script src="./admin-alert-engine.js"></script>
+<script src="./root-cause-engine.js"></script>
 </body>
 </html>
