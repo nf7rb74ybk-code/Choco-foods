@@ -88,8 +88,29 @@ jobs:
       - name: Sync web bundle into iOS
         run: npx cap sync ios
 
+      - name: Inspect generated iOS project
+        run: |
+          echo '=== ios/App ==='
+          ls -la ios/App || true
+          echo '=== ios tree ==='
+          find ios -maxdepth 4 -print | sort || true
+          echo '=== expected paths ==='
+          for path in \
+            ios/App \
+            ios/App/App \
+            ios/App/App.xcodeproj/project.pbxproj \
+            ios/App/Package.swift
+          do
+            if [ -e "$path" ]; then
+              echo "EXISTS: $path"
+            else
+              echo "MISSING: $path"
+            fi
+          done
+
       - name: Verify iOS project files
         run: |
+          set -e
           test -d ios/App
           test -d ios/App/App
           test -f ios/App/App.xcodeproj/project.pbxproj
