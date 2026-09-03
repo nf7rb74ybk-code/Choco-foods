@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOCO FOOD LAB — E2E Test</title>
+<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:auto;padding:20px;background:#f6f7fb;color:#222}h1{font-size:22px}.card{background:#fff;border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #00000012}button{border:0;border-radius:10px;padding:12px 16px;background:#111;color:#fff;font-weight:700}button:disabled{opacity:.5}.ok{color:#087f23}.bad{color:#b00020}.step{padding:8px 0;border-bottom:1px solid #eee}pre{white-space:pre-wrap;background:#111;color:#eee;padding:12px;border-radius:10px;font-size:12px}</style>
+</head>
+<body>
+<h1>🧪 CHOCO FOOD LAB — E2E Test Runner</h1>
+<div class="card"><b>LAB ONLY</b><p>Test này chỉ dùng bảng <code>choco_food_lab_orders</code>. Không ghi vào Production <code>orders</code>.</p><button id="run">▶️ Chạy E2E TEST</button></div>
+<div class="card"><div id="summary">Chưa chạy.</div><div id="steps"></div></div>
+<div class="card"><b>Log</b><pre id="log">Sẵn sàng.</pre></div>
+<script>
+const URL='https://guwdswqaqnhzqapflvey.supabase.co';
+const KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+const TABLE='choco_food_lab_orders';
+const STATUSES=['received','preparing','finding_shipper','shipping','delivered'];
+const $=id=>document.getElementById(id); let lines=[];
+function log(x){lines.push(new Date().toLocaleTimeString()+'  '+x);$('log').textContent=lines.join('\n');}
+async function api(path='',opts={}){const r=await fetch(URL+'/rest/v1/'+TABLE+path,{...opts,headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json',Prefer:opts.method==='POST'?'return=representation':(opts.method==='DELETE'?'return=minimal':'return=representation'),...(opts.headers||{})}}); const t=await r.text(); if(!r.ok)throw new Error(r.status+' '+t); return t?JSON.parse(t):null;}
+function step(name,ok,msg){const d=document.createElement('div');d.className='step '+(ok?'ok':'bad');d.textContent=(ok?'✅ ':'❌ ')+name+(msg?' — '+msg:'');$('steps').appendChild(d); if(!ok)throw new Error(msg||name+' failed');}
+async function run(){
+ $('run').disabled=true;$('steps').innerHTML='';lines=[];$('summary').textContent='⏳ Đang chạy...';
+ const code='LAB-E2E-'+Math.random().toString(36).slice(2,10).toUpperCase(); let id=null;
+ try{
+  log('CREATE '+code);
+  const created=await api('',{method:'POST',body:JSON.stringify({code,customer_name:'E2E Test',customer_phone:'0900000000',address:'LAB TEST',note:'auto cleanup',payment:'cash',food_total:10000,shipping_fee:20000,total:30000,items:[{name:'E2E item',quantity:1,price:10000}],status:'received',status_index:0})});
+  id=created?.[0]?.id; step('Tạo đơn LAB',!!id,code);
+  const got=await api('?select=*&code=eq.'+encodeURIComponent(code)); step('Đọc lại đơn',got.length===1,got.length+' record');
+  for(let i=0;i<STATUSES.length;i++){
+   const s=STATUSES[i]; log('UPDATE '+s);
+   await api('?id=eq.'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({status:s,status_index:i,updated_at:new Date().toISOString()})});
+   const check=await api('?select=id,status,status_index&id=eq.'+encodeURIComponent(id));
+   step('Trạng thái '+(i+1)+'/5: '+s,check.length===1&&check[0].status===s&&Number(check[0].status_index)===i,check[0]?.status||'missing');
+  }
+  const final=await api('?select=status,status_index&id=eq.'+encodeURIComponent(id)); step('Kiểm tra Delivered',final[0]?.status==='delivered'&&Number(final[0]?.status_index)===4,'OK');
+  await api('?id=eq.'+encodeURIComponent(id),{method:'DELETE'}); const gone=await api('?select=id&code=eq.'+encodeURIComponent(code)); step('Xóa đơn TEST',gone.length===0,'đã cleanup');
+  $('summary').innerHTML='<span class="ok"><b>🎉 E2E PASS — toàn bộ chuỗi LAB hoạt động.</b></span>'; log('PASS '+code);
+ }catch(e){
+  log('FAIL: '+e.message); $('summary').innerHTML='<span class="bad"><b>❌ E2E FAIL</b></span> — '+e.message;
+  if(id){try{await api('?id=eq.'+encodeURIComponent(id),{method:'DELETE'});log('Cleanup sau lỗi: OK')}catch(x){log('Cleanup sau lỗi thất bại: '+x.message)}}
+ }finally{$('run').disabled=false;}
+}
+$('run').onclick=run;
+</script>
+</body>
+</html>
