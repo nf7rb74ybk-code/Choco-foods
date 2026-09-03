@@ -21,7 +21,8 @@
 <section class="panel"><h2>🧩 Root Cause Engine — Step 9</h2><p class="muted">Xếp hạng giả thuyết nguyên nhân dựa trên tương quan Orders + Push + Shipper. Chỉ đề xuất, không tự sửa.</p><div id="rootCauseEngine"><div class="empty">Đang chờ phân tích nguyên nhân...</div></div></section>
 <section class="panel"><h2>🕒 Incident History — Step 10</h2><p class="muted">Timeline sự cố quan sát được: lần đầu thấy → lần cuối thấy → thời gian kéo dài → ACTIVE/CLEARED. Chỉ lưu cục bộ trên trình duyệt LAB.</p><div id="incidentHistory"><div class="empty">Đang chờ lịch sử...</div></div></section>
 <section class="panel"><h2>📊 Incident Analytics — Step 11</h2><p class="muted">Thống kê tần suất, severity, nguồn phát sinh, thời gian xử lý trung bình và khung giờ hay xuất hiện lỗi.</p><div id="incidentAnalytics"><div class="empty">Đang chờ phân tích...</div></div></section>
-<section class="panel"><h2>ℹ️ Phạm vi Bước 11</h2><ul><li>Phân tích lịch sử incident đã ghi ở Step 10</li><li>Top nguồn gây incident và severity</li><li>Duration trung bình của incident đã CLEARED</li><li>Khung giờ có nhiều incident nhất</li><li>LAB/READ-ONLY • Không tự sửa hệ thống</li><li>Không gửi Push và không ghi Database/production</li></ul></section>
+<section class="panel"><h2>❤️ Monitor Health Score — Step 12</h2><p class="muted">Tổng hợp Order + Push + Shipper + Edge Function + Incident thành điểm 0–100. Chỉ là heuristic vận hành, không tự sửa hệ thống.</p><div id="healthScore"><div class="empty">Đang chờ tính Health Score...</div></div></section>
+<section class="panel"><h2>ℹ️ Phạm vi Bước 12</h2><ul><li>Điểm tổng hợp 0–100 và trạng thái HEALTHY/WARNING/CRITICAL</li><li>Giải thích điểm trừ theo từng nhóm</li><li>Hiển thị các nguyên nhân bị trừ điểm lớn nhất</li><li>Đọc metrics hiện có trên Monitor, không tạo luồng ghi mới</li><li>LAB/READ-ONLY • Không tự sửa hệ thống</li><li>Không gửi Push và không ghi Database/production</li></ul></section>
 </main>
 <script src="./monitor.js"></script>
 <script src="./incident-engine.js"></script>
@@ -29,5 +30,6 @@
 <script src="./root-cause-engine.js"></script>
 <script src="./incident-history.js"></script>
 <script src="./incident-analytics.js"></script>
+<script src="./health-score.js"></script>
 </body>
 </html>
