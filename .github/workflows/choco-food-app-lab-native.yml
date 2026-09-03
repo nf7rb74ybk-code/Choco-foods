@@ -92,8 +92,8 @@ jobs:
         run: |
           test -d ios/App
           test -d ios/App/App
-          test -f ios/App/Podfile
           test -f ios/App/App.xcodeproj/project.pbxproj
+          test -f ios/App/Package.swift
 
       - name: Upload iOS native project
         uses: actions/upload-artifact@v4
