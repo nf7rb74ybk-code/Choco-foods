@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 35 LAB Approval Execution Queue
+name: CHOCO AUTO LAB — Step 36 LAB Queue Processor
 
 on:
   push:
@@ -65,3 +65,5 @@ jobs:
         run: npm run test:step34
       - name: Verify Step 35 LAB Approval Execution Queue
         run: npm run test:step35
+      - name: Verify Step 36 LAB Queue Processor
+        run: npm run test:step36
