@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 27 Verification
+name: CHOCO AUTO LAB — Step 28 Verification
 
 on:
   push:
@@ -58,3 +58,6 @@ jobs:
 
       - name: Verify Step 27 Alert Center
         run: npm run test:step27
+
+      - name: Verify Step 28 Alert Center UI
+        run: npm run test:step28
