@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 49 Approval History Consistency
+name: CHOCO AUTO LAB — Step 50 Foundation Completion
 
 on:
   push:
@@ -91,3 +91,5 @@ jobs:
         run: npm run test:step48
       - name: Verify Step 49 LAB Approval History Consistency
         run: npm run test:step49
+      - name: Verify Step 50 LAB Foundation Completion
+        run: npm run test:step50
