@@ -14,6 +14,7 @@
     "test:step26": "node ./src/test/step26-system-health-test.js",
     "test:step27": "node ./src/test/step27-alert-center-test.js",
     "test:step28": "node ./src/test/step28-alert-center-ui-test.js",
-    "test:step29": "node ./src/test/step29-event-timeline-test.js"
+    "test:step29": "node ./src/test/step29-event-timeline-test.js",
+    "test:step30": "node ./src/test/step30-final-safety-gate-test.js"
   }
 }
