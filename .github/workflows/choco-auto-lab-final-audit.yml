@@ -1,0 +1,29 @@
+name: CHOCO AUTO LAB — Steps 101-110 Final Audit
+
+on:
+  push:
+    branches:
+      - choco-auto-lab
+    paths:
+      - 'auto/**'
+      - '.github/workflows/choco-auto-lab-final-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  final-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: auto
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Steps 101-110 final LAB acceptance audit
+        run: node ./src/test/step101-110-final-lab-audit-test.js
