@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 37 Execution Audit Log
+name: CHOCO AUTO LAB — Step 38 LAB Audit History
 
 on:
   push:
@@ -69,3 +69,5 @@ jobs:
         run: npm run test:step36
       - name: Verify Step 37 LAB Execution Result & Audit Log
         run: npm run test:step37
+      - name: Verify Step 38 LAB Audit History
+        run: npm run test:step38
