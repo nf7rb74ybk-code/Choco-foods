@@ -21,6 +21,7 @@
     "test:step33": "node ./src/test/step33-lab-execution-simulator-test.js",
     "test:step34": "node ./src/test/step34-proposal-review-test.js",
     "test:step35": "node ./src/test/step35-lab-approval-execution-queue-test.js",
-    "test:step36": "node ./src/test/step36-lab-queue-processor-test.js"
+    "test:step36": "node ./src/test/step36-lab-queue-processor-test.js",
+    "test:step37": "node ./src/test/step37-lab-execution-audit-log-test.js"
   }
 }
