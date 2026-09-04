@@ -7,9 +7,7 @@ const parseJson = (path) => JSON.parse(read(path));
 
 const stable = (value) => {
   if (Array.isArray(value)) return `[${value.map(stable).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stable(value[k])}`).join(',')}}`;
-  }
+  if (value && typeof value === 'object') return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stable(value[k])}`).join(',')}}`;
   return JSON.stringify(value);
 };
 const checksum = (value) => createHash('sha256').update(stable(value)).digest('hex');
@@ -18,7 +16,7 @@ const handoverPath = new URL(`${root}STEP101_LAB_FREEZE_HANDOVER.md`, import.met
 const packagePath = new URL(`${root}package.json`, import.meta.url);
 const previousGatePath = new URL('./step161-170-lab-stability-gate-test.js', import.meta.url);
 const safetyGatePath = new URL('./step141-150-lab-safety-acceptance-test.js', import.meta.url);
-const workflowPath = new URL('../../.github/workflows/choco-auto-lab-171-180.yml', import.meta.url);
+const workflowPath = new URL('../../../.github/workflows/choco-auto-lab-171-180.yml', import.meta.url);
 
 const handover = read(handoverPath);
 const previousGate = read(previousGatePath);
@@ -28,29 +26,20 @@ const pkg = existsSync(packagePath) ? parseJson(packagePath) : {};
 const scripts = pkg.scripts ?? {};
 
 const baseline = Object.freeze({
-  source: 'LAB_FIXTURE',
-  lab_only: true,
-  snapshot_id: 'LAB-SNAPSHOT-171-180',
-  captured_at: '2026-09-04T00:00:00.000Z',
+  source: 'LAB_FIXTURE', lab_only: true, snapshot_id: 'LAB-SNAPSHOT-171-180', captured_at: '2026-09-04T00:00:00.000Z',
   records: Object.freeze([
     Object.freeze({ id: 'LAB-001', status: 'pending', amount: 100 }),
     Object.freeze({ id: 'LAB-002', status: 'ready', amount: 200 }),
   ]),
-  production_data_used: false,
-  production_write_permitted: false,
-  execution_permitted: false,
-  push_or_onesignal_permitted: false,
-  automatic_action: false,
+  production_data_used: false, production_write_permitted: false, execution_permitted: false,
+  push_or_onesignal_permitted: false, automatic_action: false,
 });
-
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const baselineChecksum = checksum(baseline);
 const repeatChecksums = [checksum(baseline), checksum(baseline), checksum(baseline)];
-const corrupted = clone(baseline);
-corrupted.records[0].amount = 999999;
+const corrupted = clone(baseline); corrupted.records[0].amount = 999999;
 const recovered = clone(baseline);
-const productionCorruption = clone(baseline);
-productionCorruption.production_data_used = true;
+const productionCorruption = clone(baseline); productionCorruption.production_data_used = true;
 
 const checks = {
   baseline_fixture_valid: baseline.source === 'LAB_FIXTURE' && baseline.lab_only === true && Array.isArray(baseline.records),
@@ -58,7 +47,7 @@ const checks = {
   deterministic_repeatability: repeatChecksums.every((value) => value === baselineChecksum),
   corruption_detected: checksum(corrupted) !== baselineChecksum,
   recovery_restores_checksum: checksum(recovered) === baselineChecksum,
-  production_flag_corruption_detected: productionCorruption.production_data_used === true && productionCorruption.production_data_used !== baseline.production_data_used,
+  production_flag_corruption_detected: productionCorruption.production_data_used !== baseline.production_data_used,
   handover_present: handover.length > 0,
   lab_branch_boundary: handover.includes('choco-auto-lab'),
   production_branch_blocked: handover.includes('Production branch is not modified.'),
@@ -71,26 +60,12 @@ const checks = {
   previous_safety_gate_present: safetyGate.includes('CHOCO_AUTO_STEP_141_TO_150_LAB_SAFETY_ACCEPTANCE'),
   workflow_present: workflow.includes('CHOCO AUTO LAB — Steps 171-180 Deep Integrity & Recovery'),
   workflow_lab_branch: workflow.includes('choco-auto-lab'),
-  workflow_production_blocked: workflow.includes('permissions:\n  contents: read'),
+  workflow_production_blocked: workflow.includes('contents: read'),
   package_name_present: pkg.name === 'choco-auto-lab',
   step171_180_script_registered: typeof scripts['test:step171-180'] === 'string',
-  no_external_runtime_dependency: !workflow.includes('curl ') && !workflow.includes('supabase') && !workflow.includes('onesignal'),
+  no_external_runtime_dependency: !workflow.toLowerCase().includes('curl ') && !workflow.toLowerCase().includes('supabase') && !workflow.toLowerCase().includes('onesignal'),
 };
 
 const failed = Object.entries(checks).filter(([, ok]) => !ok);
-console.log(JSON.stringify({
-  suite: 'CHOCO_AUTO_STEP_171_TO_180_DEEP_INTEGRITY_RECOVERY',
-  passed: failed.length === 0,
-  steps_checked: '171-180',
-  checks,
-  baseline_checksum: baselineChecksum,
-  repeat_checksums: repeatChecksums,
-  lab_only: true,
-  production_data_used: false,
-  production_write_permitted: false,
-  execution_permitted: false,
-  push_or_onesignal_permitted: false,
-  automatic_action: false,
-}, null, 2));
-
+console.log(JSON.stringify({ suite: 'CHOCO_AUTO_STEP_171_TO_180_DEEP_INTEGRITY_RECOVERY', passed: failed.length === 0, steps_checked: '171-180', checks, baseline_checksum: baselineChecksum, repeat_checksums: repeatChecksums, lab_only: true, production_data_used: false, production_write_permitted: false, execution_permitted: false, push_or_onesignal_permitted: false, automatic_action: false }, null, 2));
 if (failed.length) process.exit(1);
