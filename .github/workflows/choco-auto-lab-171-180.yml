@@ -1,0 +1,29 @@
+name: CHOCO AUTO LAB — Steps 171-180 Deep Integrity & Recovery
+
+on:
+  push:
+    branches:
+      - choco-auto-lab
+    paths:
+      - 'auto/**'
+      - '.github/workflows/choco-auto-lab-171-180.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deep-integrity-recovery:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: auto
+    steps:
+      - name: Checkout LAB branch
+        uses: actions/checkout@v4
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Steps 171-180 deep integrity & recovery gate
+        run: node ./src/test/step171-180-lab-deep-integrity-recovery-test.js
