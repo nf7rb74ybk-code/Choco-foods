@@ -1,0 +1,1 @@
+Step 34 proposal review gate: LAB-only, admin review required, execution and production writes disabled.
