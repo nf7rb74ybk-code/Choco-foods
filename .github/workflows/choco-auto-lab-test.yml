@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 50 Foundation Completion
+name: CHOCO AUTO LAB — Step 51 Controlled LAB Test Gate
 
 on:
   push:
@@ -93,3 +93,5 @@ jobs:
         run: npm run test:step49
       - name: Verify Step 50 LAB Foundation Completion
         run: npm run test:step50
+      - name: Verify Step 51 Controlled LAB Test Gate
+        run: npm run test:step51
