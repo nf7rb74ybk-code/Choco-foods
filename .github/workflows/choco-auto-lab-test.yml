@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 29 Verification
+name: CHOCO AUTO LAB — Step 30 Final Safety Gate
 
 on:
   push:
@@ -64,3 +64,6 @@ jobs:
 
       - name: Verify Step 29 Event Timeline
         run: npm run test:step29
+
+      - name: Verify Step 30 Final Safety Gate
+        run: npm run test:step30
