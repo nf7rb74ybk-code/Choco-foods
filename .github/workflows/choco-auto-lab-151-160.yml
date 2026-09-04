@@ -1,0 +1,29 @@
+name: CHOCO AUTO LAB — Steps 151-160 Release Readiness
+
+on:
+  push:
+    branches:
+      - choco-auto-lab
+    paths:
+      - 'auto/**'
+      - '.github/workflows/choco-auto-lab-151-160.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: auto
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Steps 151-160 LAB release readiness gate
+        run: node ./src/test/step151-160-lab-release-readiness-test.js
