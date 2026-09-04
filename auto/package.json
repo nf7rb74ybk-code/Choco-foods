@@ -38,6 +38,8 @@
     "test:step50": "node ./src/test/step50-lab-foundation-completion-gate-test.js",
     "test:step51": "node ./src/test/step51-controlled-lab-test-gate-test.js",
     "test:step52": "node ./src/test/step52-lab-read-only-data-adapter-test.js",
-    "test:step53": "node ./src/test/step53-lab-snapshot-validation-gate-test.js"
+    "test:step53": "node ./src/test/step53-lab-snapshot-validation-gate-test.js",
+    "test:step54": "node ./src/test/step54-lab-snapshot-integrity-provenance-gate-test.js",
+    "test:step55-100": "node ./src/test/step55-100-lab-readiness-gates-test.js"
   }
 }
