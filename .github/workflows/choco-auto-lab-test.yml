@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 31 Admin Approval Gate
+name: CHOCO AUTO LAB — Step 32 Production Readiness Review
 
 on:
   push:
@@ -57,3 +57,5 @@ jobs:
         run: npm run test:step30
       - name: Verify Step 31 Admin Approval Gate
         run: npm run test:step31
+      - name: Verify Step 32 Production Readiness Review
+        run: npm run test:step32
