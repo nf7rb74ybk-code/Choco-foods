@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 53 LAB Snapshot Validation Gate
+name: CHOCO AUTO LAB — Steps 54-100 LAB Readiness
 
 on:
   push:
@@ -99,3 +99,7 @@ jobs:
         run: npm run test:step52
       - name: Verify Step 53 LAB Snapshot Validation Gate
         run: npm run test:step53
+      - name: Verify Step 54 LAB Snapshot Integrity & Provenance Gate
+        run: npm run test:step54
+      - name: Verify Steps 55-100 LAB Readiness Gates
+        run: npm run test:step55-100
