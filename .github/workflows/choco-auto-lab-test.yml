@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 41 Audit History Export Gate
+name: CHOCO AUTO LAB — Step 42 Audit Export Preview
 
 on:
   push:
@@ -21,14 +21,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: auto/package.json
-
       - name: Verify Step 15 + Step 17
         run: npm run test:auto
       - name: Verify Step 19 Decision Center
@@ -77,3 +75,5 @@ jobs:
         run: npm run test:step40
       - name: Verify Step 41 LAB Audit History Export Gate
         run: npm run test:step41
+      - name: Verify Step 42 LAB Audit Export Preview
+        run: npm run test:step42
