@@ -17,7 +17,7 @@ const checks = {
   synthetic_state_present: script.includes('Synthetic LAB state only'),
   no_network_code: !/fetch\s*\(|XMLHttpRequest|WebSocket/i.test(script),
   no_order_mutation_code: !/\.(insert|update|upsert|delete)\s*\(/.test(script),
-  no_push_code: !/\bOneSignal\s*\.|send-push|pushDelivery/i.test(script),
+  no_push_code: !/OneSignal\s*\.|send-push|pushDelivery/i.test(script),
   no_payment_mutation: !/payment\s*=|update.*payment/i.test(script),
   execution_blocked: script.includes('execution_permitted:false'),
   automatic_actions_zero: script.includes('automatic_actions:0'),
