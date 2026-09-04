@@ -33,6 +33,7 @@
     "test:step45": "node ./src/test/step45-lab-audit-export-approval-record-test.js",
     "test:step46": "node ./src/test/step46-lab-approval-decision-ledger-test.js",
     "test:step47": "node ./src/test/step47-lab-approval-decision-ledger-test.js",
-    "test:step48": "node ./src/test/step48-lab-approval-ledger-integrity-test.js"
+    "test:step48": "node ./src/test/step48-lab-approval-ledger-integrity-test.js",
+    "test:step49": "node ./src/test/step49-lab-approval-history-consistency-test.js"
   }
 }
