@@ -24,6 +24,7 @@
     "test:step36": "node ./src/test/step36-lab-queue-processor-test.js",
     "test:step37": "node ./src/test/step37-lab-execution-audit-log-test.js",
     "test:step38": "node ./src/test/step38-lab-audit-history-test.js",
-    "test:step39": "node ./src/test/step39-lab-audit-history-viewer-test.js"
+    "test:step39": "node ./src/test/step39-lab-audit-history-viewer-test.js",
+    "test:step40": "node ./src/test/step40-lab-audit-history-viewer-test.js"
   }
 }
