@@ -14,6 +14,8 @@ export function processQueueItem(item) {
       execution_permitted: false,
       production_write_permitted: false,
       push_or_onesignal_permitted: false,
+      automatic_action: false,
+      execution_mode: 'SIMULATION_ONLY',
     };
   }
 
