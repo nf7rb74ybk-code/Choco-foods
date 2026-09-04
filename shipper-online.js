@@ -1,4 +1,4 @@
-/* CHOCO SHIP - Shipper online + GPS heartbeat + history */
+/* CHOCO SHIP - Shipper online + GPS heartbeat + history + order status flow */
 'use strict';
 (function(){
   if(window.__CHOCO_SHIPPER_ONLINE__) return;
@@ -70,6 +70,79 @@
       save();
     },{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
   }
+
+  /* ORDER STATUS FLOW
+     Chờ xác nhận -> Đã nhận -> Đang lấy hàng -> Đang giao -> Đã giao -> Hoàn thành
+     Mỗi bước chỉ được chuyển tiếp từ đúng trạng thái hiện tại và chỉ bởi shipper đang giữ đơn. */
+  const FLOW={
+    'Đã nhận':{next:'Đang lấy hàng',label:'🛵 BẮT ĐẦU LẤY HÀNG'},
+    'Đang lấy hàng':{next:'Đang giao',label:'📦 ĐÃ LẤY HÀNG - BẮT ĐẦU GIAO'},
+    'Đang giao':{next:'Đã giao',label:'🏁 XÁC NHẬN ĐÃ GIAO'},
+    'Đã giao':{next:'Hoàn thành',label:'✅ HOÀN THÀNH ĐƠN'}
+  };
+  const esc2=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+  async function updateOrderStatus(id,current,next){
+    if(!id||!current||!next) return;
+    const cfg=FLOW[current];
+    if(!cfg||cfg.next!==next) return;
+    const buttons=document.querySelectorAll('[data-status-order="'+CSS.escape(String(id))+'"] button');
+    buttons.forEach(b=>b.disabled=true);
+    try{
+      const qs='/rest/v1/orders?id=eq.'+encodeURIComponent(id)+'&shipper_id=eq.'+encodeURIComponent(UID)+'&status=eq.'+encodeURIComponent(current);
+      const r=await fetch(SB+qs,{method:'PATCH',headers,body:JSON.stringify({status:next})});
+      if(!r.ok) throw Error(await r.text()||('HTTP '+r.status));
+      if(typeof window.loadOrders==='function') await window.loadOrders();
+    }catch(e){
+      alert('❌ Không thể cập nhật trạng thái: '+(e?.message||e));
+      buttons.forEach(b=>b.disabled=false);
+    }
+  }
+  window.chocoUpdateOrderStatus=updateOrderStatus;
+
+  function enhanceOrderCards(){
+    document.querySelectorAll('#orders .order').forEach(card=>{
+      if(card.dataset.statusFlowReady==='1') return;
+      const bold=card.querySelector('b');
+      const code=bold?.textContent?.trim()||'';
+      const statusText=card.querySelector('p')?.textContent||'';
+      const match=statusText.match(/📌\s*([^\n]+)/);
+      const current=(match?.[1]||'').trim();
+      if(!FLOW[current]) return;
+      const mapButtons=[...card.querySelectorAll('a')];
+      const idFromAccept=card.querySelector('button[onclick^="accept("]')?.getAttribute('onclick')?.match(/accept\(([^)]+)\)/)?.[1];
+      let orderId=idFromAccept?.replace(/^['"]|['"]$/g,'')||'';
+      if(!orderId && code){
+        const m=card.getAttribute('data-order-id');
+        if(m) orderId=m;
+      }
+      /* The base renderer does not expose id, so recover it by matching rendered card code against loaded orders. */
+      if(!orderId && typeof window.__CHOCO_LAST_ORDERS__!=='undefined'){
+        const found=window.__CHOCO_LAST_ORDERS__.find(o=>String(o.code||('#'+o.id))===code);
+        if(found) orderId=String(found.id);
+      }
+      if(!orderId) return;
+      const wrap=document.createElement('div');
+      wrap.dataset.statusOrder=orderId;
+      wrap.style.cssText='margin-top:9px;padding-top:9px;border-top:1px solid #e5e7eb';
+      wrap.innerHTML='<div style="font-size:12px;color:#64748b;margin-bottom:6px">🔄 Trạng thái tiếp theo: <b>'+esc2(FLOW[current].next)+'</b></div><button style="width:100%;padding:12px;border:0;border-radius:10px;background:#16a34a;color:#fff;font-weight:800;font-size:15px">'+FLOW[current].label+'</button>';
+      wrap.querySelector('button').onclick=()=>updateOrderStatus(orderId,current,FLOW[current].next);
+      card.appendChild(wrap);
+      card.dataset.statusFlowReady='1';
+    });
+  }
+
+  /* Patch loadOrders minimally so status UI can map rendered cards to real order ids. */
+  const originalLoad=window.loadOrders;
+  if(typeof originalLoad==='function'){
+    window.loadOrders=async function(){
+      const r=await originalLoad.apply(this,arguments);
+      try{enhanceOrderCards()}catch(e){console.warn('STATUS UI',e)}
+      return r;
+    };
+  }
+  const ordersEl=document.getElementById('orders');
+  if(ordersEl) new MutationObserver(()=>enhanceOrderCards()).observe(ordersEl,{childList:true,subtree:true});
 
   window.chocoStartShipperGPS=startGPS;
   gpsUI();
