@@ -30,4 +30,16 @@
     }
     return originalFetch(input, init);
   };
+
+  // Load customer account navigation on customer.html without altering the main page.
+  const loadAccountNav = () => {
+    if (document.querySelector('script[data-choco-account-nav]')) return;
+    const s = document.createElement('script');
+    s.src = './customer-account-nav.js?v=20260904-1';
+    s.async = true;
+    s.dataset.chocoAccountNav = '1';
+    document.head.appendChild(s);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadAccountNav);
+  else loadAccountNav();
 })();
