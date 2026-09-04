@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 33 LAB Execution Simulator
+name: CHOCO AUTO LAB — Step 34 Proposal Review
 
 on:
   push:
@@ -61,3 +61,5 @@ jobs:
         run: npm run test:step32
       - name: Verify Step 33 LAB Execution Simulator
         run: npm run test:step33
+      - name: Verify Step 34 Proposal Review
+        run: npm run test:step34
