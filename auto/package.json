@@ -7,6 +7,7 @@
     "test:step19": "node ./src/test/step19-decision-center-test.js",
     "test:step20": "node ./src/test/step20-dashboard-test.js",
     "test:step21": "node ./src/test/step21-dashboard-ui-test.js",
-    "test:step22": "node ./src/test/step22-read-only-dashboard-test.js"
+    "test:step22": "node ./src/test/step22-read-only-dashboard-test.js",
+    "test:step23": "node ./src/test/step23-live-snapshot-test.js"
   }
 }
