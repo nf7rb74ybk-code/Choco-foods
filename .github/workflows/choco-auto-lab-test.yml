@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 28 Verification
+name: CHOCO AUTO LAB — Step 29 Verification
 
 on:
   push:
@@ -61,3 +61,6 @@ jobs:
 
       - name: Verify Step 28 Alert Center UI
         run: npm run test:step28
+
+      - name: Verify Step 29 Event Timeline
+        run: npm run test:step29
