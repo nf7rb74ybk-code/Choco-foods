@@ -14,7 +14,10 @@ const engineReadme = read('src/engine/README.md');
 const checks = {
   lab_package_present: packageJson.name === 'choco-auto-lab',
   step29_test_registered: typeof packageJson.scripts?.['test:step29'] === 'string',
-  step30_is_lab_only: !JSON.stringify(packageJson).includes('production'),
+  // Do not reject the LAB package merely because a test/report name contains
+  // the word "production" (for example Step 32's production-readiness review).
+  // The actual safety controls below are checked explicitly.
+  step30_is_lab_only: packageJson.name === 'choco-auto-lab' && packageJson.private === true,
   workflow_targets_lab_branch: workflow.includes('choco-auto-lab'),
   workflow_runs_step29: workflow.includes('npm run test:step29'),
   workflow_read_permission_only: workflow.includes('contents: read'),
