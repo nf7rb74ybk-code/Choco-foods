@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 46 Decision Ledger
+name: CHOCO AUTO LAB — Step 47 Approval Decision Ledger
 
 on:
   push:
@@ -85,3 +85,5 @@ jobs:
         run: npm run test:step45
       - name: Verify Step 46 LAB Approval Decision Ledger
         run: npm run test:step46
+      - name: Verify Step 47 LAB Approval Decision Ledger
+        run: npm run test:step47
