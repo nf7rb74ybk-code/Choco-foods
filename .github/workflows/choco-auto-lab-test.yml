@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 44 Export Approval Gate
+name: CHOCO AUTO LAB — Step 45 Approval Record
 
 on:
   push:
@@ -81,3 +81,5 @@ jobs:
         run: npm run test:step43
       - name: Verify Step 44 LAB Export Approval Gate
         run: npm run test:step44
+      - name: Verify Step 45 LAB Approval Record & Traceability
+        run: npm run test:step45
