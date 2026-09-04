@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 51 Controlled LAB Test Gate
+name: CHOCO AUTO LAB — Step 52 LAB Read-Only Data Adapter
 
 on:
   push:
@@ -95,3 +95,5 @@ jobs:
         run: npm run test:step50
       - name: Verify Step 51 Controlled LAB Test Gate
         run: npm run test:step51
+      - name: Verify Step 52 LAB Read-Only Data Adapter
+        run: npm run test:step52
