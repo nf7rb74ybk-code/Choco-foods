@@ -35,6 +35,7 @@
     "test:step47": "node ./src/test/step47-lab-approval-decision-ledger-test.js",
     "test:step48": "node ./src/test/step48-lab-approval-ledger-integrity-test.js",
     "test:step49": "node ./src/test/step49-lab-approval-history-consistency-test.js",
-    "test:step50": "node ./src/test/step50-lab-foundation-completion-gate-test.js"
+    "test:step50": "node ./src/test/step50-lab-foundation-completion-gate-test.js",
+    "test:step51": "node ./src/test/step51-controlled-lab-test-gate-test.js"
   }
 }
