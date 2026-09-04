@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 42 Audit Export Preview
+name: CHOCO AUTO LAB — Step 43 Export Manifest Integrity
 
 on:
   push:
@@ -77,3 +77,5 @@ jobs:
         run: npm run test:step41
       - name: Verify Step 42 LAB Audit Export Preview
         run: npm run test:step42
+      - name: Verify Step 43 LAB Export Manifest Integrity
+        run: npm run test:step43
