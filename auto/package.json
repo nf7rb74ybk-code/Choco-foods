@@ -17,6 +17,7 @@
     "test:step29": "node ./src/test/step29-event-timeline-test.js",
     "test:step30": "node ./src/test/step30-final-safety-gate-test.js",
     "test:step31": "node ./src/test/step31-admin-approval-gate-test.js",
-    "test:step32": "node ./src/test/step32-production-readiness-review-test.js"
+    "test:step32": "node ./src/test/step32-production-readiness-review-test.js",
+    "test:step33": "node ./src/test/step33-lab-execution-simulator-test.js"
   }
 }
