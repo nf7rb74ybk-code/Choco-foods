@@ -19,6 +19,7 @@
     "test:step31": "node ./src/test/step31-admin-approval-gate-test.js",
     "test:step32": "node ./src/test/step32-production-readiness-review-test.js",
     "test:step33": "node ./src/test/step33-lab-execution-simulator-test.js",
-    "test:step34": "node ./src/test/step34-proposal-review-test.js"
+    "test:step34": "node ./src/test/step34-proposal-review-test.js",
+    "test:step35": "node ./src/test/step35-lab-approval-execution-queue-test.js"
   }
 }
