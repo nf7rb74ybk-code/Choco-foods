@@ -1,0 +1,29 @@
+name: CHOCO AUTO LAB — Steps 141-150 Safety Acceptance
+
+on:
+  push:
+    branches:
+      - choco-auto-lab
+    paths:
+      - 'auto/**'
+      - '.github/workflows/choco-auto-lab-141-150.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety-acceptance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: auto
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Steps 141-150 LAB safety acceptance
+        run: node ./src/test/step141-150-lab-safety-acceptance-test.js
