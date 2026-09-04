@@ -45,6 +45,7 @@
     "test:step121-130": "node ./src/test/step121-130-lab-regression-hardening-test.js",
     "test:step131-140": "node ./src/test/step131-140-lab-continuity-gate-test.js",
     "test:step141-150": "node ./src/test/step141-150-lab-safety-acceptance-test.js",
-    "test:step151-160": "node ./src/test/step151-160-lab-release-readiness-test.js"
+    "test:step151-160": "node ./src/test/step151-160-lab-release-readiness-test.js",
+    "test:step161-170": "node ./src/test/step161-170-lab-stability-gate-test.js"
   }
 }
