@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 30 Final Safety Gate
+name: CHOCO AUTO LAB — Step 31 Admin Approval Gate
 
 on:
   push:
@@ -31,39 +31,29 @@ jobs:
 
       - name: Verify Step 15 + Step 17
         run: npm run test:auto
-
       - name: Verify Step 19 Decision Center
         run: npm run test:step19
-
       - name: Verify Step 20 Operations Dashboard
         run: npm run test:step20
-
       - name: Verify Step 21 Dashboard UI
         run: npm run test:step21
-
       - name: Verify Step 22 Read-only Dashboard Adapter
         run: npm run test:step22
-
       - name: Verify Step 23 Live Read-only Snapshot
         run: npm run test:step23
-
       - name: Verify Step 24 AI Anomaly Recommendation
         run: npm run test:step24
-
       - name: Verify Step 25 Daily Operations Report
         run: npm run test:step25
-
       - name: Verify Step 26 System Health & Self-Diagnostics
         run: npm run test:step26
-
       - name: Verify Step 27 Alert Center
         run: npm run test:step27
-
       - name: Verify Step 28 Alert Center UI
         run: npm run test:step28
-
       - name: Verify Step 29 Event Timeline
         run: npm run test:step29
-
       - name: Verify Step 30 Final Safety Gate
         run: npm run test:step30
+      - name: Verify Step 31 Admin Approval Gate
+        run: npm run test:step31
