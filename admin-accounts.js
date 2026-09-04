@@ -112,3 +112,9 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
+(function(){
+  const s=document.createElement('script');
+  s.src='./admin-shipper-manage.js?v=20260904-1';
+  s.async=true;
+  document.head.appendChild(s);
+})();
