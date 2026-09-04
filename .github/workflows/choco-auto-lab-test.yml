@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 24 Verification
+name: CHOCO AUTO LAB — Step 25 Verification
 
 on:
   push:
@@ -49,3 +49,6 @@ jobs:
 
       - name: Verify Step 24 AI Anomaly Recommendation
         run: npm run test:step24
+
+      - name: Verify Step 25 Daily Operations Report
+        run: npm run test:step25
