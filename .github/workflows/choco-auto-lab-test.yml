@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 52 LAB Read-Only Data Adapter
+name: CHOCO AUTO LAB — Step 53 LAB Snapshot Validation Gate
 
 on:
   push:
@@ -97,3 +97,5 @@ jobs:
         run: npm run test:step51
       - name: Verify Step 52 LAB Read-Only Data Adapter
         run: npm run test:step52
+      - name: Verify Step 53 LAB Snapshot Validation Gate
+        run: npm run test:step53
