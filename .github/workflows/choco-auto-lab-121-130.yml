@@ -1,0 +1,29 @@
+name: CHOCO AUTO LAB — Steps 121-130 Regression Hardening
+
+on:
+  push:
+    branches:
+      - choco-auto-lab
+    paths:
+      - 'auto/**'
+      - '.github/workflows/choco-auto-lab-121-130.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression-hardening:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: auto
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Steps 121-130 LAB regression hardening gate
+        run: npm run test:step121-130
