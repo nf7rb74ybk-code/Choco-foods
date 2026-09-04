@@ -56,3 +56,9 @@
   function start(){inject();load();setInterval(load,30000)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
+(function(){
+  const s=document.createElement('script');
+  s.src='./admin-dispatch-smart.js?v=20260904-3';
+  s.async=true;
+  document.head.appendChild(s);
+})();
