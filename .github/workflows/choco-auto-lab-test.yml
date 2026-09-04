@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 39 Audit History Viewer
+name: CHOCO AUTO LAB — Step 41 Audit History Export Gate
 
 on:
   push:
@@ -73,3 +73,7 @@ jobs:
         run: npm run test:step38
       - name: Verify Step 39 LAB Audit History Viewer
         run: npm run test:step39
+      - name: Verify Step 40 LAB Audit History Viewer
+        run: npm run test:step40
+      - name: Verify Step 41 LAB Audit History Export Gate
+        run: npm run test:step41
