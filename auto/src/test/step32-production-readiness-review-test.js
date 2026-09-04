@@ -25,11 +25,13 @@ const report = {
   passed: failed.length === 0,
   checks,
   readiness_review_only: true,
+  final_safety_gate_required: true,
   production_data_used: false,
   production_write_permitted: false,
   push_or_onesignal_used: false,
   execution_permitted: false,
   auto_execution_enabled: false,
 };
+
 console.log(JSON.stringify(report, null, 2));
 if (failed.length) process.exit(1);
