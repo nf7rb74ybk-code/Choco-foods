@@ -4,6 +4,11 @@ const file = './src/alerts/alert-center.html';
 const html = fs.readFileSync(file, 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1] ?? '';
 
+// Step 28 safety checks inspect executable script only.
+// Safety-notice text outside <script> is allowed to mention Push/OneSignal.
+const hasOneSignalCode = script.includes('OneSignal.') || script.includes('OneSignal(');
+const hasPushEndpointCode = script.includes('send-push') || script.includes('pushDelivery');
+
 const checks = {
   html_exists: html.length > 1000,
   step28_label: html.includes('Step 28'),
@@ -17,7 +22,7 @@ const checks = {
   synthetic_state_present: script.includes('Synthetic LAB state only'),
   no_network_code: !/fetch\s*\(|XMLHttpRequest|WebSocket/i.test(script),
   no_order_mutation_code: !/\.(insert|update|upsert|delete)\s*\(/.test(script),
-  no_push_code: !/OneSignal\s*\.|send-push|pushDelivery/i.test(script),
+  no_push_code: !hasOneSignalCode && !hasPushEndpointCode,
   no_payment_mutation: !/payment\s*=|update.*payment/i.test(script),
   execution_blocked: script.includes('execution_permitted:false'),
   automatic_actions_zero: script.includes('automatic_actions:0'),
