@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 43 Export Manifest Integrity
+name: CHOCO AUTO LAB — Step 44 Export Approval Gate
 
 on:
   push:
@@ -79,3 +79,5 @@ jobs:
         run: npm run test:step42
       - name: Verify Step 43 LAB Export Manifest Integrity
         run: npm run test:step43
+      - name: Verify Step 44 LAB Export Approval Gate
+        run: npm run test:step44
