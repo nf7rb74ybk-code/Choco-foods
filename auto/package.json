@@ -10,6 +10,7 @@
     "test:step22": "node ./src/test/step22-read-only-dashboard-test.js",
     "test:step23": "node ./src/test/step23-live-snapshot-test.js",
     "test:step24": "node ./src/test/step24-anomaly-recommendation-test.js",
-    "test:step25": "node ./src/test/step25-daily-operations-report-test.js"
+    "test:step25": "node ./src/test/step25-daily-operations-report-test.js",
+    "test:step26": "node ./src/test/step26-system-health-test.js"
   }
 }
