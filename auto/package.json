@@ -28,6 +28,7 @@
     "test:step40": "node ./src/test/step40-lab-audit-history-viewer-test.js",
     "test:step41": "node ./src/test/step41-lab-audit-history-export-gate-test.js",
     "test:step42": "node ./src/test/step42-lab-audit-export-preview-test.js",
-    "test:step43": "node ./src/test/step43-lab-audit-export-manifest-test.js"
+    "test:step43": "node ./src/test/step43-lab-audit-export-manifest-test.js",
+    "test:step44": "node ./src/test/step44-lab-audit-export-approval-gate-test.js"
   }
 }
