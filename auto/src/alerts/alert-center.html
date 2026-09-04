@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CHOCO AUTO — Alert Center LAB</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f5f7fb}
+    *{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:20px}
+    header{background:#111827;color:#fff;border-radius:18px;padding:22px;margin-bottom:16px}.sub{opacity:.78}.badge{display:inline-block;margin-top:12px;padding:7px 10px;border-radius:999px;background:#14532d;color:#dcfce7;font-weight:700;font-size:12px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.card,.section{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}.label{font-size:12px;color:#64748b}.value{font-size:27px;font-weight:800;margin-top:5px}.section{margin-bottom:16px}.section h2{font-size:17px;margin:0 0 12px}
+    .row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eef2f7}.row:last-child{border-bottom:0}.pill{padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;text-transform:uppercase}.critical{background:#fef2f2;border-left:5px solid #dc2626;padding-left:12px}.warning{background:#fff7ed;border-left:5px solid #ea580c;padding-left:12px}.info{background:#eff6ff;border-left:5px solid #2563eb;padding-left:12px}.critical .pill{background:#fee2e2;color:#991b1b}.warning .pill{background:#ffedd5;color:#9a3412}.info .pill{background:#dbeafe;color:#1d4ed8}.safe{color:#166534;font-weight:700}
+    .muted{color:#64748b;font-size:13px}.empty{color:#64748b;padding:8px 0}.actions{font-size:12px;color:#64748b;margin-top:5px}
+    @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.row{align-items:flex-start}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🚨 CHOCO AUTO — ALERT CENTER</h1>
+    <div class="sub">Step 28 • LAB / REVIEW ONLY</div>
+    <div class="badge">🔒 PRODUCTION WRITE: BLOCKED</div>
+  </header>
+
+  <div class="grid">
+    <div class="card"><div class="label">Tổng cảnh báo</div><div class="value" id="total">0</div></div>
+    <div class="card"><div class="label">🔴 Critical</div><div class="value" id="critical">0</div></div>
+    <div class="card"><div class="label">🟠 Warning</div><div class="value" id="warning">0</div></div>
+    <div class="card"><div class="label">Cần review</div><div class="value" id="review">0</div></div>
+  </div>
+
+  <section class="section"><h2>🚨 Ưu tiên cảnh báo</h2><div id="alerts"></div></section>
+
+  <section class="section">
+    <h2>🔗 Liên kết vận hành</h2>
+    <div class="row"><span>Daily Report</span><b id="report">—</b></div>
+    <div class="row"><span>System Health</span><b id="health">—</b></div>
+    <div class="row"><span>Order được liên kết</span><b id="orders">0</b></div>
+    <div class="row"><span>Shipper được liên kết</span><b id="shippers">0</b></div>
+  </section>
+
+  <section class="section safe">
+    🔐 LAB SAFETY: Chỉ hiển thị cảnh báo để Admin review. Không cập nhật orders, không đổi payment, không tự gán shipper, không hủy đơn, không gửi Push/OneSignal và không thực thi hành động tự động.
+  </section>
+</div>
+<script>
+  // Synthetic LAB state only. This page intentionally has no external API/client.
+  const state={
+    mode:'LAB_ALERT_CENTER_ONLY',read_only:true,production_write_permitted:false,
+    push_or_onesignal_permitted:false,execution_permitted:false,automatic_actions:0,
+    daily_report_id:'DAILY_2026-09-04',health_status:'HEALTHY',
+    counts:{total:3,critical:1,warning:2,info:0,review_required:3,linked_orders:1,linked_shippers:0},
+    alerts:[
+      {level:'critical',finding_id:'NO_ONLINE_SHIPPER',type:'NO_ONLINE_SHIPPER',message:'Không có shipper online — Admin cần kiểm tra.',order_id:null,shipper_id:null,recommendation_id:'REC_NO_ONLINE_SHIPPER'},
+      {level:'warning',finding_id:'ORDER_STUCK_30M',type:'ORDER_STUCK_30M',message:'Có đơn vượt ngưỡng 30 phút cần review.',order_id:101,shipper_id:null,recommendation_id:'REC_ORDER_STUCK_30M'},
+      {level:'warning',finding_id:'UNKNOWN_ORDER_STATUS',type:'UNKNOWN_ORDER_STATUS',message:'Có trạng thái đơn chưa được nhận diện.',order_id:null,shipper_id:null,recommendation_id:'REC_UNKNOWN_ORDER_STATUS'}
+    ]
+  };
+  document.getElementById('total').textContent=state.counts.total;
+  document.getElementById('critical').textContent=state.counts.critical;
+  document.getElementById('warning').textContent=state.counts.warning;
+  document.getElementById('review').textContent=state.counts.review_required;
+  document.getElementById('report').textContent=state.daily_report_id;
+  document.getElementById('health').textContent=state.health_status;
+  document.getElementById('orders').textContent=state.counts.linked_orders;
+  document.getElementById('shippers').textContent=state.counts.linked_shippers;
+  document.getElementById('alerts').innerHTML=state.alerts.map(a=>`<div class="row ${a.level}"><div><b>${a.type}</b><br>${a.message}<div class="actions">Finding: ${a.finding_id} • Recommendation: ${a.recommendation_id ?? '—'}${a.order_id!=null?' • Order: '+a.order_id:''}</div></div><span class="pill">${a.level}</span></div>`).join('');
+</script>
+</body>
+</html>
