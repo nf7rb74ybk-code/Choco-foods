@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 36 LAB Queue Processor
+name: CHOCO AUTO LAB — Step 37 Execution Audit Log
 
 on:
   push:
@@ -67,3 +67,5 @@ jobs:
         run: npm run test:step35
       - name: Verify Step 36 LAB Queue Processor
         run: npm run test:step36
+      - name: Verify Step 37 LAB Execution Result & Audit Log
+        run: npm run test:step37
