@@ -1,0 +1,16 @@
+'use strict';
+(function(){
+const SB='https://guwdswqaqnhzqapflvey.supabase.co',KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+const token=()=>localStorage.getItem('choco_access_token')||'',uid=()=>localStorage.getItem('choco_user_id')||'';
+function b64(s){const p='='.repeat((4-s.length%4)%4),r=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))}
+async function enable(){if(!token()||!uid())throw Error('Bạn chưa đăng nhập');if(!('serviceWorker'in navigator)||!('PushManager'in window))throw Error('Thiết bị không hỗ trợ Web Push');if(!window.isSecureContext)throw Error('Web Push cần HTTPS');if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!(navigator.standalone===true||matchMedia('(display-mode:standalone)').matches))throw Error('iPhone cần mở CHOCO SHIP từ Màn hình chính (PWA)');
+ const vr=await fetch(SB+'/functions/v1/send-push?mode=public',{headers:{apikey:KEY,Accept:'application/json'}}),vj=await vr.json();if(!vr.ok||!vj.vapid_public_key)throw Error('Không lấy được VAPID Public Key');
+ const reg=await navigator.serviceWorker.register('./customer-push-sw.js?v=20260904-1',{scope:'./'});await navigator.serviceWorker.ready;let p=Notification.permission;if(p!=='granted')p=await Notification.requestPermission();if(p!=='granted')throw Error('Bạn chưa cho phép thông báo');
+ let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(vj.vapid_public_key.trim())});const j=sub.toJSON();
+ const r=await fetch(SB+'/functions/v1/register-push',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token(),'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({user_id:uid(),role:'customer',subscription:{endpoint:j.endpoint,keys:{p256dh:j.keys?.p256dh,auth:j.keys?.auth}}})});const text=await r.text();let data={};try{data=JSON.parse(text)}catch{}if(!r.ok||!data.ok)throw Error(data.error||('HTTP '+r.status));localStorage.setItem('choco_customer_push_enabled','1');return data;}
+function mount(){if(document.getElementById('customerPushBox'))return;const box=document.createElement('div');box.id='customerPushBox';box.style.cssText='background:#eff6ff;border:1px solid #bfdbfe;padding:12px;border-radius:12px;margin:12px 0;font-size:14px;line-height:1.5';box.innerHTML='<b>🔔 Thông báo đơn hàng</b><div id="customerPushText" style="margin:6px 0;color:#555">Bật thông báo để nhận cập nhật đơn ngay cả khi đóng app.</div><button id="customerPushBtn" style="border:0;background:#1677ff;color:#fff;padding:10px 13px;border-radius:9px;font-weight:bold">🔔 BẬT THÔNG BÁO</button>';
+ const target=document.querySelector('.container');if(target)target.prepend(box);const btn=box.querySelector('#customerPushBtn'),txt=box.querySelector('#customerPushText');btn.onclick=async()=>{btn.disabled=true;txt.textContent='⏳ Đang bật thông báo...';try{await enable();txt.textContent='✅ Thông báo đơn hàng đã bật.';btn.textContent='✅ ĐÃ BẬT'}catch(e){txt.textContent='❌ '+e.message;btn.disabled=false}};
+ if(localStorage.getItem('choco_customer_push_enabled')==='1'){txt.textContent='✅ Thông báo đơn hàng đã bật.';btn.textContent='✅ ĐÃ BẬT';btn.disabled=true}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+window.CHOCOSHIPCustomerPush={enable};
+})();
