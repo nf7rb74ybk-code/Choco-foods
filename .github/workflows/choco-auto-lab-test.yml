@@ -1,4 +1,4 @@
-name: CHOCO AUTO LAB — Step 22 Verification
+name: CHOCO AUTO LAB — Step 23 Verification
 
 on:
   push:
@@ -43,3 +43,6 @@ jobs:
 
       - name: Verify Step 22 Read-only Dashboard Adapter
         run: npm run test:step22
+
+      - name: Verify Step 23 Live Read-only Snapshot
+        run: npm run test:step23
