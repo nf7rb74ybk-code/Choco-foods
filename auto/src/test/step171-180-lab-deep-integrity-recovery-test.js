@@ -4,7 +4,6 @@ import { createHash } from 'node:crypto';
 const root = '../../';
 const read = (path) => existsSync(path) ? readFileSync(path, 'utf8') : '';
 const parseJson = (path) => JSON.parse(read(path));
-
 const stable = (value) => {
   if (Array.isArray(value)) return `[${value.map(stable).join(',')}]`;
   if (value && typeof value === 'object') return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stable(value[k])}`).join(',')}}`;
