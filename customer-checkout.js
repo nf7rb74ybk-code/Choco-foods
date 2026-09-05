@@ -4,7 +4,6 @@
   if(window.__CHOCO_CUSTOMER_CHECKOUT__) return;
   window.__CHOCO_CUSTOMER_CHECKOUT__=true;
   const KEY='choco_ship_last_order';
-  const money=n=>Number(n||0).toLocaleString('vi-VN')+'đ';
   const $=id=>document.getElementById(id);
   const val=id=>String($(id)?.value||'').trim();
   const setBusy=b=>{const x=$('orderButton');if(x){x.disabled=b;x.textContent=b?'⏳ ĐANG ĐẶT ĐƠN...':'🚀 ĐẶT ĐƠN';}};
@@ -23,8 +22,7 @@
     if(c.some(x=>Number(x.restaurantId??x.restaurant_id)!==restaurantId))return alert('⚠️ Giỏ hàng có món từ nhiều quán. Vui lòng chỉ đặt món của một quán.');
     const items=c.map(x=>({foodId:Number(x.foodId??x.food_id),name:String(x.name||''),qty:Math.max(1,Math.min(99,Number(x.qty)||1))}));
     if(items.some(x=>!Number.isInteger(x.foodId)||x.foodId<1))return alert('⚠️ Giỏ hàng có món không hợp lệ. Hãy xóa món lỗi và thêm lại.');
-    const token=localStorage.getItem('choco_access_token')||'';
-    if(!token)return alert('🔐 Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.');
+    if(!localStorage.getItem('choco_access_token'))return alert('🔐 Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.');
     setBusy(true);msg('Đang kiểm tra món và tạo đơn...');
     try{
       const payload={restaurant_id:restaurantId,items,name,phone:phone.replace(/\s/g,''),address,note,payment,latitude:lat,longitude:lng};
@@ -33,13 +31,13 @@
       if(!r.ok){const detail=j?.message||j?.hint||j?.details||'Không thể tạo đơn';throw new Error(detail);}
       const row=Array.isArray(j)?j[0]:j;
       const code=String(row?.code||row?.order_code||'').trim();
-      if(code)localStorage.setItem(KEY,JSON.stringify({code,order_id:row?.id||null,status:row?.status||'Chờ xác nhận',created_at:new Date().toISOString()}));
+      localStorage.setItem(KEY,JSON.stringify({code,order_id:row?.id||null,status:row?.status||'Chờ xác nhận',created_at:new Date().toISOString()}));
       localStorage.removeItem('choco_customer_cart_v1');window.cart=[];
       if(typeof window.updateCart==='function')window.updateCart();
       if(typeof window.renderCart==='function')window.renderCart();
       const b=$('successBox');if(b){b.style.display='block';b.style.background='#ecfdf5';b.style.borderColor='#86efac';b.innerHTML='✅ <b>Đặt đơn thành công!</b><br>'+ (code?'Mã đơn: <b>'+code+'</b><br>':'') +'Đơn đang chờ quán xác nhận.';}
       if($('orderButton'))$('orderButton').style.display='none';
-      setTimeout(()=>{if(typeof window.closeCart==='function')window.closeCart();if(code)location.href='./customer-tracking.html?code='+encodeURIComponent(code);},900);
+      setTimeout(()=>{if(typeof window.closeCart==='function')window.closeCart();},900);
     }catch(e){console.error('CHOCO CHECKOUT',e);msg('❌ '+(e?.message||'Đặt đơn thất bại')+'\nVui lòng kiểm tra lại giỏ hàng và thử lại.');}
     finally{setBusy(false);}
   }
