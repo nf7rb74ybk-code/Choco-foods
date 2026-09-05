@@ -7,6 +7,7 @@ on:
       - 'customer.html'
       - 'customer-order-force.js'
       - 'customer-add-fix.js'
+      - 'customer-gps-fix.js'
       - '.github/workflows/choco-direct-customer-wiring.yml'
 
 permissions:
@@ -25,7 +26,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Wire checkout scripts directly into customer.html
+      - name: Wire customer scripts directly into customer.html
         shell: bash
         run: |
           set -e
@@ -37,13 +38,15 @@ jobs:
           p = Path('customer.html')
           s = p.read_text(encoding='utf-8')
 
-          s = re.sub(r'<script\s+src=["\']\./customer-add-fix\.js\?v=[^"\']+["\']\s*></script>', '', s, flags=re.I)
-          s = re.sub(r'<script\s+src=["\']\./customer-order-force\.js\?v=[^"\']+["\']\s*></script>', '', s, flags=re.I)
+          for name in ('customer-add-fix','customer-order-force','customer-gps-fix'):
+              s = re.sub(r'<script\s+src=["\']\./'+name+r'\.js\?v=[^"\']+["\']\s*></script>', '', s, flags=re.I)
+
           s = re.sub(r'(id=["\']orderButton["\'][^>]*?)\s+onclick=["\']createOrder\(\)["\']', r'\1', s, flags=re.I)
 
           tags = (
               '<script src="./customer-add-fix.js?v=20260905-7"></script>'
               '<script src="./customer-order-force.js?v=20260905-6"></script>'
+              '<script src="./customer-gps-fix.js?v=20260905-1"></script>'
           )
 
           if '</body>' not in s:
@@ -65,7 +68,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m 'fix: wire customer cart total v7'
+          git commit -m 'fix: wire customer gps fix'
 
           for attempt in 1 2 3 4 5; do
             if git push origin HEAD:main; then
@@ -81,7 +84,7 @@ jobs:
               echo 'Another writer already applied the wiring.'
               exit 0
             fi
-            git commit -m 'fix: wire customer cart total v7'
+            git commit -m 'fix: wire customer gps fix'
           done
 
           echo 'Unable to push after 5 attempts.'
@@ -91,5 +94,6 @@ jobs:
         run: |
           grep -q 'customer-add-fix.js?v=20260905-7' customer.html
           grep -q 'customer-order-force.js?v=20260905-6' customer.html
+          grep -q 'customer-gps-fix.js?v=20260905-1' customer.html
           ! grep -q 'id="orderButton"[^>]*onclick="createOrder()"' customer.html
-          echo 'DIRECT CUSTOMER CHECKOUT WIRING: PASS'
+          echo 'DIRECT CUSTOMER WIRING: PASS'
