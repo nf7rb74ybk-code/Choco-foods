@@ -42,7 +42,8 @@
     return response;
   };
 
-  const FLOW={'Đã nhận':{next:'Đang lấy hàng',label:'🛵 BẮT ĐẦU LẤY HÀNG'},'Đang lấy hàng':{next:'Đang giao',label:'📦 ĐÃ LẤY HÀNG - BẮT ĐẦU GIAO'},'Đang giao':{next:'Đã giao',label:'🏁 XÁC NHẬN ĐÃ GIAO'},'Đã giao':{next:'Hoàn thành',label:'✅ HOÀN THÀNH ĐƠN'}};
+  /* Shipper owns the delivery lifecycle up to "Đã giao". Admin confirms final "Hoàn thành". */
+  const FLOW={'Đã nhận':{next:'Đang lấy hàng',label:'🛵 BẮT ĐẦU LẤY HÀNG'},'Đang lấy hàng':{next:'Đang giao',label:'📦 ĐÃ LẤY HÀNG - BẮT ĐẦU GIAO'},'Đang giao':{next:'Đã giao',label:'🏁 XÁC NHẬN ĐÃ GIAO'}};
   const esc2=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   async function updateOrderStatus(id,current,next){
     const cfg=FLOW[current];if(!id||!cfg||cfg.next!==next)return;
