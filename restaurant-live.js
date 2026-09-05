@@ -33,19 +33,19 @@
     const img=r.image_url||'';
     app.innerHTML='<div class="hero" style="background-image:url('+esc(img)+')"></div>'+
       '<section class="card"><div class="name">'+esc(r.name)+'</div><div class="rating">⭐ '+esc(r.rating||'Chưa có đánh giá')+' · '+esc(r.category||'Đồ ăn')+'</div><div class="status">'+(r.is_open?'🟢 Đang nhận đơn':'🔴 Tạm đóng')+'</div><div class="meta">🛵 Phí giao hàng tính theo khoảng cách<br>⏱️ Dự kiến giao: 20–40 phút</div></section>'+
-      '<div class="tabs">'+groups.map((g,i)=>'<span onclick="document.getElementById(\'cat-'+i+'\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">'+esc(g.name)+'</span>').join('')+'<span>⭐ Đánh giá</span></div>'+groups.map((g,i)=>'<div class="section" id="cat-'+i+'">🍽️ '+esc(g.name)+'</div>'+g.foods.map(f=>'<div class="food"><div style="flex:1"><b>'+esc(f.name)+'</b>'+(f.description?'<div class="meta">'+esc(f.description)+'</div>':'')+'<div class="price">'+money(f.price)+'</div></div><button class="add" onclick="window.__restaurantAdd('+Number(r.id)+','+Number(f.id)+')">+ Thêm</button></div>').join('')).join('')+
+      '<div class="tabs">'+groups.map((g,i)=>'<span onclick="document.getElementById(\'cat-'+i+'\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">'+esc(g.name)+'</span>').join('')+'<span>⭐ Đánh giá</span></div>'+groups.map((g,i)=>'<div class="section" id="cat-'+i+'">🍽️ '+esc(g.name)+'</div>'+g.foods.map(f=>'<div class="food"><div style="flex:1"><b>'+esc(f.name)+'</b>'+(f.description?'<div class="meta">'+esc(f.description)+'</div>':'')+'<div class="price">'+money(f.price)+'</div></div><button class="add" onclick="window.__restaurantAdd('+Number(r.id)+','+Number(f.id)+',\''+esc(f.name).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\','+Number(f.price||0)+')">+ Thêm</button></div>').join('')).join('')+
       '<div class="section">⭐ Đánh giá</div><div class="card"><b id="liveRatingSummary">⭐ '+esc(r.rating||'Chưa có đánh giá')+'</b><div class="meta">Khách hàng có thể đánh giá sau khi hoàn thành đơn.</div></div>'+
       '<div class="section">ℹ️ Thông tin cửa hàng</div><div class="card info">📍 Phú Quốc<br>'+ (r.is_open?'🕐 Đang mở cửa và nhận đơn':'🔴 Tạm đóng cửa') +'<br>💳 Tiền mặt / Chuyển khoản<div class="notice">💡 Chọn món rồi bấm <b>+ Thêm</b>. Giỏ hàng chỉ nhận món từ một quán trong mỗi đơn.</div></div>';
   }
-  window.__restaurantAdd=function(rid,fid){
+  window.__restaurantAdd=function(rid,fid,name,price){
     const key='choco_customer_cart_v1';let c=[];try{c=JSON.parse(localStorage.getItem(key)||'[]')}catch{}
     if(!Array.isArray(c))c=[];
-    const old=c.find(x=>String(x.restaurantId)===String(rid)&&String(x.foodId)===String(fid));
     if(c.length&&c.some(x=>String(x.restaurantId)!==String(rid))){if(!confirm('Giỏ hàng đang có món của quán khác. Xóa giỏ và thêm món này?'))return;c=[]}
-    if(old)old.qty=Math.min(99,Number(old.qty||1)+1);
-    else c.push({restaurantId:rid,foodId:fid,name:'Món ăn',price:0,qty:1});
+    const old=c.find(x=>String(x.restaurantId)===String(rid)&&String(x.foodId)===String(fid));
+    if(old){old.qty=Math.min(99,Number(old.qty||1)+1);old.name=name;old.price=Number(price||0)}
+    else c.push({restaurantId:rid,foodId:fid,name:name,price:Number(price||0),qty:1});
     localStorage.setItem(key,JSON.stringify(c));
-    alert('✅ Đã thêm món vào giỏ. Mở giỏ hàng để hoàn tất đơn.');
+    alert('✅ Đã thêm '+name+' vào giỏ.');
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(load,500));else setTimeout(load,500);
 })();
