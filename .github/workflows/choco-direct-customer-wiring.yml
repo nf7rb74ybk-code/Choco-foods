@@ -1,0 +1,63 @@
+name: CHOCO Direct Customer HTML Wiring
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'customer.html'
+      - 'customer-order-force.js'
+      - 'customer-add-fix.js'
+      - '.github/workflows/choco-direct-customer-wiring.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wire checkout scripts directly into customer.html
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('customer.html')
+          s = p.read_text(encoding='utf-8')
+
+          # Remove every previous managed copy of these scripts, regardless of version.
+          s = re.sub(r'<script\s+src=["\']\./customer-add-fix\.js\?v=[^"\']+["\']\s*></script>', '', s, flags=re.I)
+          s = re.sub(r'<script\s+src=["\']\./customer-order-force\.js\?v=[^"\']+["\']\s*></script>', '', s, flags=re.I)
+
+          tags = (
+              '<script src="./customer-add-fix.js?v=20260905-4"></script>'
+              '<script src="./customer-order-force.js?v=20260905-2"></script>'
+          )
+
+          if '</body>' not in s:
+              raise SystemExit('customer.html missing </body>')
+
+          s = s.replace('</body>', tags + '</body>', 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Verify direct wiring
+        run: |
+          grep -q 'customer-add-fix.js?v=20260905-4' customer.html
+          grep -q 'customer-order-force.js?v=20260905-2' customer.html
+          echo 'DIRECT CUSTOMER WIRING: PASS'
+
+      - name: Commit customer.html
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add customer.html
+          if git diff --cached --quiet; then
+            echo 'No customer.html change needed'
+          else
+            git commit -m 'fix: directly wire customer checkout into html'
+            git push
+          fi
