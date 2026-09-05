@@ -44,7 +44,7 @@ jobs:
               '<script src="./customer-add-fix.js?v=20260905-7"></script>'
               '<script src="./customer-order-force.js?v=20260905-6"></script>'
               '<script src="./customer-gps-fix.js?v=20260905-8"></script>'
-              '<script src="./customer-gps-lock.js?v=20260905-1"></script>'
+              '<script src="./customer-gps-lock.js?v=20260905-2"></script>'
           )
           if '</body>' not in s:
               raise SystemExit('customer.html missing </body>')
@@ -62,7 +62,7 @@ jobs:
             echo 'No customer.html wiring change needed.'
             exit 0
           fi
-          git commit -m 'fix: wire customer gps hard lock'
+          git commit -m 'fix: wire customer gps hard lock v2'
           for attempt in 1 2 3 4 5; do
             if git push origin HEAD:main; then
               echo "PUSH SUCCESS on attempt $attempt"
@@ -77,7 +77,7 @@ jobs:
               echo 'Another writer already applied the wiring.'
               exit 0
             fi
-            git commit -m 'fix: wire customer gps hard lock'
+            git commit -m 'fix: wire customer gps hard lock v2'
           done
           echo 'Unable to push after 5 attempts.'
           exit 1
@@ -87,6 +87,6 @@ jobs:
           grep -q 'customer-add-fix.js?v=20260905-7' customer.html
           grep -q 'customer-order-force.js?v=20260905-6' customer.html
           grep -q 'customer-gps-fix.js?v=20260905-8' customer.html
-          grep -q 'customer-gps-lock.js?v=20260905-1' customer.html
+          grep -q 'customer-gps-lock.js?v=20260905-2' customer.html
           ! grep -q 'id="orderButton"[^>]*onclick="createOrder()"' customer.html
           echo 'DIRECT CUSTOMER WIRING: PASS'
