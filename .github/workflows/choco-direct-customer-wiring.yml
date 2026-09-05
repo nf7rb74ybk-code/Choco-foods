@@ -43,7 +43,7 @@ jobs:
 
           tags = (
               '<script src="./customer-add-fix.js?v=20260905-5"></script>'
-              '<script src="./customer-order-force.js?v=20260905-4"></script>'
+              '<script src="./customer-order-force.js?v=20260905-5"></script>'
           )
 
           if '</body>' not in s:
@@ -65,7 +65,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m 'fix: wire force checkout last and remove stale inline handler'
+          git commit -m 'fix: wire force checkout v5 and remove stale inline handler'
 
           for attempt in 1 2 3 4 5; do
             if git push origin HEAD:main; then
@@ -81,7 +81,7 @@ jobs:
               echo 'Another writer already applied the wiring.'
               exit 0
             fi
-            git commit -m 'fix: wire force checkout last and remove stale inline handler'
+            git commit -m 'fix: wire force checkout v5 and remove stale inline handler'
           done
 
           echo 'Unable to push after 5 attempts.'
@@ -90,6 +90,6 @@ jobs:
       - name: Verify direct wiring
         run: |
           grep -q 'customer-add-fix.js?v=20260905-5' customer.html
-          grep -q 'customer-order-force.js?v=20260905-4' customer.html
+          grep -q 'customer-order-force.js?v=20260905-5' customer.html
           ! grep -q 'id="orderButton"[^>]*onclick="createOrder()"' customer.html
           echo 'DIRECT CUSTOMER CHECKOUT WIRING: PASS'
