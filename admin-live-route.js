@@ -1,4 +1,4 @@
-/* CHOCO SHIP - Admin live route tracking */
+/* CHOCO SHIP - Admin live route tracking — MapLibre + OpenFreeMap */
 'use strict';
 (function(){
   if(window.__CHOCO_ADMIN_LIVE_ROUTE__) return;
@@ -6,21 +6,38 @@
   const SB='https://guwdswqaqnhzqapflvey.supabase.co';
   const KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
   const REFRESH_MS=10000;
+  const MAP_STYLE='https://tiles.openfreemap.org/styles/liberty';
   let timer=null,map=null,markers={},routes={};
   const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   function km(a,b,c,d){const R=6371,p=(c-a)*Math.PI/180,q=(d-b)*Math.PI/180,x=Math.sin(p/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(q/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-  function loadLeaflet(){return new Promise((resolve,reject)=>{if(window.L)return resolve();if(document.getElementById('chocoLeafletJS')){const wait=()=>window.L?resolve():setTimeout(wait,100);return wait()}const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);const js=document.createElement('script');js.id='chocoLeafletJS';js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';js.onload=resolve;js.onerror=()=>reject(Error('Không tải được thư viện bản đồ'));document.head.appendChild(js)})}
+  function loadMapLibre(){return new Promise((resolve,reject)=>{if(window.maplibregl)return resolve();if(document.getElementById('chocoMapLibreJS')){const wait=()=>window.maplibregl?resolve():setTimeout(wait,100);return wait()}const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css';document.head.appendChild(css);const js=document.createElement('script');js.id='chocoMapLibreJS';js.src='https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js';js.onload=resolve;js.onerror=()=>reject(Error('Không tải được MapLibre'));document.head.appendChild(js)})}
   async function ensure(){
     if(document.getElementById('adminLiveRouteBox')) return;
-    await loadLeaflet();
-    const style=document.createElement('style');style.textContent='#adminLiveRouteBox{background:#fff;border-radius:15px;padding:14px;margin:12px 0;box-shadow:0 2px 8px #ddd}#adminLiveRouteMap{height:420px;border-radius:12px;margin-top:10px}.alr-title{font-size:19px;font-weight:800}.alr-note{font-size:12px;color:#666;margin-top:8px}.alr-card{background:#f8fafc;border-radius:10px;padding:9px;margin-top:8px}';document.head.appendChild(style);
-    const box=document.createElement('section');box.id='adminLiveRouteBox';box.innerHTML='<div class="alr-title">🗺️ LIVE SHIPPER & TUYẾN ĐƯỜNG</div><div id="adminLiveRouteList" class="alr-card">⏳ Đang tải...</div><div id="adminLiveRouteMap"></div><div class="alr-note">🔄 GPS cập nhật tự động mỗi 10 giây. Tuyến đường dùng OpenStreetMap/OSRM.</div>';
+    await loadMapLibre();
+    const style=document.createElement('style');style.textContent='#adminLiveRouteBox{background:#fff;border-radius:15px;padding:14px;margin:12px 0;box-shadow:0 2px 8px #ddd}#adminLiveRouteMap{height:420px;border-radius:12px;margin-top:10px;overflow:hidden}.alr-title{font-size:19px;font-weight:800}.alr-note{font-size:12px;color:#666;margin-top:8px}.alr-card{background:#f8fafc;border-radius:10px;padding:9px;margin-top:8px}';document.head.appendChild(style);
+    const box=document.createElement('section');box.id='adminLiveRouteBox';box.innerHTML='<div class="alr-title">🗺️ LIVE SHIPPER & TUYẾN ĐƯỜNG</div><div id="adminLiveRouteList" class="alr-card">⏳ Đang tải...</div><div id="adminLiveRouteMap"></div><div class="alr-note">🔄 GPS cập nhật tự động mỗi 10 giây. Bản đồ MapLibre + OpenFreeMap • Tuyến đường OSRM.</div>';
     const host=document.querySelector('.container')||document.querySelector('main')||document.body;host.insertBefore(box,host.firstChild);
-    map=L.map('adminLiveRouteMap').setView([10.2899,103.984],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+    map=new maplibregl.Map({container:'adminLiveRouteMap',style:MAP_STYLE,center:[103.984,10.2899],zoom:12,attributionControl:true});
+    map.addControl(new maplibregl.NavigationControl(),'top-right');
+    await new Promise((resolve,reject)=>{map.once('load',resolve);map.once('error',e=>reject(e?.error||e))});
   }
   async function getJson(path){const token=localStorage.getItem('choco_access_token')||'';const r=await fetch(SB+path,{headers:{apikey:KEY,Authorization:token?'Bearer '+token:'Bearer '+KEY,Accept:'application/json'}});if(!r.ok)throw Error(await r.text());return r.json()}
-  async function route(a,b,c,d){try{const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+b+','+a+';'+d+','+c+'?overview=full&geometries=geojson');if(!r.ok)return null;const j=await r.json(),x=j.routes?.[0];if(!x)return null;return {km:x.distance/1000,min:x.duration/60,coords:x.geometry.coordinates.map(v=>[v[1],v[0]])}}catch{return null}}
-  function marker(id,lat,lng,text){if(markers[id])markers[id].setLatLng([lat,lng]).setPopupContent(text);else markers[id]=L.marker([lat,lng]).addTo(map).bindPopup(text)}
+  async function route(a,b,c,d){try{const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+b+','+a+';'+d+','+c+'?overview=full&geometries=geojson');if(!r.ok)return null;const j=await r.json(),x=j.routes?.[0];if(!x)return null;return {km:x.distance/1000,min:x.duration/60,coords:x.geometry.coordinates}}catch{return null}}
+  function popup(text){return new maplibregl.Popup({offset:26,maxWidth:'280px'}).setHTML(text)}
+  function marker(id,lat,lng,text){
+    const pos=[lng,lat];
+    if(markers[id]){markers[id].setLngLat(pos).setPopup(popup(text));return}
+    const el=document.createElement('div');el.style.cssText='width:30px;height:30px;border-radius:50%;background:#1677ff;border:3px solid #fff;box-shadow:0 2px 7px #555;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer';el.textContent=id.startsWith('s_')?'🚚':'📍';
+    markers[id]=new maplibregl.Marker({element:el}).setLngLat(pos).setPopup(popup(text)).addTo(map);
+  }
+  function drawRoute(id,coords){
+    const sourceId='alr_route_'+id,layerId=sourceId+'_line';
+    const data={type:'Feature',geometry:{type:'LineString',coordinates:coords},properties:{}};
+    if(map.getSource(sourceId)){map.getSource(sourceId).setData(data);return}
+    map.addSource(sourceId,{type:'geojson',data});
+    map.addLayer({id:layerId,type:'line',source:sourceId,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#1677ff','line-width':5,'line-opacity':0.75}});
+    routes[id]={sourceId,layerId};
+  }
   async function refresh(){
     await ensure();if(!map)return;
     const list=document.getElementById('adminLiveRouteList');
@@ -30,14 +47,21 @@
       const ids=[...new Set(orders.map(o=>String(o.shipper_id)))];
       const profiles=await getJson('/rest/v1/profiles?id=in.('+ids.map(encodeURIComponent).join(',')+')&select=id,full_name,phone,latitude,longitude,last_seen,is_online');
       const pm=new Map(profiles.map(p=>[String(p.id),p]));let html='';
-      for(const o of orders){const s=pm.get(String(o.shipper_id));if(!s||s.latitude==null||s.longitude==null){html+='<div class="alr-card">📦 <b>'+esc(o.code)+'</b> — 🚚 '+esc(o.shipper_name||s?.full_name||'Shipper')+'<br>🟠 Chưa có GPS.</div>';continue}
+      for(const o of orders){
+        const s=pm.get(String(o.shipper_id));
+        if(!s||s.latitude==null||s.longitude==null){html+='<div class="alr-card">📦 <b>'+esc(o.code)+'</b> — 🚚 '+esc(o.shipper_name||s?.full_name||'Shipper')+'<br>🟠 Chưa có GPS.</div>';continue}
         const slat=Number(s.latitude),slng=Number(s.longitude),clat=Number(o.latitude),clng=Number(o.longitude);const online=!!(s.is_online&&s.last_seen&&Date.now()-new Date(s.last_seen).getTime()<90000);let info='📦 <b>'+esc(o.code)+'</b> — 🚚 <b>'+esc(s.full_name||o.shipper_name||'Shipper')+'</b><br>📌 '+esc(o.status)+'<br>'+ (online?'🟢 Online':'🔴 Offline');
-        if(Number.isFinite(clat)&&Number.isFinite(clng)){const straight=km(slat,slng,clat,clng),rt=await route(slat,slng,clat,clng),rid=String(o.id);if(rt){info+='<br>🛣️ '+rt.km.toFixed(1)+' km • ⏱️ '+Math.max(1,Math.round(rt.min))+' phút';if(routes[rid])routes[rid].setLatLngs(rt.coords);else routes[rid]=L.polyline(rt.coords).addTo(map)}else info+='<br>📏 '+straight.toFixed(1)+' km (thẳng)';marker('s_'+o.shipper_id,slat,slng,'🚚 <b>'+esc(s.full_name||o.shipper_name||'Shipper')+'</b><br>'+esc(o.code)+'<br>'+(online?'🟢 Online':'🔴 Offline'));marker('c_'+o.id,clat,clng,'📍 <b>Khách</b><br>'+esc(o.code))}
+        if(Number.isFinite(clat)&&Number.isFinite(clng)){
+          const straight=km(slat,slng,clat,clng),rt=await route(slat,slng,clat,clng),rid=String(o.id);
+          if(rt){info+='<br>🛣️ '+rt.km.toFixed(1)+' km • ⏱️ '+Math.max(1,Math.round(rt.min))+' phút';drawRoute(rid,rt.coords)}else info+='<br>📏 '+straight.toFixed(1)+' km (thẳng)';
+          marker('s_'+o.shipper_id,slat,slng,'🚚 <b>'+esc(s.full_name||o.shipper_name||'Shipper')+'</b><br>'+esc(o.code)+'<br>'+(online?'🟢 Online':'🔴 Offline'));
+          marker('c_'+o.id,clat,clng,'📍 <b>Khách</b><br>'+esc(o.code));
+        }
         html+='<div class="alr-card">'+info+'</div>';
       }
       list.innerHTML=html;
     }catch(e){list.innerHTML='❌ '+esc(e.message||e)}
   }
-  async function start(){try{await ensure();await refresh();timer=setInterval(refresh,REFRESH_MS)}catch(e){console.error(e)}}
+  async function start(){try{await ensure();await refresh();timer=setInterval(refresh,REFRESH_MS)}catch(e){console.error('[CHOCO ADMIN LIVE ROUTE]',e)}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
