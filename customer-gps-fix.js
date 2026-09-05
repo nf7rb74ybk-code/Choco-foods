@@ -1,14 +1,14 @@
-/* CHOCO SHIP — CUSTOMER GPS FIX v3 */
+/* CHOCO SHIP — CUSTOMER GPS FIX v4 */
 'use strict';
 (function(){
-  const WAIT=6000;
-  let busy=false;
+  const SOFT=3500,HARD=9000;
+  let busy=false,seq=0;
   const buttons=()=>[document.getElementById('gpsButton'),document.getElementById('cartGpsButton')].filter(Boolean);
   function setBusy(v){
     busy=v;
     buttons().forEach(b=>{
       b.disabled=v;
-      b.innerText=v?'⏳ ĐANG LẤY GPS...':'📍 CẬP NHẬT VỊ TRÍ';
+      b.innerText=v?'⏳ ĐANG LẤY GPS...':'📍 LẤY / CẬP NHẬT GPS GIAO HÀNG';
     });
   }
   function fail(msg){
@@ -21,7 +21,8 @@
   function cached(){
     try{
       const x=JSON.parse(localStorage.getItem('choco_customer_gps_v1')||'null');
-      if(x&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lng)))return x;
+      const lat=Number(x?.lat),lng=Number(x?.lng);
+      if(Number.isFinite(lat)&&Number.isFinite(lng))return {lat,lng};
     }catch{}
     return null;
   }
@@ -34,26 +35,27 @@
       try{localStorage.setItem('choco_customer_gps_v1',JSON.stringify({lat:la,lng:lo,updated_at:new Date().toISOString()}));}catch{}
       if(typeof window.__CHOCO_PERSIST_DELIVERY__==='function')window.__CHOCO_PERSIST_DELIVERY__();
       setBusy(false);
-    }catch(e){
-      console.error('[CHOCO GPS]',e);
-      fail('Không thể cập nhật vị trí lên bản đồ.');
-    }
+    }catch(e){console.error('[CHOCO GPS APPLY]',e);fail('Không thể cập nhật vị trí lên bản đồ.');}
   }
   function run(){
     if(busy)return;
     if(!window.isSecureContext)return fail('GPS cần HTTPS. Hãy mở CHOCO SHIP từ GitHub Pages.');
     if(!navigator.geolocation)return fail('Thiết bị không hỗ trợ GPS.');
-    setBusy(true);
+    const my=++seq; setBusy(true);
     let settled=false,timer=null;
     const finish=fn=>{
-      if(settled)return;
+      if(settled||my!==seq)return;
       settled=true;
       if(timer)clearTimeout(timer);
       try{fn();}catch(e){console.error('[CHOCO GPS FINISH]',e);setBusy(false);}
     };
-    const success=p=>finish(()=>apply(p?.coords?.latitude,p?.coords?.longitude,'📍 Vị trí GPS hiện tại'));
+    const success=p=>{
+      const lat=p?.coords?.latitude,lng=p?.coords?.longitude;
+      if(lat==null||lng==null)return;
+      finish(()=>apply(lat,lng,'📍 Vị trí GPS hiện tại'));
+    };
     const failure=e=>{
-      if(settled)return;
+      if(settled||my!==seq)return;
       console.warn('[CHOCO GPS ERROR]',e?.code,e?.message);
       const c=cached();
       if(c)return finish(()=>apply(c.lat,c.lng,'📍 Vị trí GPS gần nhất đã lưu'));
@@ -63,26 +65,24 @@
       finish(()=>fail('Không lấy được GPS. Hãy thử lại.'));
     };
     try{
-      navigator.geolocation.getCurrentPosition(success,failure,{enableHighAccuracy:true,timeout:WAIT,maximumAge:15000});
-    }catch(e){
-      finish(()=>fail('Không thể khởi động GPS trên thiết bị này.'));
-      return;
-    }
+      navigator.geolocation.getCurrentPosition(success,failure,{enableHighAccuracy:false,timeout:SOFT,maximumAge:30000});
+    }catch(e){finish(()=>fail('Không thể khởi động GPS trên thiết bị này.'));return;}
     timer=setTimeout(()=>{
-      if(settled)return;
-      const c=cached();
-      if(c)finish(()=>apply(c.lat,c.lng,'📍 Vị trí GPS gần nhất đã lưu'));
-      else finish(()=>fail('GPS chưa phản hồi sau 6 giây. Hãy bật Định vị chính xác rồi thử lại.'));
-    },WAIT+500);
+      if(settled||my!==seq)return;
+      try{
+        navigator.geolocation.getCurrentPosition(success,failure,{enableHighAccuracy:true,timeout:HARD-SOFT,maximumAge:0});
+      }catch(e){
+        const c=cached();
+        finish(()=>c?apply(c.lat,c.lng,'📍 Vị trí GPS gần nhất đã lưu'):fail('Không thể khởi động GPS trên thiết bị này.'));
+      }
+      timer=setTimeout(()=>{
+        if(settled||my!==seq)return;
+        const c=cached();
+        finish(()=>c?apply(c.lat,c.lng,'📍 Vị trí GPS gần nhất đã lưu'):fail('GPS chưa phản hồi sau 9 giây. Hãy bật Định vị chính xác rồi thử lại.'));
+      },HARD-SOFT+500);
+    },SOFT+100);
   }
   window.getGPS=run;
-  function ready(){
-    buttons().forEach(b=>{b.disabled=false;});
-    const c=cached();
-    if(c && typeof window.setDeliveryLocation==='function' && (!window.currentGPS || window.currentGPS.lat===null)){
-      try{apply(c.lat,c.lng,'📍 Vị trí GPS đã lưu');}catch{}
-    }
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});
-  else ready();
+  function ready(){buttons().forEach(b=>{b.disabled=false;});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
