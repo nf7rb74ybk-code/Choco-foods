@@ -28,13 +28,15 @@ jobs:
           p = Path('customer.html')
           s = p.read_text(encoding='utf-8')
 
-          # Remove every previous managed copy of these scripts, regardless of version.
           s = re.sub(r'<script\s+src=["\']\./customer-add-fix\.js\?v=[^"\']+["\']\s*></script>', '', s, flags=re.I)
           s = re.sub(r'<script\s+src=["\']\./customer-order-force\.js\?v=[^"\']+["\']\s*></script>', '', s, flags=re.I)
 
+          # Remove the old inline checkout handler so it cannot submit the stale cart format.
+          s = re.sub(r'(id=["\']orderButton["\'][^>]*?)\s+onclick=["\']createOrder\(\)["\']', r'\1', s, flags=re.I)
+
           tags = (
-              '<script src="./customer-add-fix.js?v=20260905-4"></script>'
-              '<script src="./customer-order-force.js?v=20260905-2"></script>'
+              '<script src="./customer-add-fix.js?v=20260905-5"></script>'
+              '<script src="./customer-order-force.js?v=20260905-4"></script>'
           )
 
           if '</body>' not in s:
@@ -46,9 +48,10 @@ jobs:
 
       - name: Verify direct wiring
         run: |
-          grep -q 'customer-add-fix.js?v=20260905-4' customer.html
-          grep -q 'customer-order-force.js?v=20260905-2' customer.html
-          echo 'DIRECT CUSTOMER WIRING: PASS'
+          grep -q 'customer-add-fix.js?v=20260905-5' customer.html
+          grep -q 'customer-order-force.js?v=20260905-4' customer.html
+          ! grep -q 'id="orderButton"[^>]*onclick="createOrder()"' customer.html
+          echo 'DIRECT CUSTOMER CHECKOUT WIRING: PASS'
 
       - name: Commit customer.html
         run: |
@@ -58,6 +61,6 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No customer.html change needed'
           else
-            git commit -m 'fix: directly wire customer checkout into html'
+            git commit -m 'fix: wire force checkout last and remove stale inline handler'
             git push
           fi
