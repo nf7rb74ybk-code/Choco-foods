@@ -1,5 +1,5 @@
-/* CHOCO SHIP — CUSTOMER GPS CORE v7
- * Single owner of window.getGPS(). Never leaves the UI stuck in loading.
+/* CHOCO SHIP — CUSTOMER GPS CORE v8
+ * Single owner of window.getGPS(). iPhone-friendly timeout + guaranteed UI reset.
  */
 'use strict';
 (function(){
@@ -19,7 +19,7 @@
   const save=(lat,lng)=>{try{localStorage.setItem(KEY,JSON.stringify({lat,lng,updated_at:new Date().toISOString()}));}catch{}};
 
   function apply(lat,lng,label){
-    lat=Number(lat); lng=Number(lng);
+    lat=Number(lat);lng=Number(lng);
     if(!valid(lat,lng)){setMessage('⚠️ Tọa độ GPS không hợp lệ.');return false;}
     if(typeof window.setDeliveryLocation!=='function'){
       setMessage('⚠️ Bản đồ chưa sẵn sàng. Hãy thử lại sau 1 giây.');
@@ -46,18 +46,11 @@
   function run(){
     const id=++requestId;
     if(watchdog){clearTimeout(watchdog);watchdog=null;}
-
     if(!window.isSecureContext){stop();setMessage('⚠️ GPS cần HTTPS. Hãy mở CHOCO SHIP bằng GitHub Pages.');return;}
     if(!navigator.geolocation){stop();setMessage('⚠️ Thiết bị/trình duyệt không hỗ trợ GPS.');return;}
 
     let settled=false;
-    const finish=(fn)=>{
-      if(settled||id!==requestId)return;
-      settled=true;
-      stop();
-      fn();
-    };
-
+    const finish=fn=>{if(settled||id!==requestId)return;settled=true;stop();fn();};
     setButtons('⏳ ĐANG XIN GPS...',true);
     setMessage('📍 Đang xin vị trí hiện tại từ iPhone...');
 
@@ -65,7 +58,6 @@
       const lat=position?.coords?.latitude,lng=position?.coords?.longitude;
       if(!apply(lat,lng,'📍 Vị trí GPS hiện tại'))setMessage('⚠️ GPS lấy được nhưng bản đồ chưa nhận vị trí.');
     });
-
     const failure=error=>finish(()=>{
       console.warn('[CHOCO GPS]',error?.code,error?.message||'');
       const cached=readCache();
@@ -80,20 +72,20 @@
     try{
       navigator.geolocation.getCurrentPosition(success,failure,{
         enableHighAccuracy:false,
-        timeout:4000,
-        maximumAge:30000
+        timeout:15000,
+        maximumAge:0
       });
     }catch(err){
       finish(()=>{console.error('[CHOCO GPS START]',err);setMessage('⚠️ Không thể khởi động GPS trên thiết bị này.');});
       return;
     }
 
-    // Hard stop: regardless of browser behaviour, button is released after 5 seconds.
+    // Hard stop: never allow the button to remain stuck.
     watchdog=setTimeout(()=>finish(()=>{
       const cached=readCache();
       if(cached&&apply(cached.lat,cached.lng,'📍 Vị trí GPS gần nhất đã lưu'))return;
-      setMessage('⚠️ GPS chưa phản hồi. Bấm lại hoặc chạm trực tiếp lên bản đồ.');
-    }),5000);
+      setMessage('⚠️ GPS chưa phản hồi sau 15 giây. Bật Vị trí chính xác rồi bấm lại.');
+    }),16000);
   }
 
   window.getGPS=run;
