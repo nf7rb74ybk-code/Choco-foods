@@ -10,7 +10,7 @@
   const ROLE=localStorage.getItem('choco_role')||'';
   if(!TOKEN||!UID||ROLE!=='shipper') return;
   const headers={apikey:KEY,Authorization:'Bearer '+TOKEN,'Content-Type':'application/json',Accept:'application/json'};
-  let coords=null,watchId=null,lastHistoryAt=0,gpsStarting=false;
+  let coords=null,watchId=null,lastHistoryAt=0,gpsStarting=false,gpsTimer=null;
 
   function gpsUI(){
     if(document.getElementById('shipperGpsBox')) return;
@@ -20,14 +20,29 @@
     box.innerHTML='<b style="font-size:17px;color:#1d4ed8">📍 VỊ TRÍ SHIPPER</b><div id="shipperGpsStatus" style="font-size:13px;color:#64748b;margin:7px 0;line-height:1.5">Chưa bật GPS. Bấm nút bên dưới để cấp quyền vị trí.</div><button id="shipperGpsButton" style="width:100%;padding:13px;border:0;border-radius:10px;background:#1677ff;color:#fff;font-weight:800;font-size:16px">📍 BẬT GPS SHIPPER</button>';
     const main=document.querySelector('main')||document.body;
     main.insertBefore(box,main.firstChild);
-    document.getElementById('shipperGpsButton').addEventListener('click',startGPS);
+    document.getElementById('shipperGpsButton').addEventListener('click',()=>startGPS(true));
   }
-  function gpsStatus(text,ok=false){const el=document.getElementById('shipperGpsStatus'),btn=document.getElementById('shipperGpsButton');if(el){el.textContent=text;el.style.color=ok?'#166534':'#64748b'}if(btn){btn.disabled=false;btn.textContent=ok?'✅ GPS ĐANG HOẠT ĐỘNG':'📍 BẬT GPS SHIPPER'}}
+  function gpsStatus(text,ok=false){const el=document.getElementById('shipperGpsStatus'),btn=document.getElementById('shipperGpsButton');if(el){el.textContent=text;el.style.color=ok?'#166534':'#64748b'}if(btn){btn.disabled=false;btn.textContent=ok?'🔄 GPS ĐANG HOẠT ĐỘNG':'📍 BẬT GPS SHIPPER'}}
   async function recordHistory(){if(!coords||Date.now()-lastHistoryAt<25000)return;lastHistoryAt=Date.now();try{const r=await fetch(SB+'/rest/v1/shipper_gps_history',{method:'POST',headers,body:JSON.stringify({shipper_id:UID,latitude:coords.lat,longitude:coords.lng})});if(!r.ok)console.warn('SHIPPER GPS HISTORY',r.status,await r.text())}catch(e){console.warn('SHIPPER GPS HISTORY',e)}}
   async function save(extra={}){try{const body={last_seen:new Date().toISOString(),is_online:true,...extra};const r=await fetch(SB+'/rest/v1/profiles?id=eq.'+encodeURIComponent(UID),{method:'PATCH',headers,body:JSON.stringify(body)});if(!r.ok)console.warn('SHIPPER ONLINE/GPS',r.status,await r.text());else await recordHistory()}catch(e){console.warn('SHIPPER ONLINE/GPS',e)}}
-  function updateGPS(position){coords={lat:Number(position.coords.latitude),lng:Number(position.coords.longitude)};gpsStatus('🟢 GPS đã bật • '+coords.lat.toFixed(6)+', '+coords.lng.toFixed(6),true);save({latitude:coords.lat,longitude:coords.lng})}
-  function gpsError(err){console.warn('SHIPPER GPS',err);if(err.code===1){gpsStatus('❌ Quyền vị trí đang bị chặn. Hãy cho phép Safari dùng vị trí.')}else if(err.code===2){gpsStatus('❌ Không xác định được vị trí. Hãy bật Dịch vụ định vị.')}else{gpsStatus('❌ GPS hết thời gian chờ. Hãy thử lại.')}}
-  function stopGPS(){if(watchId!==null){try{navigator.geolocation.clearWatch(watchId)}catch{}watchId=null}}
+  function updateGPS(position){
+    clearTimeout(gpsTimer);gpsTimer=null;gpsStarting=false;
+    coords={lat:Number(position.coords.latitude),lng:Number(position.coords.longitude)};
+    gpsStatus('🟢 GPS đã bật • '+coords.lat.toFixed(6)+', '+coords.lng.toFixed(6),true);
+    save({latitude:coords.lat,longitude:coords.lng});
+  }
+  function gpsError(err){
+    clearTimeout(gpsTimer);gpsTimer=null;gpsStarting=false;
+    console.warn('SHIPPER GPS',err);
+    if(err.code===1)gpsStatus('❌ Quyền vị trí đang bị chặn. Hãy cho phép Safari dùng vị trí.');
+    else if(err.code===2)gpsStatus('❌ Không xác định được vị trí. Hãy bật Dịch vụ định vị.');
+    else gpsStatus('❌ GPS hết thời gian chờ. Bấm lại để thử lại.');
+  }
+  function stopGPS(){
+    clearTimeout(gpsTimer);gpsTimer=null;
+    if(watchId!==null){try{navigator.geolocation.clearWatch(watchId)}catch{}watchId=null}
+    gpsStarting=false;
+  }
   function startGPS(force=false){
     const btn=document.getElementById('shipperGpsButton');
     if(gpsStarting)return;
@@ -35,12 +50,16 @@
     if(watchId!==null){gpsStatus(coords?'🟢 GPS đã hoạt động.':'⏳ GPS đang khởi động...');return}
     if(!navigator.geolocation){gpsStatus('❌ Thiết bị không hỗ trợ GPS.');return}
     gpsStarting=true;
-    if(btn){btn.disabled=true;btn.textContent='⏳ ĐANG XIN QUYỀN GPS...'}
-    navigator.geolocation.getCurrentPosition(updateGPS,gpsError,{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+    if(btn){btn.disabled=true;btn.textContent='⏳ ĐANG LẤY VỊ TRÍ...'}
     try{
-      watchId=navigator.geolocation.watchPosition(updateGPS,gpsError,{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
+      watchId=navigator.geolocation.watchPosition(updateGPS,gpsError,{enableHighAccuracy:true,maximumAge:10000,timeout:12000});
     }catch(e){watchId=null;gpsError({code:2,message:e?.message||String(e)})}
-    gpsStarting=false;
+    gpsTimer=setTimeout(()=>{
+      if(gpsStarting&&!coords){
+        stopGPS();
+        gpsStatus('⚠️ GPS chưa phản hồi. Bấm "BẬT GPS SHIPPER" để thử lại.');
+      }
+    },15000);
   }
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
