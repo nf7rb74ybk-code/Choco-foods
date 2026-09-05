@@ -6,6 +6,7 @@ on:
     paths:
       - 'customer-checkout.js'
       - 'customer-order-force.js'
+      - 'customer-add-fix.js'
       - 'customer.html'
       - '.github/workflows/choco-customer-checkout-cache.yml'
 
