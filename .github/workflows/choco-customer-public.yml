@@ -1,0 +1,44 @@
+name: CHOCO Customer — Public Page
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'customer.html'
+      - '.github/workflows/choco-customer-public.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-customer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Remove customer role redirect
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('customer.html')
+          s = p.read_text(encoding='utf-8')
+          pattern = r'<script>\(function\(\)\{document\.body\.style\.display=\x27none\x27;.*?\}\)\(\);</script>'
+          s2, n = re.subn(pattern, '<script>document.body.style.display=\x27\x27;</script>', s, count=1, flags=re.S)
+          if n == 0:
+              print('Customer guard already removed or pattern not found')
+          else:
+              p.write_text(s2, encoding='utf-8')
+              print('Customer role redirect removed')
+          PY
+
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add customer.html
+          git diff --cached --quiet || git commit -m 'fix: customer page does not redirect shipper'
+          git push
