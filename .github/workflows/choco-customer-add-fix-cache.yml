@@ -1,0 +1,35 @@
+name: CHOCO Customer Add Fix Cache Refresh
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'customer-add-fix.js'
+      - 'customer.html'
+      - '.github/workflows/choco-customer-add-fix-cache.yml'
+permissions:
+  contents: write
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject customer add fix
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('customer.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="./customer-add-fix.js?v=20260905-2"></script>'
+          import re
+          s=re.sub(r'<script src="\./customer-add-fix\.js\?v=[^"]+"></script>','',s)
+          if tag not in s:
+              s=s.replace('</body>',tag+'</body>')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit wiring
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add customer.html
+          git diff --cached --quiet || git commit -m 'fix: wire customer add fix v2'
+          git push
