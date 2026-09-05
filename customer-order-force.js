@@ -1,4 +1,4 @@
-/* CHOCO SHIP — FORCE CUSTOMER ORDER v2 */
+/* CHOCO SHIP — FORCE CUSTOMER ORDER v3 */
 'use strict';
 (function(){
   const CART_KEY='choco_customer_cart_v1';
@@ -12,24 +12,32 @@
     const m=s.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
     return m?{lat:Number(m[1]),lng:Number(m[2])}:null;
   };
+  async function menuRows(rid,token){
+    const url=BASE+'/rest/v1/menu_items?select=id,name,price,is_available,category_id&restaurant_id=eq.'+encodeURIComponent(rid)+'&is_available=eq.true&limit=200';
+    const r=await fetch(url,{headers:{apikey:KEY,Authorization:'Bearer '+token,Accept:'application/json'}});
+    if(!r.ok) throw Error('MENU_LOOKUP_FAILED');
+    return await r.json();
+  }
   async function resolveItems(cart,rid,token){
+    const rows=await menuRows(rid,token);
     const out=[];
     for(const x of cart){
       const qty=Number(x?.qty??x?.quantity??1);
       if(!Number.isInteger(qty)||qty<1||qty>99) throw Error('INVALID_QUANTITY');
-      let id=Number(x?.foodId??x?.food_id);
-      if(!Number.isInteger(id)||id<=0) id=null;
-      if(id===null){
-        const name=String(x?.name||'').trim();
-        if(!name) throw Error('ITEM_NAME_MISSING');
-        const url=BASE+'/rest/v1/menu_items?select=id,name,price,is_available,category_id&restaurant_id=eq.'+encodeURIComponent(rid)+'&is_available=eq.true&name=ilike.'+encodeURIComponent(name)+'&limit=10';
-        const rr=await fetch(url,{headers:{apikey:KEY,Authorization:'Bearer '+token,Accept:'application/json'}});
-        const rows=await rr.json().catch(()=>[]);
-        const exact=(Array.isArray(rows)?rows:[]).find(m=>String(m.name||'').trim().toLowerCase()===name.toLowerCase());
-        if(!exact) throw Error('ITEM_UNAVAILABLE:'+name);
-        id=Number(exact.id);
+      const rawId=x?.foodId??x?.food_id;
+      const parsedId=Number(rawId);
+      const id=Number.isInteger(parsedId)&&parsedId>0?parsedId:null;
+      const name=String(x?.name||'').trim();
+      const price=Number(x?.price||0);
+      let exact=null;
+      if(id!==null) exact=rows.find(m=>Number(m.id)===id)||null;
+      if(!exact&&name) exact=rows.find(m=>String(m.name||'').trim().toLowerCase()===name.toLowerCase())||null;
+      if(!exact&&price>0){
+        const samePrice=rows.filter(m=>Number(m.price)===price);
+        if(samePrice.length===1) exact=samePrice[0];
       }
-      out.push({foodId:id,qty});
+      if(!exact) throw Error('ITEM_UNAVAILABLE:'+(name||id||price||'UNKNOWN'));
+      out.push({foodId:Number(exact.id),qty});
     }
     return out;
   }
@@ -68,7 +76,7 @@
       if(typeof window.renderCart==='function')try{window.renderCart()}catch{}
       alert('✅ ĐẶT ĐƠN THÀNH CÔNG!\nMã đơn: '+order.code+'\nTổng tiền: '+Number(order.total||0).toLocaleString('vi-VN')+'đ');
       if(typeof window.closeCart==='function')window.closeCart();
-    }catch(err){console.error('[CHOCO FORCE ORDER v2]',err);alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+err.message)}
+    }catch(err){console.error('[CHOCO FORCE ORDER v3]',err);alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+err.message)}
     finally{if(btn){btn.disabled=false;btn.textContent='🚀 ĐẶT ĐƠN'}}
     return false;
   }
