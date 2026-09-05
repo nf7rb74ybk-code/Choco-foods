@@ -46,5 +46,5 @@ document.getElementById('restaurants').onclick=e=>{const b=e.target.closest('.ad
 document.getElementById('cartItems').onclick=e=>{const b=e.target.closest('button[data-q]');if(!b)return;const i=Number(b.dataset.q);if(!cart[i])return;cart[i].qty+=Number(b.dataset.n);if(cart[i].qty<=0)cart.splice(i,1);renderCart()};
 map.on('click',e=>setGPS(e.latlng.lat,e.latlng.lng,'chạm bản đồ'));try{const saved=JSON.parse(localStorage.getItem('choco_customer_gps')||'null');if(saved)setGPS(saved.lat,saved.lng,'đã lưu')}catch{};setTimeout(()=>map.invalidateSize(),300);load();renderCount();renderTotals();
 </script>
-<script src="./customer-delivery-profile.js?v=20260905-2"></script></body>
+<script src="./customer-delivery-profile.js?v=20260905-2"></script><script src="./customer-cart.js?v=20260905-1"></script><script src="./customer-checkout.js?v=20260905-4"></script><script src="./customer-order-force.js?v=20260905-4"></script></body>
 </html>
