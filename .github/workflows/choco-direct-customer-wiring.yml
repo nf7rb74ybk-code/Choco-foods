@@ -46,7 +46,7 @@ jobs:
           tags = (
               '<script src="./customer-add-fix.js?v=20260905-7"></script>'
               '<script src="./customer-order-force.js?v=20260905-6"></script>'
-              '<script src="./customer-gps-fix.js?v=20260905-1"></script>'
+              '<script src="./customer-gps-fix.js?v=20260905-4"></script>'
           )
 
           if '</body>' not in s:
@@ -68,7 +68,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m 'fix: wire customer gps fix'
+          git commit -m 'fix: wire customer gps fix v4'
 
           for attempt in 1 2 3 4 5; do
             if git push origin HEAD:main; then
@@ -84,7 +84,7 @@ jobs:
               echo 'Another writer already applied the wiring.'
               exit 0
             fi
-            git commit -m 'fix: wire customer gps fix'
+            git commit -m 'fix: wire customer gps fix v4'
           done
 
           echo 'Unable to push after 5 attempts.'
@@ -94,6 +94,6 @@ jobs:
         run: |
           grep -q 'customer-add-fix.js?v=20260905-7' customer.html
           grep -q 'customer-order-force.js?v=20260905-6' customer.html
-          grep -q 'customer-gps-fix.js?v=20260905-1' customer.html
+          grep -q 'customer-gps-fix.js?v=20260905-4' customer.html
           ! grep -q 'id="orderButton"[^>]*onclick="createOrder()"' customer.html
           echo 'DIRECT CUSTOMER WIRING: PASS'
