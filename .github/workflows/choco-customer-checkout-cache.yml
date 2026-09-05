@@ -18,18 +18,18 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
-          import re
           s=re.sub(r'<script src="\./customer-checkout\.js\?v=[^"]+"></script>', '', s)
-          tag='<script src="./customer-checkout.js?v=20260905-2"></script>'
+          tag='<script src="./customer-checkout.js?v=20260905-3"></script>'
           marker='<script src="./customer-cart.js?v=20260905-1"></script>'
           if marker in s:
               s=s.replace(marker,marker+tag,1)
           else:
               s=s.replace('</body>',tag+'</body>',1)
           p.write_text(s,encoding='utf-8')
-          print('Checkout v2 wired.')
+          print('Checkout v3 wired.')
           PY
       - name: Commit wiring
         run: |
@@ -37,5 +37,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add customer.html
-          git commit -m 'fix: load customer checkout v2'
+          git commit -m 'fix: load customer checkout v3'
           git push
