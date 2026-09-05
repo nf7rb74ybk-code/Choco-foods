@@ -1,0 +1,33 @@
+name: CHOCO Customer Cart Sync Cache Refresh
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'customer-cart-sync.js'
+      - 'customer.html'
+      - '.github/workflows/choco-customer-cart-sync-cache.yml'
+permissions:
+  contents: write
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wire cart sync
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('customer.html'); s=p.read_text()
+          s=re.sub(r'<script src="\./customer-cart-sync\.js\?v=[^"]+"></script>','',s)
+          tag='<script src="./customer-cart-sync.js?v=20260905-1"></script>'
+          s=s.replace('</body>',tag+'</body>') if '</body>' in s else s+tag
+          p.write_text(s)
+          PY
+      - name: Commit wiring
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add customer.html
+          git diff --cached --quiet || git commit -m "fix: wire customer cart live sync"
+          git push
