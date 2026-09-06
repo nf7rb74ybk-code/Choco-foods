@@ -18,19 +18,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Patch missing brace
+      - name: Patch missing MapLibre shim brace
         shell: python
         run: |
           from pathlib import Path
           p = Path('customer.html')
           s = p.read_text(encoding='utf-8')
-          old = "remove:function(){if(this._ml)this._ml.remove()}};window.addEventListener"
-          new = "remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
-          if old not in s:
-              print('customer.html already fixed or pattern not found')
-              raise SystemExit(0)
-          p.write_text(s.replace(old, new, 1), encoding='utf-8')
-          print('customer.html patched')
+          old = "remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
+          new = "remove:function(){if(this._ml)this._ml.remove()}}}};window.addEventListener"
+          if old in s:
+              p.write_text(s.replace(old, new, 1), encoding='utf-8')
+              print('customer.html patched: added missing outer MapLibre shim brace')
+          elif "remove:function(){if(this._ml)this._ml.remove()}}}};window.addEventListener" in s:
+              print('customer.html already has the correct four closing braces')
+          else:
+              print('MapLibre shim pattern not found; no change made')
 
       - name: Commit fix
         run: |
@@ -41,5 +43,5 @@ jobs:
             echo 'No changes to commit'
             exit 0
           fi
-          git commit -m 'fix(customer): close MapLibre marker function'
+          git commit -m 'fix(customer): close MapLibre shim object'
           git push
