@@ -1,4 +1,4 @@
-/* CHOCO SHIP — iOS MAP FALLBACK v6 + CUSTOMER BOOTSTRAP */
+/* CHOCO SHIP — iOS MAP FALLBACK v7 + CUSTOMER BOOTSTRAP */
 (function(){
 'use strict';
 var started=false,z=12,center={lat:10.2899,lng:103.984},el,tiles,layer,pinEl,pin=null;
@@ -8,27 +8,26 @@ function x(l){return (l+180)/360*Math.pow(2,z)}
 function y(l){var r=l*Math.PI/180;return (1-Math.asinh(Math.tan(r))/Math.PI)/2*Math.pow(2,z)}
 function lng(xv){return xv/Math.pow(2,z)*360-180}
 function lat(yv){var n=Math.PI-2*Math.PI*yv/Math.pow(2,z);return 180/Math.PI*Math.atan(Math.sinh(n))}
-function tileUrl(host,zz,xx,yy){return 'https://'+host+'/'+zz+'/'+xx+'/'+yy+'.png'}
+function tileUrl(zz,xx,yy){return 'https://tile.openstreetmap.org/'+zz+'/'+xx+'/'+yy+'.png'}
 function render(){
  if(!el||!tiles)return; tiles.innerHTML='';
  var w=el.clientWidth||360,h=el.clientHeight||320,n=Math.pow(2,z),cx=x(center.lng),cy=y(center.lat),tx=Math.floor(cx),ty=Math.floor(cy),ox=(cx-tx)*256+w/2-128,oy=(cy-ty)*256+h/2-128;
  for(var yy=ty-2;yy<=ty+2;yy++)for(var xx=tx-2;xx<=tx+2;xx++){
-   var wx=((xx%n)+n)%n, yy2=Math.max(0,Math.min(n-1,yy)),im=document.createElement('img');im.width=256;im.height=256;im.alt='';im.draggable=false;
+   var wx=((xx%n)+n)%n, yy2=Math.max(0,Math.min(n-1,yy)),im=document.createElement('img');im.width=256;im.height=256;im.alt='';im.draggable=false;im.decoding='async';im.referrerPolicy='strict-origin-when-cross-origin';
    im.style.cssText='position:absolute;width:256px;height:256px;left:'+(xx-tx)*256+ox+'px;top:'+(yy-ty)*256+oy+'px;display:block;max-width:none;';
-   im.src=tileUrl('tile.openstreetmap.org',z,wx,yy2); im.onerror=function(){if(this.dataset.fallback)return;this.dataset.fallback='1';this.src=tileUrl('a.basemaps.cartocdn.com',z,0,0)}; tiles.appendChild(im);
+   im.src=tileUrl(z,wx,yy2); tiles.appendChild(im);
  }
  positionPin();
 }
 function positionPin(){if(!pin||!pinEl)return;var w=el.clientWidth||360,h=el.clientHeight||320,cx=x(center.lng),cy=y(center.lat),px=(x(pin.lng)-cx)+w/2,py=(y(pin.lat)-cy)+h/2;pinEl.style.left=px+'px';pinEl.style.top=py+'px';pinEl.style.display='block'}
-function selectAt(e){var r=el.getBoundingClientRect(),w=el.clientWidth||r.width,h=el.clientHeight||r.height,cx=x(center.lng),cy=y(center.lat),mx=cx+(e.clientX-r.left-w/2)/256,my=cy+(e.clientY-r.top-h/2)/256,la=lat(my),lo=lng(mx);if(valid(la,lo)&&typeof window.setDeliveryLocation==='function')window.setDeliveryLocation(la,lo);pin={lat:la,lng:lo};positionPin()}
-function init(){if(started||!isIOS())return;el=document.getElementById('map');if(!el)return;started=true;try{if(window.__CHOCO_MAPLIBRE__&&window.__CHOCO_MAPLIBRE__.remove)window.__CHOCO_MAPLIBRE__.remove()}catch(e){}el.innerHTML='';el.style.cssText+=';position:relative;overflow:hidden;background:#dfe8d7;touch-action:manipulation';tiles=document.createElement('div');tiles.style.cssText='position:absolute;inset:0;overflow:hidden';el.appendChild(tiles);layer=document.createElement('div');layer.style.cssText='position:absolute;inset:0;z-index:5;background:transparent;touch-action:manipulation';el.appendChild(layer);pinEl=document.createElement('div');pinEl.textContent='📍';pinEl.style.cssText='position:absolute;z-index:6;transform:translate(-50%,-100%);font-size:34px;display:none;pointer-events:none';el.appendChild(pinEl);var at=document.createElement('div');at.textContent='© OpenStreetMap contributors';at.style.cssText='position:absolute;right:2px;bottom:2px;z-index:7;background:rgba(255,255,255,.9);padding:2px 4px;font:11px Arial;color:#333';el.appendChild(at);layer.addEventListener('click',selectAt,true);window.__CHOCO_LEAFLET_MAP__={invalidateSize:function(){render();return this},setView:function(ll,zz){if(ll&&valid(Number(ll[0]),Number(ll[1])))center={lat:Number(ll[0]),lng:Number(ll[1])};if(Number.isFinite(zz))z=Math.max(2,Math.min(19,Number(zz)));render();return this},on:function(){return this}};window.__CHOCO_MAPLIBRE__=null;window.map=window.__CHOCO_LEAFLET_MAP__;render();setTimeout(render,800);setTimeout(render,2000);window.addEventListener('resize',render);console.log('[CHOCO IOS MAP v6] direct OSM tiles ready')}
+function selectAt(e){var r=el.getBoundingClientRect(),w=el.clientWidth||r.width,h=el.clientHeight||r.height,cx=x(center.lng),cy=y(center.lat),mx=cx+(e.clientX-r.left-w/2)/256,my=cy+(e.clientY-r.top-h/2)/256,la=lat(my),lo=lng(mx);if(valid(la,lo)&&typeof window.setDeliveryLocation==='function')window.setDeliveryLocation(la,lo);pin={lat:la,lng:lo};positionPin();e.preventDefault&&e.preventDefault()}
+function init(){if(started||!isIOS())return;el=document.getElementById('map');if(!el){setTimeout(init,250);return}started=true;try{if(window.__CHOCO_MAPLIBRE__&&window.__CHOCO_MAPLIBRE__.remove)window.__CHOCO_MAPLIBRE__.remove()}catch(e){}el.innerHTML='';el.style.cssText+=';position:relative;overflow:hidden;background:#dfe8d7;touch-action:none;-webkit-user-select:none;user-select:none';tiles=document.createElement('div');tiles.style.cssText='position:absolute;inset:0;overflow:hidden;pointer-events:none';el.appendChild(tiles);layer=document.createElement('div');layer.style.cssText='position:absolute;inset:0;z-index:5;background:transparent;touch-action:none;cursor:crosshair';el.appendChild(layer);pinEl=document.createElement('div');pinEl.textContent='📍';pinEl.style.cssText='position:absolute;z-index:6;transform:translate(-50%,-100%);font-size:34px;display:none;pointer-events:none';el.appendChild(pinEl);var at=document.createElement('div');at.textContent='© OpenStreetMap contributors';at.style.cssText='position:absolute;right:2px;bottom:2px;z-index:7;background:rgba(255,255,255,.9);padding:2px 4px;font:11px Arial;color:#333;pointer-events:none';el.appendChild(at);layer.addEventListener('pointerup',selectAt,{passive:false});window.__CHOCO_LEAFLET_MAP__={invalidateSize:function(){render();return this},setView:function(ll,zz){if(ll&&valid(Number(ll[0]),Number(ll[1])))center={lat:Number(ll[0]),lng:Number(ll[1])};if(Number.isFinite(zz))z=Math.max(2,Math.min(19,Number(zz)));render();return this},on:function(){return this}};window.__CHOCO_MAPLIBRE__=null;window.map=window.__CHOCO_LEAFLET_MAP__;render();setTimeout(render,800);setTimeout(render,2000);setTimeout(render,4000);window.addEventListener('resize',render);console.log('[CHOCO IOS MAP v7] direct OSM tiles + pointer GPS ready')}
 
-/* If customer.html has an inline-script syntax error, keep the customer app usable. */
 (function bootstrap(){
 var U='https://guwdswqaqnhzqapflvey.supabase.co',K='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
 window.__CHOCO_SUPABASE__={url:U,key:K};
 var money=function(n){return Number(n||0).toLocaleString('vi-VN')+'đ'};
-var esc=function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')};
+var esc=function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')};
 var headers=function(){return{apikey:K,Authorization:'Bearer '+(localStorage.getItem('choco_access_token')||K),Accept:'application/json','Content-Type':'application/json'}};
 if(!window.data)window.data=[]; if(!window.cart)window.cart=[]; if(!window.currentGPS)window.currentGPS={lat:null,lng:null};
 window.__CHOCO_BOOTSTRAP__=true;
