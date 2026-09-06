@@ -34,6 +34,14 @@ jobs:
           if n!=1:
               raise SystemExit(f'esc() patch expected 1 match, got {n}')
 
+          # Remove the confirmed extra closing brace in the MapLibre marker shim.
+          bad="remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
+          good="remove:function(){if(this._ml)this._ml.remove()}};window.addEventListener"
+          count=s.count(bad)
+          if count!=1:
+              raise SystemExit(f'map shim brace patch expected 1 match, got {count}')
+          s=s.replace(bad,good,1)
+
           tag='<script src="./customer-ios-map-fix.js?v=20260906-5"></script>'
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>', '', s)
           if tag not in s:
@@ -47,5 +55,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'install iOS customer map fix v7 [skip ci]'
+          git commit -m 'fix customer inline map shim extra brace [skip ci]'
           git push
