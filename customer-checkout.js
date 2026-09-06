@@ -1,6 +1,6 @@
-/* CHOCO SHIP — Customer Checkout v5
+/* CHOCO SHIP — Customer Checkout v6
+   Fixes checkout script parse error so createOrder can load.
    Canonicalizes cart item IDs against the live menu before RPC checkout.
-   Prevents ITEM_UNAVAILABLE:<NULL> from stale/legacy cart payloads.
 */
 'use strict';
 (function(){
@@ -39,7 +39,7 @@
     if(items.some(x=>!Number.isInteger(x.foodId)||x.foodId<=0||!Number.isInteger(x.qty)||x.qty<1||x.qty>99)){
       alert('❌ Món trong giỏ không còn hợp lệ. Vui lòng xóa món lỗi và thêm lại từ menu.');return
     }
-    try{localStorage.setItem(CART_KEY,JSON.stringify(c.map((x,i)=>({...x,foodId:items[i].foodId,name:items[i].name,qty:items[i].qty})))}catch{}
+    try{localStorage.setItem(CART_KEY,JSON.stringify(c.map((x,i)=>({...x,foodId:items[i].foodId,name:items[i].name,qty:items[i].qty}))))}catch{}
     const btn=document.getElementById('orderButton');if(btn){btn.disabled=true;btn.textContent='⏳ ĐANG GỬI ĐƠN...'}
     try{
       let t=await token();if(!t)throw Error('AUTH_REQUIRED');
@@ -54,7 +54,7 @@
       if(typeof window.renderCart==='function')try{window.renderCart()}catch{};if(typeof window.updateCart==='function')try{window.updateCart([])}catch{}
       alert('✅ ĐẶT ĐƠN THÀNH CÔNG!\nMã đơn: '+order.code+'\nTổng tiền: '+Number(order.total||0).toLocaleString('vi-VN')+'đ');
       if(typeof window.closeCart==='function')window.closeCart();
-    }catch(err){console.error('[CHOCO CHECKOUT v5]',err);alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+err.message)}
+    }catch(err){console.error('[CHOCO CHECKOUT v6]',err);alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+err.message)}
     finally{if(btn){btn.disabled=false;btn.textContent='🚀 ĐẶT ĐƠN'}}
   }
   window.createOrder=checkout;
