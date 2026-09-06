@@ -1,0 +1,62 @@
+name: CHOCO Customer Map Smoke Test
+
+on:
+  deployment_status:
+
+jobs:
+  map-smoke:
+    if: ${{ github.event.deployment_status.state == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install playwright@1.55.0 pngjs@7.0.0
+          npx playwright install --with-deps chromium
+      - name: Test deployed customer map
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const { PNG } = require('pngjs');
+          (async()=>{
+            const url='https://nf7rb74ybk-code.github.io/Choco-foods/customer.html?mapSmoke=1';
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
+            const errors=[];
+            page.on('pageerror',e=>errors.push('pageerror:'+e.message));
+            page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+            await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
+            await page.waitForTimeout(8000);
+            const state=await page.evaluate(()=>{
+              const el=document.getElementById('map');
+              const c=el&&el.querySelector('canvas');
+              const m=window.__CHOCO_MAPLIBRE__;
+              return {width:el?.clientWidth||0,height:el?.clientHeight||0,canvasWidth:c?.width||0,canvasHeight:c?.height||0,maplibre:!!m,styleLoaded:!!(m&&m.isStyleLoaded&&m.isStyleLoaded()),tilesLoaded:!!(m&&m.areTilesLoaded&&m.areTilesLoaded())};
+            });
+            const shot=await page.locator('#map').screenshot({type:'png'});
+            require('fs').writeFileSync('/tmp/map.png',shot);
+            const png=PNG.sync.read(shot);
+            let sum=0,sum2=0,n=0,nonWhite=0;
+            for(let y=0;y<png.height;y+=4) for(let x=0;x<png.width;x+=4){const i=(y*png.width+x)*4;const v=(png.data[i]+png.data[i+1]+png.data[i+2])/3;sum+=v;sum2+=v*v;n++;if(v<245)nonWhite++;}
+            const mean=sum/n,variance=sum2/n-mean*mean,coverage=nonWhite/n;
+            console.log(JSON.stringify({state,mean,variance,coverage,errors},null,2));
+            require('fs').mkdirSync('map-smoke-artifacts',{recursive:true});
+            require('fs').copyFileSync('/tmp/map.png','map-smoke-artifacts/map.png');
+            if(!state.maplibre||state.canvasWidth<100||state.canvasHeight<100) throw new Error('Map canvas was not created correctly');
+            if(coverage<0.05||variance<20) throw new Error('Map appears visually blank');
+            if(errors.length) console.warn('Browser errors:',errors);
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - name: Upload map screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-map-smoke
+          path: map-smoke-artifacts/map.png
+          if-no-files-found: ignore
