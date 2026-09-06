@@ -1,13 +1,10 @@
-/* CHOCO SHIP — CUSTOMER CORE FIX v9
+/* CHOCO SHIP — CUSTOMER CORE FIX v10
  * Single owner for customer GPS/address/map-click/shipping display.
- * Does NOT override createOrder or customer cart logic.
- * Also bootstraps the customer menu rescue after the legacy page code.
+ * Menu is owned by customer.html/customer-menu-fix only; no duplicate bootstrap.
  */
 'use strict';
 (function(){
   const PHU_QUOC={lat:10.2899,lng:103.984};
-  const U='https://guwdswqaqnhzqapflvey.supabase.co';
-  const K='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
   let requestId=0,timer=null;
   const btns=()=>['gpsButton','cartGpsButton'].map(id=>document.getElementById(id)).filter(Boolean);
   const setBtns=(text,disabled)=>btns().forEach(b=>{b.disabled=!!disabled;b.textContent=text});
@@ -57,7 +54,6 @@
   window.calculateShippingFee=fee;
   window.updateShippingDisplay=display;
   function bindMap(){try{if(!window.map)return;window.map.off('click');window.map.on('click',e=>apply(e.latlng.lat,e.latlng.lng,'Bản đồ'))}catch(e){console.warn('[CHOCO MAP BIND]',e)}}
-  function loadMenuRescue(){if(document.querySelector('script[data-choco-menu-rescue]'))return;const s=document.createElement('script');s.src='./customer-menu-fix.js?v=20260906-1';s.dataset.chocoMenuRescue='1';document.body.appendChild(s)}
-  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();setTimeout(bindMap,300);setTimeout(loadMenuRescue,700)}
+  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();setTimeout(bindMap,300)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
