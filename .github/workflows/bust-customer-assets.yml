@@ -28,7 +28,7 @@ jobs:
           import re
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
-          versions={'customer-fix.js':'20260906-16','customer-checkout.js':'20260906-6','customer-order-force.js':'20260906-12','customer-tracking.js':'20260906-13','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
+          versions={'customer-fix.js':'20260906-17','customer-checkout.js':'20260906-6','customer-order-force.js':'20260906-12','customer-tracking.js':'20260906-13','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
           for name,ver in versions.items():
               s=re.sub(r'(\./'+re.escape(name)+r')\?v=[^"\']+', r'\1?v='+ver, s)
           p.write_text(s,encoding='utf-8')
