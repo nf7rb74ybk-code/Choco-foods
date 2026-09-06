@@ -1,0 +1,40 @@
+name: CHOCO CUSTOMER MENU AUTH FIX
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'customer.html'
+      - 'customer-menu-fix.js'
+      - '.github/workflows/fix-customer-menu-auth.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, '[menu-auth-fix]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch customer menu auth and loader
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('customer.html')
+          s = p.read_text(encoding='utf-8')
+          old = "Authorization:'Bearer '+(localStorage.getItem('choco_access_token')||''),Accept:'application/json'"
+          new = "Authorization:'Bearer '+(localStorage.getItem('choco_access_token')||SUPABASE_KEY),Accept:'application/json'"
+          s = s.replace(old, new)
+          marker = '<script src="./customer-menu-fix.js?v=20260906-2"></script>'
+          if marker not in s:
+              s = s.replace('</body>', marker + '</body>')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add customer.html
+          git diff --cached --quiet || git commit -m 'fix customer menu auth [menu-auth-fix]'
+          git push
