@@ -1,11 +1,11 @@
-/* CHOCO SHIP — CUSTOMER ORDER FORCE v10
+/* CHOCO SHIP — CUSTOMER ORDER FORCE v11
  * Ensures checkout is loaded before the order button can be used.
- * Cache-bust now points to checkout v6 after the v5 syntax-error fix.
+ * Adds the 5-item customer bottom navigation: Home / Cart / Orders / GPS / Account.
  */
 'use strict';
 (function(){
-  if(window.__CHOCO_ORDER_FORCE_V10__)return;
-  window.__CHOCO_ORDER_FORCE_V10__=true;
+  if(window.__CHOCO_ORDER_FORCE_V11__)return;
+  window.__CHOCO_ORDER_FORCE_V11__=true;
   const CHECKOUT='customer-checkout.js?v=20260906-6';
   let loading=false;
   function loadCheckout(){
@@ -27,8 +27,8 @@
     b.disabled=false;
     b.style.pointerEvents='auto';
     b.removeAttribute('onclick');
-    if(b.__chocoOrderBoundV10__)return;
-    b.__chocoOrderBoundV10__=true;
+    if(b.__chocoOrderBoundV11__)return;
+    b.__chocoOrderBoundV11__=true;
     b.addEventListener('click',function(e){
       e.preventDefault();
       e.stopPropagation();
@@ -44,6 +44,30 @@
     },false);
     if(typeof window.createOrder!=='function')loadCheckout();
   }
-  function boot(){bind();setTimeout(bind,300);setTimeout(bind,1000);setTimeout(bind,2000);}
+  function addOrderNav(){
+    const nav=document.querySelector('.bottom');
+    if(!nav||nav.querySelector('[data-choco-order-nav]'))return;
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.setAttribute('data-choco-order-nav','1');
+    btn.innerHTML='<span>📦</span>Đơn hàng';
+    btn.onclick=function(){
+      const el=document.getElementById('customerOrderTimeline');
+      if(el){el.scrollIntoView({behavior:'smooth',block:'start'});return;}
+      const target=document.querySelector('[id*=Order],[class*=order]');
+      if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    nav.insertBefore(btn,nav.children[2]||null);
+  }
+  function boot(){
+    bind();
+    addOrderNav();
+    setTimeout(bind,300);
+    setTimeout(addOrderNav,300);
+    setTimeout(bind,1000);
+    setTimeout(addOrderNav,1000);
+    setTimeout(bind,2000);
+    setTimeout(addOrderNav,2000);
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
