@@ -1,13 +1,14 @@
-/* CHOCO SHIP — CUSTOMER CORE FIX v14
+/* CHOCO SHIP — CUSTOMER CORE FIX v15
  * GPS + reverse geocode + guaranteed delivery-address field fill.
  * FIX: shipping/GPS refresh never overwrites the persisted cart total.
  * FIX: map click supports MapLibre (current customer.html) and legacy Leaflet.
+ * FIX v15: reliably binds the cart delivery map after the map instance is created.
  */
 'use strict';
 (function(){
   const PHU_QUOC={lat:10.2899,lng:103.984};
   const CART_KEY='choco_customer_cart_v1';
-  let requestId=0,timer=null;
+  let requestId=0,timer=null,mapBindTimer=null,mapBound=false;
   const btns=()=>['gpsButton','cartGpsButton'].map(id=>document.getElementById(id)).filter(Boolean);
   const setBtns=(text,disabled)=>btns().forEach(b=>{b.disabled=!!disabled;b.textContent=text});
   const msg=t=>['locationText','cartGpsText'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t});
@@ -96,7 +97,28 @@
     try{navigator.geolocation.getCurrentPosition(ok,fail,{enableHighAccuracy:true,timeout:12000,maximumAge:60000})}catch(e){fail({code:2})}timer=setTimeout(()=>fail({code:3}),13000);
   }
   window.getGPS=run;window.setDeliveryLocation=(lat,lng)=>apply(lat,lng,'Bản đồ');window.calculateShippingFee=fee;window.updateShippingDisplay=display;
-  function bindMap(){try{if(!window.map)return;if(typeof window.map.off==='function')window.map.off('click');if(typeof window.map.on==='function')window.map.on('click',e=>{const ll=e?.lngLat;if(ll&&valid(ll.lat,ll.lng)){apply(ll.lat,ll.lng,'Bản đồ');return}const old=e?.latlng;if(old&&valid(old.lat,old.lng))apply(old.lat,old.lng,'Bản đồ')})}catch(e){console.warn('[CHOCO MAP BIND]',e)}}
-  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();setTimeout(bindMap,300)}
+  function bindMap(){
+    try{
+      const m=window.map;
+      if(!m||typeof m.on!=='function')return false;
+      if(mapBound)return true;
+      const handler=e=>{
+        const ll=e?.lngLat;
+        if(ll&&valid(ll.lat,ll.lng)){apply(ll.lat,ll.lng,'Bản đồ');return}
+        const old=e?.latlng;
+        if(old&&valid(old.lat,old.lng))apply(old.lat,old.lng,'Bản đồ');
+      };
+      m.on('click',handler);
+      mapBound=true;
+      return true;
+    }catch(e){console.warn('[CHOCO MAP BIND]',e);return false}
+  }
+  function watchMap(){
+    if(bindMap())return;
+    if(mapBindTimer)clearInterval(mapBindTimer);
+    let tries=0;
+    mapBindTimer=setInterval(()=>{tries++;if(bindMap()||tries>=40){clearInterval(mapBindTimer);mapBindTimer=null}},250);
+  }
+  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();watchMap()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
