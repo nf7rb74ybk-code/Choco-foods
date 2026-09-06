@@ -1,79 +1,74 @@
-/* CHOCO SHIP — iOS MAP RASTER FALLBACK v3
- * Dependency-free OpenStreetMap raster renderer.
- * Uses multiple public raster tile endpoints so iPhone Safari does not
- * get stuck with broken-image '?' placeholders when one tile host fails.
+/* CHOCO SHIP — iOS MAP FALLBACK v4
+ * Uses the official OpenStreetMap embeddable map instead of direct raster
+ * tile <img> requests, which were rendering as '?' on iPhone Safari.
+ * A transparent touch layer keeps GPS coordinate selection working.
  */
 (function(){
   'use strict';
   var started=false,z=12,center={lat:10.2899,lng:103.984};
-  var el,layer,pin=null,pinEl;
-  var TILE_HOSTS=[
-    function(z,x,y){return 'https://tile.openstreetmap.org/'+z+'/'+x+'/'+y+'.png'},
-    function(z,x,y){return 'https://tile.openstreetmap.de/'+z+'/'+x+'/'+y+'.png'},
-    function(z,x,y){return 'https://a.basemaps.cartocdn.com/light_all/'+z+'/'+x+'/'+y+'.png'}
-  ];
+  var el,frame,layer,pin=null,pinEl,overlay,attribution;
   function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
   function valid(a,b){return Number.isFinite(a)&&Number.isFinite(b)&&a>=-85&&a<=85&&b>=-180&&b<=180}
-  function xFromLng(lng,z){return (lng+180)/360*Math.pow(2,z)}
-  function yFromLat(lat,z){var r=lat*Math.PI/180;return (1-Math.asinh(Math.tan(r))/Math.PI)/2*Math.pow(2,z)}
-  function lngFromX(x,z){return x/Math.pow(2,z)*360-180}
-  function latFromY(y,z){var n=Math.PI-2*Math.PI*y/Math.pow(2,z);return 180/Math.PI*Math.atan(Math.sinh(n))}
-  function makeTile(z,x,y,left,top,tile){
-    var img=document.createElement('img');
-    img.alt='';img.draggable=false;img.decoding='async';img.loading='eager';
-    img.style.cssText='position:absolute;width:256px;height:256px;left:'+(x*tile-left)+'px;top:'+(y*tile-top)+'px;display:block;max-width:none;user-select:none;-webkit-user-drag:none;';
-    var host=0;
-    function loadNext(){
-      if(host>=TILE_HOSTS.length){img.style.display='none';return}
-      img.src=TILE_HOSTS[host++](z,x,y);
-    }
-    img.onerror=loadNext;
-    loadNext();
-    layer.appendChild(img);
-  }
-  function render(){
-    if(!el||!layer)return;
-    var w=el.clientWidth||window.innerWidth||360,h=el.clientHeight||320,tile=256;
+  function xFromLng(lng,zz){return (lng+180)/360*Math.pow(2,zz)}
+  function yFromLat(lat,zz){var r=lat*Math.PI/180;return (1-Math.asinh(Math.tan(r))/Math.PI)/2*Math.pow(2,zz)}
+  function lngFromX(x,zz){return x/Math.pow(2,zz)*360-180}
+  function latFromY(y,zz){var n=Math.PI-2*Math.PI*y/Math.pow(2,zz);return 180/Math.PI*Math.atan(Math.sinh(n))}
+  function bbox(){
+    var w=el.clientWidth||360,h=el.clientHeight||320,tile=256,n=Math.pow(2,z);
     var cx=xFromLng(center.lng,z),cy=yFromLat(center.lat,z);
-    layer.innerHTML='';
-    var left=cx*tile-w/2,top=cy*tile-h/2;
-    var minX=Math.floor(left/tile)-1,maxX=Math.floor((left+w)/tile)+1;
-    var minY=Math.floor(top/tile)-1,maxY=Math.floor((top+h)/tile)+1,n=Math.pow(2,z);
-    for(var ty=minY;ty<=maxY;ty++)for(var tx=minX;tx<=maxX;tx++){
-      var ix=((tx%n)+n)%n;if(ty<0||ty>=n)continue;
-      makeTile(z,ix,ty,left,top,tile);
-    }
-    if(pin&&pinEl){var px=xFromLng(pin.lng,z)*tile-left,py=yFromLat(pin.lat,z)*tile-top;pinEl.style.left=px+'px';pinEl.style.top=py+'px';pinEl.style.display='block'}
+    var left=cx-w/(2*tile),right=cx+w/(2*tile),top=cy-h/(2*tile),bottom=cy+h/(2*tile);
+    var west=lngFromX(left,z),east=lngFromX(right,z),north=latFromY(top,z),south=latFromY(bottom,z);
+    return {west:west,south:south,east:east,north:north};
+  }
+  function embedUrl(){
+    var b=bbox();
+    return 'https://www.openstreetmap.org/export/embed.html?bbox='+b.west.toFixed(6)+'%2C'+b.south.toFixed(6)+'%2C'+b.east.toFixed(6)+'%2C'+b.north.toFixed(6)+'&layer=mapnik&marker='+center.lat.toFixed(6)+'%2C'+center.lng.toFixed(6);
+  }
+  function positionPin(){
+    if(!pin||!pinEl)return;
+    var b=bbox(),w=el.clientWidth||360,h=el.clientHeight||320;
+    var px=(pin.lng-b.west)/(b.east-b.west)*w;
+    var py=(b.north-pin.lat)/(b.north-b.south)*h;
+    pinEl.style.left=px+'px';pinEl.style.top=py+'px';pinEl.style.display='block';
+  }
+  function reloadMap(){
+    if(!frame||!el)return;
+    frame.src=embedUrl();
+    positionPin();
   }
   function selectAt(clientX,clientY){
-    var r=el.getBoundingClientRect(),w=el.clientWidth||r.width,h=el.clientHeight||r.height;
-    var cx=xFromLng(center.lng,z),cy=yFromLat(center.lat,z);
-    var px=cx*256+(clientX-r.left-w/2),py=cy*256+(clientY-r.top-h/2);
-    var lat=latFromY(py/256,z),lng=lngFromX(px/256,z);
+    var r=el.getBoundingClientRect(),w=el.clientWidth||r.width,h=el.clientHeight||r.height,b=bbox();
+    var px=Math.max(0,Math.min(w,clientX-r.left)),py=Math.max(0,Math.min(h,clientY-r.top));
+    var lng=b.west+(px/w)*(b.east-b.west),lat=b.north-(py/h)*(b.north-b.south);
     if(valid(lat,lng)&&typeof window.setDeliveryLocation==='function')window.setDeliveryLocation(lat,lng);
-    pin={lat:lat,lng:lng};render();
+    pin={lat:lat,lng:lng};positionPin();
   }
   function init(){
-    if(started)return;if(!isIOS())return;
+    if(started||!isIOS())return;
     el=document.getElementById('map');if(!el)return;started=true;
     try{if(window.__CHOCO_MAPLIBRE__&&window.__CHOCO_MAPLIBRE__.remove)window.__CHOCO_MAPLIBRE__.remove()}catch(e){}
-    el.innerHTML='';el.style.position='relative';el.style.overflow='hidden';el.style.background='#dbeafe';el.style.touchAction='manipulation';
-    layer=document.createElement('div');layer.style.cssText='position:absolute;inset:0;overflow:hidden;background:#dbeafe;';el.appendChild(layer);
-    pinEl=document.createElement('div');pinEl.innerHTML='📍';pinEl.style.cssText='position:absolute;transform:translate(-50%,-100%);font-size:34px;line-height:1;z-index:5;display:none;pointer-events:none;text-shadow:0 1px 3px #fff;';el.appendChild(pinEl);
-    var attribution=document.createElement('div');attribution.innerHTML='© OpenStreetMap contributors';attribution.style.cssText='position:absolute;right:2px;bottom:2px;background:rgba(255,255,255,.88);font:11px Arial;padding:2px 4px;z-index:6;color:#333;';el.appendChild(attribution);
-    var dragging=false,lastX=0,lastY=0;
-    el.addEventListener('click',function(e){if(!dragging)selectAt(e.clientX,e.clientY)},true);
-    el.addEventListener('pointerdown',function(e){dragging=false;lastX=e.clientX;lastY=e.clientY},true);
-    el.addEventListener('pointermove',function(e){if(e.buttons){var dx=e.clientX-lastX,dy=e.clientY-lastY;if(Math.abs(dx)+Math.abs(dy)>6)dragging=true;lastX=e.clientX;lastY=e.clientY}},true);
+    el.innerHTML='';el.style.position='relative';el.style.overflow='hidden';el.style.background='#e5e7eb';el.style.touchAction='manipulation';
+    frame=document.createElement('iframe');
+    frame.title='OpenStreetMap';frame.setAttribute('aria-label','Bản đồ OpenStreetMap');frame.frameBorder='0';frame.scrolling='no';
+    frame.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;display:block;pointer-events:none;background:#e5e7eb;';
+    el.appendChild(frame);
+    layer=document.createElement('div');layer.style.cssText='position:absolute;inset:0;z-index:4;pointer-events:auto;background:transparent;';el.appendChild(layer);
+    pinEl=document.createElement('div');pinEl.innerHTML='📍';pinEl.style.cssText='position:absolute;transform:translate(-50%,-100%);font-size:34px;line-height:1;z-index:6;display:none;pointer-events:none;text-shadow:0 1px 3px #fff;';el.appendChild(pinEl);
+    attribution=document.createElement('div');attribution.innerHTML='© OpenStreetMap contributors';attribution.style.cssText='position:absolute;right:2px;bottom:2px;background:rgba(255,255,255,.9);font:11px Arial;padding:2px 4px;z-index:7;color:#333;pointer-events:none;';el.appendChild(attribution);
+    var moved=false,lastX=0,lastY=0;
+    layer.addEventListener('pointerdown',function(e){moved=false;lastX=e.clientX;lastY=e.clientY},true);
+    layer.addEventListener('pointermove',function(e){if(e.buttons){if(Math.abs(e.clientX-lastX)+Math.abs(e.clientY-lastY)>8)moved=true}},true);
+    layer.addEventListener('click',function(e){if(!moved)selectAt(e.clientX,e.clientY)},true);
     window.__CHOCO_LEAFLET_MAP__={
-      invalidateSize:function(){render();return this},
-      setView:function(ll,zz){if(ll&&valid(Number(ll[0]),Number(ll[1]))){center={lat:Number(ll[0]),lng:Number(ll[1])};pin={lat:center.lat,lng:center.lng}}if(Number.isFinite(zz))z=Math.max(2,Math.min(19,Number(zz)));render();return this},
+      invalidateSize:function(){reloadMap();return this},
+      setView:function(ll,zz){if(ll&&valid(Number(ll[0]),Number(ll[1]))){center={lat:Number(ll[0]),lng:Number(ll[1])}}if(Number.isFinite(zz))z=Math.max(2,Math.min(19,Number(zz)));reloadMap();return this},
       on:function(){return this}
     };
     window.__CHOCO_MAPLIBRE__=null;window.map=window.__CHOCO_LEAFLET_MAP__;window.marker=null;
-    render();setTimeout(render,300);setTimeout(render,1000);setTimeout(render,2500);
-    window.addEventListener('resize',function(){render()});
-    console.log('[CHOCO IOS MAP v3] OSM raster with tile fallbacks ready');
+    reloadMap();
+    setTimeout(reloadMap,700);setTimeout(reloadMap,1800);
+    window.addEventListener('resize',function(){reloadMap()});
+    console.log('[CHOCO IOS MAP v4] OpenStreetMap embed ready');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
