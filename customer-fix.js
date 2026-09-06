@@ -1,6 +1,7 @@
-/* CHOCO SHIP — CUSTOMER CORE FIX v8
+/* CHOCO SHIP — CUSTOMER CORE FIX v9
  * Single owner for customer GPS/address/map-click/shipping display.
  * Does NOT override createOrder or customer cart logic.
+ * Also bootstraps the customer menu rescue after the legacy page code.
  */
 'use strict';
 (function(){
@@ -24,7 +25,7 @@
   async function address(lat,lng){
     let text='';
     try{
-      const r=await fetch(U?('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lng)+'&localityLanguage=vi'):'' ,{cache:'no-store'});
+      const r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lng)+'&localityLanguage=vi',{cache:'no-store'});
       if(r.ok){const d=await r.json(),a=[];['road','neighbourhood','locality','city','principalSubdivision'].forEach(k=>{if(d[k]&&!a.includes(d[k]))a.push(d[k])});if(d.localityInfo?.administrative)d.localityInfo.administrative.map(x=>x?.name).filter(Boolean).forEach(x=>{if(!a.includes(x))a.push(x)});text=a.slice(0,7).join(', ')}
     }catch(e){console.warn('[CHOCO ADDRESS BDC]',e)}
     if(!text)try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng)+'&zoom=18&addressdetails=1&accept-language=vi',{cache:'no-store'});if(r.ok)text=(await r.json()).display_name||''}catch(e){console.warn('[CHOCO ADDRESS NOMINATIM]',e)}
@@ -56,6 +57,7 @@
   window.calculateShippingFee=fee;
   window.updateShippingDisplay=display;
   function bindMap(){try{if(!window.map)return;window.map.off('click');window.map.on('click',e=>apply(e.latlng.lat,e.latlng.lng,'Bản đồ'))}catch(e){console.warn('[CHOCO MAP BIND]',e)}}
-  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();setTimeout(bindMap,300)}
+  function loadMenuRescue(){if(document.querySelector('script[data-choco-menu-rescue]'))return;const s=document.createElement('script');s.src='./customer-menu-fix.js?v=20260906-1';s.dataset.chocoMenuRescue='1';document.body.appendChild(s)}
+  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();setTimeout(bindMap,300);setTimeout(loadMenuRescue,700)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
