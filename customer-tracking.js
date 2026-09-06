@@ -1,12 +1,11 @@
-/* CHOCO SHIP - CUSTOMER LIVE TRACKING v7
- * FIX v7: customer.html uses MapLibre, not Leaflet.
- * FIX: fetches the customer's own order GPS so the route can be drawn.
- * Tracks order status + shipper GPS + online state + distance + ETA.
+/* CHOCO SHIP - CUSTOMER LIVE TRACKING v8
+ * FIX v8: reject invalid shipper GPS such as 0,0 so customer tracking never jumps away from the service area.
+ * Keeps the existing MapLibre tracking flow unchanged for valid coordinates.
  */
 'use strict';
 (function(){
-  if(window.__CHOCO_CUSTOMER_TRACKING_V7__)return;
-  window.__CHOCO_CUSTOMER_TRACKING_V7__=true;
+  if(window.__CHOCO_CUSTOMER_TRACKING_V8__)return;
+  window.__CHOCO_CUSTOMER_TRACKING_V8__=true;
   const SB='https://guwdswqaqnhzqapflvey.supabase.co';
   const KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
   const AUTH_KEY='sb-guwdswqaqnhzqapflvey-auth-token';
@@ -14,6 +13,7 @@
   let timer=null,map=null,mapReady=null,shipperMarker=null,customerMarker=null,lastRoute=0,lastKey='',refreshing=false;
   const esc=x=>String(x??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));
   const dist=(a,b,c,d)=>{const R=6371,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,q=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));};
+  function validGPS(lat,lng){return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180&&!(lat===0&&lng===0)}
   function jwt(t){try{const p=String(t||'').split('.')[1];if(!p)return null;return JSON.parse(atob(p.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-p.length%4)%4)));}catch{return null}}
   function standardSession(){try{let s=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');if(s?.session)s=s.session;return s&&s.access_token?s:null}catch{return null}}
   function order(){try{return JSON.parse(localStorage.getItem('choco_ship_last_order')||'null')}catch{return null}}
@@ -103,7 +103,7 @@
     const key=o.order_id?'id=eq.'+encodeURIComponent(o.order_id):'code=eq.'+encodeURIComponent(o.code||'');
     const r=await fetch(SB+'/rest/v1/orders?select=id,code,latitude,longitude&'+key+'&limit=1',{headers:{apikey:KEY,Authorization:'Bearer '+a.token,Accept:'application/json'}});
     if(!r.ok)return null;const rows=await r.json();const x=rows?.[0];if(!x)return null;
-    const lat=Number(x.latitude),lng=Number(x.longitude);return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
+    const lat=Number(x.latitude),lng=Number(x.longitude);return validGPS(lat,lng)?{lat,lng}:null;
   }
   async function road(slat,slng,clat,clng,manual){
     const key=[slat.toFixed(5),slng.toFixed(5),clat.toFixed(5),clng.toFixed(5)].join(',');
@@ -129,12 +129,14 @@
       const slat=Number(t.latitude),slng=Number(t.longitude),online=!!(t.is_online&&t.last_seen&&Date.now()-new Date(t.last_seen).getTime()<90000);
       const geo=await orderGeo();
       const clat=geo?.lat,clng=geo?.lng;
-      let km=null;if(Number.isFinite(clat)&&Number.isFinite(clng)&&Number.isFinite(slat)&&Number.isFinite(slng))km=dist(slat,slng,clat,clng);
-      st.innerHTML='🚚 <b>'+esc(t.shipper_name||'Shipper')+'</b>'+(t.shipper_phone?' · '+esc(t.shipper_phone):'')+'<br>'+(online?'🟢 Đang Online':'🟠 Mất tín hiệu')+'<br>📦 Trạng thái: <b>'+esc(status||'Đang giao')+'</b>'+(km!=null?'<br>📏 Cách điểm giao: <b>'+km.toFixed(1)+' km</b>':'')+(t.last_seen?'<br>🕐 GPS cập nhật: '+new Date(t.last_seen).toLocaleTimeString('vi-VN'):'');
-      if(!Number.isFinite(slat)||!Number.isFinite(slng)){st.innerHTML+='<br>📍 Shipper chưa có GPS hiện tại.';return}
+      const shipperGPSValid=validGPS(slat,slng);
+      let km=null;if(Number.isFinite(clat)&&Number.isFinite(clng)&&shipperGPSValid)km=dist(slat,slng,clat,clng);
+      st.innerHTML='🚚 <b>'+esc(t.shipper_name||'Shipper')+'</b>'+(t.shipper_phone?' · '+esc(t.shipper_phone):'')+'<br>'+(online?'🟢 Đang Online':'🟠 Mất tín hiệu')+'<br>📦 Trạng thái: <b>'+esc(status||'Đang giao')+'</b>'+(km!=null?'<br>📏 Cách điểm giao: <b>'+km.toFixed(1)+' km</b>':'');
+      if(t.last_seen)st.innerHTML+='<br>🕐 GPS cập nhật: '+new Date(t.last_seen).toLocaleTimeString('vi-VN');
+      if(!shipperGPSValid){st.innerHTML+='<br>📍 Shipper chưa có GPS hợp lệ hiện tại.';return}
       await initMap();
       shipperMarker=setMarker(shipperMarker,slat,slng,'#ef4444','🚚 <b>'+esc(t.shipper_name||'Shipper')+'</b><br>'+(online?'🟢 Online':'🟠 Mất tín hiệu'));
-      if(Number.isFinite(clat)&&Number.isFinite(clng)){customerMarker=setMarker(customerMarker,clat,clng,'#1677ff','📍 <b>Điểm giao hàng</b>');await road(slat,slng,clat,clng,manual);if(manual||!map._tracked){fit(slat,slng,clat,clng);map._tracked=true}}
+      if(validGPS(clat,clng)){customerMarker=setMarker(customerMarker,clat,clng,'#1677ff','📍 <b>Điểm giao hàng</b>');await road(slat,slng,clat,clng,manual);if(manual||!map._tracked){fit(slat,slng,clat,clng);map._tracked=true}}
     }catch(e){st.innerHTML='❌ '+esc(e?.message||e)}
   }
   function start(){inject();setTimeout(()=>refresh(false),250);timer=setInterval(()=>refresh(false),POLL)}
