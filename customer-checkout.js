@@ -1,6 +1,7 @@
-/* CHOCO SHIP — Customer Checkout v6
+/* CHOCO SHIP — Customer Checkout v7
    Fixes checkout script parse error so createOrder can load.
    Canonicalizes cart item IDs against the live menu before RPC checkout.
+   FIX v7: reject invalid GPS (including 0,0) at the final checkout boundary.
 */
 'use strict';
 (function(){
@@ -9,7 +10,7 @@
   const K=window.SUPABASE_KEY||'sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
   function readCart(){try{const c=JSON.parse(localStorage.getItem(CART_KEY)||'[]');return Array.isArray(c)?c:[]}catch{return[]}}
   function jwt(t){try{const p=String(t||'').split('.')[1];if(!p)return null;return JSON.parse(atob(p.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-p.length%4)%4)))}catch{return null}}
-  function gps(){const g=window.currentGPS;if(Number.isFinite(Number(g?.lat))&&Number.isFinite(Number(g?.lng)))return{lat:Number(g.lat),lng:Number(g.lng)};const s=String(document.getElementById('selectedGPS')?.textContent||'');const m=s.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);return m?{lat:Number(m[1]),lng:Number(m[2])}:null}
+  function gps(){const valid=(a,b)=>{const lat=Number(a),lng=Number(b);return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180&&!(lat===0&&lng===0)};const g=window.currentGPS;if(valid(g?.lat,g?.lng))return{lat:Number(g.lat),lng:Number(g.lng)};const s=String(document.getElementById('selectedGPS')?.textContent||'');const m=s.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);return m&&valid(m[1],m[2])?{lat:Number(m[1]),lng:Number(m[2])}:null}
   async function token(){let t=localStorage.getItem('choco_access_token')||'';const p=jwt(t),now=Math.floor(Date.now()/1000);if(t&&p?.exp&&p.exp>now+60)return t;const rt=localStorage.getItem('choco_refresh_token')||'';if(!rt)return t;const r=await fetch(U+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'Content-Type':'application/json',apikey:K},body:JSON.stringify({refresh_token:rt})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.access_token)throw Error('SESSION_EXPIRED_LOGIN_REQUIRED');localStorage.setItem('choco_access_token',j.access_token);if(j.refresh_token)localStorage.setItem('choco_refresh_token',j.refresh_token);if(j.user?.id)localStorage.setItem('choco_user_id',j.user.id);return j.access_token}
   function liveFood(restaurantId,item){
     const rows=Array.isArray(window.__CHOCO_LIVE_MENU__)?window.__CHOCO_LIVE_MENU__:[];
@@ -31,7 +32,7 @@
     const note=String(document.getElementById('note')?.value||'').trim();
     const payment=String(document.getElementById('payment')?.value||'cash').trim()||'cash';
     if(!name||!phone||!address){alert('⚠️ Vui lòng nhập họ tên, số điện thoại và địa chỉ.');return}
-    const g=gps();if(!g){alert('📍 Vui lòng bật GPS để đặt đơn.');return}
+    const g=gps();if(!g){alert('📍 GPS chưa hợp lệ. Vui lòng bật GPS/chọn lại vị trí giao hàng.');return}
     const restaurantId=Number(c[0]?.restaurantId??c[0]?.restaurant_id);
     if(!Number.isInteger(restaurantId)||restaurantId<=0){alert('❌ Không xác định được quán.');return}
     if(c.some(x=>Number(x?.restaurantId??x?.restaurant_id)!==restaurantId)){alert('⚠️ Mỗi đơn chỉ được đặt món từ một quán.');return}
@@ -54,7 +55,7 @@
       if(typeof window.renderCart==='function')try{window.renderCart()}catch{};if(typeof window.updateCart==='function')try{window.updateCart([])}catch{}
       alert('✅ ĐẶT ĐƠN THÀNH CÔNG!\nMã đơn: '+order.code+'\nTổng tiền: '+Number(order.total||0).toLocaleString('vi-VN')+'đ');
       if(typeof window.closeCart==='function')window.closeCart();
-    }catch(err){console.error('[CHOCO CHECKOUT v6]',err);alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+err.message)}
+    }catch(err){console.error('[CHOCO CHECKOUT v7]',err);alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+err.message)}
     finally{if(btn){btn.disabled=false;btn.textContent='🚀 ĐẶT ĐƠN'}}
   }
   window.createOrder=checkout;
