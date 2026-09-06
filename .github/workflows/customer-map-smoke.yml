@@ -24,14 +24,19 @@ jobs:
           const { chromium } = require('playwright');
           const { PNG } = require('pngjs');
           (async()=>{
-            const url='https://nf7rb74ybk-code.github.io/Choco-foods/customer.html?mapSmoke=1&v=20260906-2';
+            const url='https://nf7rb74ybk-code.github.io/Choco-foods/customer.html?mapSmoke=1&v=20260906-3';
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
             const errors=[];
-            page.on('pageerror',e=>errors.push('pageerror:'+e.message));
-            page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+            page.on('pageerror',e=>errors.push({type:'pageerror',message:e.message,stack:e.stack||''}));
+            page.on('console',m=>{if(m.type()==='error')errors.push({type:'console',message:m.text(),location:m.location?.()||null})});
             await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
             await page.waitForTimeout(8000);
+            const diagnostics=await page.evaluate(()=>({
+              scripts:[...document.scripts].map((s,i)=>({i,src:s.src||'inline',chars:(s.textContent||'').length})),
+              inlineSyntax:[...document.scripts].map((s,i)=>{if(s.src)return null;try{new Function(s.textContent);return {i,ok:true}}catch(e){return {i,ok:false,message:e.message,stack:e.stack||''}}}).filter(Boolean)
+            }));
+            console.log('SCRIPT_DIAGNOSTICS '+JSON.stringify(diagnostics,null,2));
             const state=await page.evaluate(()=>{
               const el=document.getElementById('map');
               const c=el&&el.querySelector('canvas');
@@ -62,7 +67,6 @@ jobs:
             const validMap=(state.maplibre && state.canvasWidth>=100 && state.canvasHeight>=100) || (state.leaflet && state.leafletTiles);
             if(!validMap) throw new Error('Neither MapLibre nor Leaflet map initialized correctly');
             if(coverage<0.05||variance<20) throw new Error('Map appears visually blank');
-            if(errors.length) console.warn('Browser errors:',errors);
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
