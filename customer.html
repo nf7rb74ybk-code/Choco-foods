@@ -12,7 +12,7 @@ var mlMap=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.o
     m.__chocoV2Bound=true;
     try{m.on('click',function(e){var ll=e&&e.lngLat;if(ll&&window.setDeliveryLocation)window.setDeliveryLocation(ll.lat,ll.lng)})}catch(e){}
     try{m.on('load',function(){try{m.resize()}catch(e){}})}catch(e){}
-    try{m.on('idle',function(){try{m.resize()}catch(e){} )}catch(e){}
+    try{m.on('idle',function(){try{m.resize()}catch(e){}})}catch(e){}
     try{m.on('error',function(e){console.warn('[CHOCO MAP V2]',e&&e.error||e)})}catch(e){}
   }
   function force(){
