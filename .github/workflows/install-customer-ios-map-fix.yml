@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Inject iOS map fix v9
+      - name: Inject iOS map fix v10
         shell: bash
         run: |
           python3 - <<'PY'
@@ -38,10 +38,10 @@ jobs:
               s=s.replace(old,new,1)
 
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>\s*', '', s)
-          tag='<script src="./customer-ios-map-fix.js?v=20260906-9"></script>'
+          tag='<script src="./customer-ios-map-fix.js?v=20260906-10"></script>'
           s=s.replace('</body>',tag+'</body>')
           p.write_text(s,encoding='utf-8')
-          print('Installed customer-ios-map-fix.js v9 reference.')
+          print('Installed customer-ios-map-fix.js v10 reference.')
           PY
 
           git config user.name 'github-actions[bot]'
@@ -51,5 +51,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'install customer iOS map fix v9 [skip ci]'
+          git commit -m 'install customer iOS map fix v10 [skip ci]'
           git push
