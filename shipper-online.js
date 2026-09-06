@@ -11,7 +11,6 @@
   if(!TOKEN||!UID||ROLE!=='shipper') return;
   const headers={apikey:KEY,Authorization:'Bearer '+TOKEN,'Content-Type':'application/json',Accept:'application/json'};
   let coords=null,watchId=null,lastHistoryAt=0,gpsStarting=false,gpsTimer=null;
-
   function gpsUI(){
     if(document.getElementById('shipperGpsBox')) return;
     const box=document.createElement('div');
@@ -72,7 +71,7 @@
     try{const u=typeof input==='string'?input:(input?.url||'');if(u.includes('/rest/v1/orders?')&&u.includes('select=*')){const copy=response.clone();copy.json().then(data=>{if(Array.isArray(data))window.__CHOCO_LAST_ORDERS__=data}).catch(()=>{})}}catch(e){}
     return response;
   };
-  const FLOW={'Đã nhận':{next:'Đang lấy hàng',label:'🛵 BẮT ĐẦU LẤY HÀNG'},'Đang lấy hàng':{next:'Đang giao',label:'📦 ĐÃ LẤY HÀNG - BẮT ĐẦU GIAO'},'Đang giao':{next:'Đã giao',label:'🏁 XÁC NHẬN ĐÃ GIAO'}};
+  const FLOW={'Đã nhận':{next:'Đang lấy hàng',label:'🛵 BẮT ĐẦU LẤY HÀNG'},'Đang lấy hàng':{next:'Đang giao',label:'📦 ĐÃ LẤY HÀNG - BẮT ĐẦU GIAO'},'Đang giao':{next:'Đã giao',label:'🏁 XÁC NHẬN ĐÃ GIAO'},'Đã giao':{next:'Hoàn thành',label:'✅ HOÀN TẤT ĐƠN HÀNG'}};
   const esc2=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   async function updateOrderStatus(id,current,next){const cfg=FLOW[current];if(!id||!cfg||cfg.next!==next)return;const wrap=document.querySelector('[data-status-order="'+CSS.escape(String(id))+'"]');if(wrap)wrap.querySelectorAll('button').forEach(b=>b.disabled=true);try{const qs='/rest/v1/orders?id=eq.'+encodeURIComponent(id)+'&shipper_id=eq.'+encodeURIComponent(UID)+'&status=eq.'+encodeURIComponent(current);const r=await nativeFetch(SB+qs,{method:'PATCH',headers,body:JSON.stringify({status:next})});if(!r.ok)throw Error(await r.text()||('HTTP '+r.status));if(typeof window.loadOrders==='function')await window.loadOrders()}catch(e){alert('❌ Không thể cập nhật trạng thái: '+(e?.message||e));if(wrap)wrap.querySelectorAll('button').forEach(b=>b.disabled=false)}}
   window.chocoUpdateOrderStatus=updateOrderStatus;
