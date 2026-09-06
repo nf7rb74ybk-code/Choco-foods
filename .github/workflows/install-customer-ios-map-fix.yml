@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Inject iOS map fix v6
+      - name: Inject iOS map fix v7
         shell: bash
         run: |
           python3 - <<'PY'
@@ -27,15 +27,11 @@ jobs:
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Keep the known esc() expression parser-safe.
           fixed="""var esc=function(v){return String(v==null?'':v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll(String.fromCharCode(34),'&quot;').replaceAll(String.fromCharCode(39),'&#039;')};async function loadMenu"""
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
               print(f'WARNING: esc() pattern count={n}; leaving existing expression unchanged.')
 
-          # Correct MapLibre shim structure:
-          # L object -> marker function -> returned marker object -> remove function.
-          # Four closing braces are required before the semicolon.
           old="remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
           new="remove:function(){if(this._ml)this._ml.remove()}}}};window.addEventListener"
           if old in s:
@@ -46,14 +42,13 @@ jobs:
           else:
               print('No legacy MapLibre shim brace pattern found.')
 
-          # Replace any previous iOS map-fix reference with the current v6 script.
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>\s*', '', s)
-          tag='<script src="./customer-ios-map-fix.js?v=20260906-6"></script>'
+          tag='<script src="./customer-ios-map-fix.js?v=20260906-7"></script>'
           if tag not in s:
               s=s.replace('</body>',tag+'</body>')
 
           p.write_text(s,encoding='utf-8')
-          print('Installed customer-ios-map-fix.js v6 reference.')
+          print('Installed customer-ios-map-fix.js v7 reference.')
           PY
 
           git config user.name 'github-actions[bot]'
@@ -63,5 +58,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'repair customer MapLibre shim [skip ci]'
+          git commit -m 'install customer iOS map fix v7 [skip ci]'
           git push
