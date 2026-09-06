@@ -1,11 +1,12 @@
-/* CHOCO SHIP — CUSTOMER ORDER FORCE v9
+/* CHOCO SHIP — CUSTOMER ORDER FORCE v10
  * Ensures checkout is loaded before the order button can be used.
+ * Cache-bust now points to checkout v6 after the v5 syntax-error fix.
  */
 'use strict';
 (function(){
-  if(window.__CHOCO_ORDER_FORCE_V9__)return;
-  window.__CHOCO_ORDER_FORCE_V9__=true;
-  const CHECKOUT='customer-checkout.js?v=20260906-5';
+  if(window.__CHOCO_ORDER_FORCE_V10__)return;
+  window.__CHOCO_ORDER_FORCE_V10__=true;
+  const CHECKOUT='customer-checkout.js?v=20260906-6';
   let loading=false;
   function loadCheckout(){
     if(typeof window.createOrder==='function')return true;
@@ -26,8 +27,8 @@
     b.disabled=false;
     b.style.pointerEvents='auto';
     b.removeAttribute('onclick');
-    if(b.__chocoOrderBoundV9__)return;
-    b.__chocoOrderBoundV9__=true;
+    if(b.__chocoOrderBoundV10__)return;
+    b.__chocoOrderBoundV10__=true;
     b.addEventListener('click',function(e){
       e.preventDefault();
       e.stopPropagation();
@@ -36,7 +37,7 @@
         setTimeout(function(){
           if(typeof window.createOrder==='function')window.createOrder(e);
           else alert('❌ Không tải được chức năng đặt đơn. Vui lòng kiểm tra kết nối mạng rồi thử lại.');
-        },800);
+        },1000);
         return;
       }
       try{window.createOrder(e)}catch(err){console.error('[CHOCO ORDER FORCE]',err);alert('❌ Lỗi đặt đơn: '+(err?.message||err));}
