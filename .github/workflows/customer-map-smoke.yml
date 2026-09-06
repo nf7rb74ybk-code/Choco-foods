@@ -24,7 +24,7 @@ jobs:
           const { chromium } = require('playwright');
           const { PNG } = require('pngjs');
           (async()=>{
-            const url='https://nf7rb74ybk-code.github.io/Choco-foods/customer.html?mapSmoke=1';
+            const url='https://nf7rb74ybk-code.github.io/Choco-foods/customer.html?mapSmoke=1&v=20260906-2';
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
             const errors=[];
@@ -35,8 +35,20 @@ jobs:
             const state=await page.evaluate(()=>{
               const el=document.getElementById('map');
               const c=el&&el.querySelector('canvas');
-              const m=window.__CHOCO_MAPLIBRE__;
-              return {width:el?.clientWidth||0,height:el?.clientHeight||0,canvasWidth:c?.width||0,canvasHeight:c?.height||0,maplibre:!!m,styleLoaded:!!(m&&m.isStyleLoaded&&m.isStyleLoaded()),tilesLoaded:!!(m&&m.areTilesLoaded&&m.areTilesLoaded())};
+              const ml=window.__CHOCO_MAPLIBRE__;
+              const lf=window.__CHOCO_LEAFLET_MAP__;
+              const leafletTiles=!!(el&&el.querySelector('.leaflet-tile'));
+              return {
+                width:el?.clientWidth||0,
+                height:el?.clientHeight||0,
+                canvasWidth:c?.width||0,
+                canvasHeight:c?.height||0,
+                maplibre:!!ml,
+                styleLoaded:!!(ml&&ml.isStyleLoaded&&ml.isStyleLoaded()),
+                tilesLoaded:!!(ml&&ml.areTilesLoaded&&ml.areTilesLoaded()),
+                leaflet:!!lf,
+                leafletTiles
+              };
             });
             const shot=await page.locator('#map').screenshot({type:'png'});
             require('fs').writeFileSync('/tmp/map.png',shot);
@@ -47,7 +59,8 @@ jobs:
             console.log(JSON.stringify({state,mean,variance,coverage,errors},null,2));
             require('fs').mkdirSync('map-smoke-artifacts',{recursive:true});
             require('fs').copyFileSync('/tmp/map.png','map-smoke-artifacts/map.png');
-            if(!state.maplibre||state.canvasWidth<100||state.canvasHeight<100) throw new Error('Map canvas was not created correctly');
+            const validMap=(state.maplibre && state.canvasWidth>=100 && state.canvasHeight>=100) || (state.leaflet && state.leafletTiles);
+            if(!validMap) throw new Error('Neither MapLibre nor Leaflet map initialized correctly');
             if(coverage<0.05||variance<20) throw new Error('Map appears visually blank');
             if(errors.length) console.warn('Browser errors:',errors);
             await browser.close();
