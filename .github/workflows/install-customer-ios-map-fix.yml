@@ -27,10 +27,9 @@ jobs:
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Keep esc() parser-safe and runtime-safe.
-          fixed='''var esc=function(v){return String(v==null?'':v).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;').split("'").join('&#039;')};async function loadMenu'''
-          # The replacement is assembled without a JS backslash before the single quote.
-          fixed=fixed.replace('split(\\"\'\\")','split("\'")')
+          # Use a Python triple-double-quoted string so the generated JS contains
+          # normal quote characters and NO stray backslashes.
+          fixed="""var esc=function(v){return String(v==null?'':v).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;').split("'").join('&#039;')};async function loadMenu"""
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
               raise SystemExit(f'esc() patch expected 1 match, got {n}')
