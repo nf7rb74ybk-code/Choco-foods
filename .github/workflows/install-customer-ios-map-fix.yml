@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Inject iOS map fix into customer.html
+      - name: Inject iOS map fix and repair customer inline JS
         shell: bash
         run: |
           python3 - <<'PY'
@@ -26,7 +26,15 @@ jobs:
           import re
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
-          tag='<script src="./customer-ios-map-fix.js?v=20260906-3"></script>'
+
+          # Repair the customer inline esc() helper. The previous generated form
+          # produced Safari/Chromium "Unexpected token ';'" diagnostics.
+          fixed="var esc=function(v){v=String(v==null?'':v);return v.replace(/[&<>\"']/g,function(c){return c==='&'?'&amp;':c==='<'?'&lt;':c==='>'?'&gt;':c==='\"'?'&quot;':'&#039;'})};async function loadMenu"
+          s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
+          if n!=1:
+              raise SystemExit(f'esc() patch expected 1 match, got {n}')
+
+          tag='<script src="./customer-ios-map-fix.js?v=20260906-4"></script>'
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>', '', s)
           if tag not in s:
               s=s.replace('</body>', tag+'</body>')
@@ -39,5 +47,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'install iOS customer map raster fix v3 [skip ci]'
+          git commit -m 'install iOS customer map embed fix and JS syntax repair [skip ci]'
           git push
