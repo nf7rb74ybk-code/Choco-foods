@@ -1,6 +1,7 @@
-/* CHOCO SHIP — CUSTOMER CORE FIX v13
+/* CHOCO SHIP — CUSTOMER CORE FIX v14
  * GPS + reverse geocode + guaranteed delivery-address field fill.
- * FIX: recalculating shipping/address must never zero the food/cart total.
+ * FIX: shipping/GPS refresh never overwrites the persisted cart total.
+ * FIX: map click supports MapLibre (current customer.html) and legacy Leaflet.
  */
 'use strict';
 (function(){
@@ -23,7 +24,11 @@
     return c.reduce((sum,x)=>sum+(Number(x?.price)||0)*(Math.max(1,Math.min(99,Number(x?.qty??x?.quantity)||1))),0);
   }
   function display(){
-    const g=state(),food=typeof getFoodTotal==='function'?Number(getFoodTotal())||0:cartFoodTotal(),ship=fee(),km=g.lat==null?null:distance(PHU_QUOC.lat,PHU_QUOC.lng,g.lat,g.lng);
+    const g=state();
+    const persisted=cartFoodTotal();
+    const legacy=typeof getFoodTotal==='function'?Number(getFoodTotal())||0:0;
+    const food=persisted>0?persisted:legacy;
+    const ship=fee(),km=g.lat==null?null:distance(PHU_QUOC.lat,PHU_QUOC.lng,g.lat,g.lng);
     [['foodTotal',food],['shippingFee',ship],['shippingTotal',ship],['total',food+ship]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=Number(v).toLocaleString('vi-VN')+'đ'});
     const d=document.getElementById('shippingDistance');if(d)d.textContent=km==null?'Chưa chọn vị trí':km.toFixed(1)+' km';
     const s=document.getElementById('selectedGPS');if(s)s.textContent=g.lat==null?'Chưa chọn':g.lat.toFixed(6)+', '+g.lng.toFixed(6);
@@ -68,7 +73,14 @@
   function apply(lat,lng,label){
     lat=Number(lat);lng=Number(lng);if(!valid(lat,lng))return false;
     window.currentGPS={lat,lng,source:label||'GPS'};
-    try{if(window.marker&&window.map&&typeof window.map.removeLayer==='function')window.map.removeLayer(window.marker);if(window.L&&window.map&&typeof window.L.marker==='function'){window.marker=window.L.marker([lat,lng]).addTo(window.map).bindPopup('📍 Vị trí giao hàng').openPopup();if(typeof window.map.setView==='function')window.map.setView([lat,lng],16)}}catch(e){console.warn('[CHOCO MAP]',e)}
+    try{
+      if(window.marker&&window.map&&typeof window.map.removeLayer==='function')window.map.removeLayer(window.marker);
+      if(window.L&&window.map&&typeof window.L.marker==='function'){
+        window.marker=window.L.marker([lat,lng]).addTo(window.map).bindPopup('📍 Vị trí giao hàng').openPopup();
+        if(typeof window.map.setView==='function')window.map.setView([lat,lng],16);
+      }
+      if(window.map&&typeof window.map.flyTo==='function')window.map.flyTo({center:[lng,lat],zoom:16});
+    }catch(e){console.warn('[CHOCO MAP]',e)}
     const lt=document.getElementById('locationText');if(lt)lt.innerHTML='📍 <b>Vị trí giao hàng:</b><br>'+lat.toFixed(6)+', '+lng.toFixed(6);
     try{localStorage.setItem('choco_customer_gps_v1',JSON.stringify({lat,lng,updated_at:new Date().toISOString()}))}catch{}
     display();msg('📍 GPS đã lấy thành công. Đang điền địa chỉ...\nGPS: '+lat.toFixed(6)+', '+lng.toFixed(6));address(lat,lng);return true;
@@ -84,7 +96,7 @@
     try{navigator.geolocation.getCurrentPosition(ok,fail,{enableHighAccuracy:true,timeout:12000,maximumAge:60000})}catch(e){fail({code:2})}timer=setTimeout(()=>fail({code:3}),13000);
   }
   window.getGPS=run;window.setDeliveryLocation=(lat,lng)=>apply(lat,lng,'Bản đồ');window.calculateShippingFee=fee;window.updateShippingDisplay=display;
-  function bindMap(){try{if(!window.map)return;if(typeof window.map.off==='function')window.map.off('click');if(typeof window.map.on==='function')window.map.on('click',e=>{const ll=e?.latlng;if(ll)apply(ll.lat,ll.lng,'Bản đồ')})}catch(e){console.warn('[CHOCO MAP BIND]',e)}}
+  function bindMap(){try{if(!window.map)return;if(typeof window.map.off==='function')window.map.off('click');if(typeof window.map.on==='function')window.map.on('click',e=>{const ll=e?.lngLat;if(ll&&valid(ll.lat,ll.lng)){apply(ll.lat,ll.lng,'Bản đồ');return}const old=e?.latlng;if(old&&valid(old.lat,old.lng))apply(old.lat,old.lng,'Bản đồ')})}catch(e){console.warn('[CHOCO MAP BIND]',e)}}
   function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();setTimeout(bindMap,300)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
