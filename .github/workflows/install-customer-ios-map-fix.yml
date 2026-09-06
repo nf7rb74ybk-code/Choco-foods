@@ -27,9 +27,16 @@ jobs:
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Use a Python triple-double-quoted string so the generated JS contains
-          # normal quote characters and NO stray backslashes.
-          fixed="""var esc=function(v){return String(v==null?'':v).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;').split("'").join('&#039;')};async function loadMenu"""
+          # Build the JS without Python escaping of the apostrophe character.
+          # This prevents the previous \"\\'\" sequence from leaking into customer.html.
+          q=chr(39)
+          fixed=(
+              'var esc=function(v){return String(v==null?'+q+q+':v)'
+              ".split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;')"
+              ".split('\\\"').join('&quot;').split("+q+q+q+").join('&#039;')};async function loadMenu"
+          )
+          # Normalize the generated double-quote split to plain JS syntax.
+          fixed=fixed.replace(".split('\\\"')", ".split('\\\"')")
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
               raise SystemExit(f'esc() patch expected 1 match, got {n}')
@@ -47,5 +54,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'install iOS customer map fix v5 [skip ci]'
+          git commit -m 'install iOS customer map fix v6 [skip ci]'
           git push
