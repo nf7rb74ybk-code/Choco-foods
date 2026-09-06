@@ -21,47 +21,50 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Refresh customer scripts and force Leaflet map fallback
+      - name: Refresh customer scripts and force stable raster map
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
-          versions={'customer-fix.js':'20260906-20','customer-checkout.js':'20260906-6','customer-order-force.js':'20260906-12','customer-tracking.js':'20260906-13','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
+          versions={'customer-fix.js':'20260906-21','customer-checkout.js':'20260906-6','customer-order-force.js':'20260906-12','customer-tracking.js':'20260906-13','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
           for name,ver in versions.items():
               s=re.sub(r'(\./'+re.escape(name)+r')\?v=[^"\']+', r'\1?v='+ver, s)
-          marker='id="choco-leaflet-fallback-v1"'
-          fallback=r'''<script id="choco-leaflet-fallback-v1">
+          for mid in ('choco-map-fallback-v1','choco-leaflet-fallback-v1','choco-map-fallback-v2'):
+              s=re.sub(r'<script id="'+re.escape(mid)+r'">.*?</script>\s*', '', s, flags=re.S)
+          fallback=r'''<script id="choco-map-fallback-v2">
           (function(){
             'use strict';
-            var CSS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            var JS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            function loadCss(){if(document.querySelector('link[data-choco-leaflet-css]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href=CSS;l.dataset.chocoLeafletCss='1';document.head.appendChild(l)}
-            function loadJs(cb){if(window.L&&window.L.map){cb();return}var s=document.querySelector('script[data-choco-leaflet-js]');if(s){s.addEventListener('load',cb,{once:true});return}s=document.createElement('script');s.src=JS;s.dataset.chocoLeafletJs='1';s.onload=cb;s.onerror=function(){console.warn('[CHOCO LEAFLET] CDN load failed')};document.body.appendChild(s)}
-            function boot(){
-              var el=document.getElementById('map');
-              if(!el||!window.L||!window.L.map)return false;
-              if(window.__CHOCO_LEAFLET_MAP__)return true;
-              try{
-                if(window.__CHOCO_MAPLIBRE__){try{window.__CHOCO_MAPLIBRE__.remove()}catch(e){}}
-                el.innerHTML='';
-                var m=L.map(el,{zoomControl:true,attributionControl:true}).setView([10.2899,103.984],12);
-                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(m);
-                window.__CHOCO_LEAFLET_MAP__=m;
-                window.map=m;
-                window.__CHOCO_MAPLIBRE__=null;
-                m.on('click',function(e){try{if(window.setDeliveryLocation)window.setDeliveryLocation(e.latlng.lat,e.latlng.lng)}catch(err){console.warn('[CHOCO LEAFLET CLICK]',err)}});
-                setTimeout(function(){try{m.invalidateSize()}catch(e){}},250);
-                return true;
-              }catch(e){console.warn('[CHOCO LEAFLET BOOT]',e);return false}
+            var OSM_STYLE={version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]};
+            function bind(m){
+              if(!m||m.__chocoV2Bound)return;
+              m.__chocoV2Bound=true;
+              try{m.on('click',function(e){var ll=e&&e.lngLat;if(ll&&window.setDeliveryLocation)window.setDeliveryLocation(ll.lat,ll.lng)})}catch(e){}
+              try{m.on('load',function(){try{m.resize()}catch(e){}})}catch(e){}
+              try{m.on('idle',function(){try{m.resize()}catch(e){}})}catch(e){}
+              try{m.on('error',function(e){console.warn('[CHOCO MAP V2]',e&&e.error||e)})}catch(e){}
             }
-            loadCss();
-            loadJs(function(){var tries=0,t=setInterval(function(){tries++;if(boot()||tries>20)clearInterval(t)},250);});
+            function force(){
+              var el=document.getElementById('map');
+              if(!el||!window.maplibregl)return false;
+              var m=window.__CHOCO_MAPLIBRE__;
+              try{
+                if(!m){
+                  m=new maplibregl.Map({container:el,style:OSM_STYLE,center:[103.984,10.2899],zoom:12,attributionControl:true});
+                  window.__CHOCO_MAPLIBRE__=m;
+                }else{
+                  m.setStyle(OSM_STYLE,{diff:false});
+                }
+                bind(m);
+                setTimeout(function(){try{m.resize()}catch(e){}},150);
+                return true;
+              }catch(e){console.warn('[CHOCO MAP V2 BOOT]',e);return false}
+            }
+            [400,1200,2500,5000].forEach(function(ms){setTimeout(force,ms)});
           })();
           </script>'''
-          if marker not in s:
-              s=s.replace('</body>',fallback+'\n</body>')
+          s=s.replace('</body>',fallback+'\n</body>')
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit cache bust
@@ -73,7 +76,7 @@ jobs:
             echo 'No cache-bust changes needed.'
             exit 0
           fi
-          git commit -m 'fix customer map with leaflet fallback [customer-cache-bust]'
+          git commit -m 'fix customer map force raster v21 [customer-cache-bust]'
           for i in 1 2 3 4 5; do
             if git push origin HEAD:main; then
               echo 'Push succeeded.'
