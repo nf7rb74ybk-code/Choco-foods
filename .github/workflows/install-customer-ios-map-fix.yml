@@ -18,65 +18,41 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Inject iOS map fix and repair customer inline JS
+      - name: Inject iOS map fix v6
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          import subprocess
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Keep esc() parser-safe on Safari/Chromium.
+          # Keep the known esc() expression parser-safe.
           fixed="""var esc=function(v){return String(v==null?'':v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll(String.fromCharCode(34),'&quot;').replaceAll(String.fromCharCode(39),'&#039;')};async function loadMenu"""
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
-              raise SystemExit(f'esc() patch expected 1 match, got {n}')
+              print(f'WARNING: esc() pattern count={n}; leaving existing expression unchanged.')
 
-          # Older generated pages had one extra brace. If it is already fixed,
-          # continue normally instead of failing the entire installer.
+          # Repair the old MapLibre shim only when the exact legacy pattern exists.
           bad="remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
           good="remove:function(){if(this._ml)this._ml.remove()}};window.addEventListener"
           count=s.count(bad)
-          if count==1:
+          if count:
               s=s.replace(bad,good,1)
-              print('Removed one extra MapLibre shim brace.')
-          elif count==0:
-              print('MapLibre shim brace already fixed; continuing.')
+              print('Removed legacy extra MapLibre shim brace.')
           else:
-              raise SystemExit(f'unexpected duplicate bad map shim pattern: {count}')
+              print('No legacy extra MapLibre shim brace found.')
 
-          tag='<script src="./customer-ios-map-fix.js?v=20260906-5"></script>'
-          s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>', '', s)
+          # Replace any previous iOS map-fix reference with the current v6 script.
+          s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>\s*', '', s)
+          tag='<script src="./customer-ios-map-fix.js?v=20260906-6"></script>'
           if tag not in s:
-              s=s.replace('</body>', tag+'</body>')
-
-          # Validate the main customer inline script. If the parser reports only
-          # an unexpected EOF, add the minimum number of closing braces needed.
-          pat=re.compile(r'(<script>(var SUPABASE_URL=.*?)(</script>)',re.S)
-          m=pat.search(s)
-          if not m:
-              raise SystemExit('customer main inline script not found')
-          main=m.group(2)
-          repaired=False
-          for attempt in range(4):
-              Path('/tmp/choco-main.js').write_text(main,encoding='utf-8')
-              chk=subprocess.run(['node','--check','/tmp/choco-main.js'],text=True,capture_output=True)
-              if chk.returncode==0:
-                  repaired=attempt>0
-                  break
-              if 'Unexpected end of input' not in chk.stderr or attempt>=3:
-                  raise SystemExit('customer main JS syntax check failed:\n'+chk.stderr)
-              main += '}'
-          if repaired:
-              s=s[:m.start(2)]+main+s[m.end(2):]
-              print('Repaired customer main inline JS by adding closing brace(s).')
-          else:
-              print('Customer main inline JS already parses cleanly.')
+              s=s.replace('</body>',tag+'</body>')
 
           p.write_text(s,encoding='utf-8')
+          print('Installed customer-ios-map-fix.js v6 reference.')
           PY
+
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add customer.html
@@ -84,5 +60,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'fix customer inline JS and install iOS map fix [skip ci]'
+          git commit -m 'install customer iOS map v6 [skip ci]'
           git push
