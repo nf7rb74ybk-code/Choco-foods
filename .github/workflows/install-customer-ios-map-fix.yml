@@ -28,27 +28,32 @@ jobs:
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Parser-safe JS: quote characters are addressed by character code.
+          # Keep esc() parser-safe on Safari/Chromium.
           fixed="""var esc=function(v){return String(v==null?'':v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll(String.fromCharCode(34),'&quot;').replaceAll(String.fromCharCode(39),'&#039;')};async function loadMenu"""
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
               raise SystemExit(f'esc() patch expected 1 match, got {n}')
 
-          # Remove the confirmed extra closing brace in the MapLibre marker shim.
+          # Older generated pages had one extra brace. If it is already fixed,
+          # continue normally instead of failing the entire installer.
           bad="remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
           good="remove:function(){if(this._ml)this._ml.remove()}};window.addEventListener"
           count=s.count(bad)
-          if count!=1:
-              raise SystemExit(f'map shim brace patch expected 1 match, got {count}')
-          s=s.replace(bad,good,1)
+          if count==1:
+              s=s.replace(bad,good,1)
+              print('Removed one extra MapLibre shim brace.')
+          elif count==0:
+              print('MapLibre shim brace already fixed; continuing.')
+          else:
+              raise SystemExit(f'unexpected duplicate bad map shim pattern: {count}')
 
           tag='<script src="./customer-ios-map-fix.js?v=20260906-5"></script>'
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>', '', s)
           if tag not in s:
               s=s.replace('</body>', tag+'</body>')
 
-          # Validate the main customer inline script before committing. The current
-          # generated page has an EOF parse error, so repair only an unclosed block.
+          # Validate the main customer inline script. If the parser reports only
+          # an unexpected EOF, add the minimum number of closing braces needed.
           pat=re.compile(r'(<script>(var SUPABASE_URL=.*?)(</script>)',re.S)
           m=pat.search(s)
           if not m:
@@ -79,5 +84,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'fix customer inline map shim EOF syntax [skip ci]'
+          git commit -m 'fix customer inline JS and install iOS map fix [skip ci]'
           git push
