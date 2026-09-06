@@ -1,0 +1,38 @@
+name: CHOCO Customer Asset Cache Bust
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'customer.html'
+      - 'customer-checkout.js'
+      - 'customer-order-force.js'
+      - 'customer-fix.js'
+      - 'customer-add-fix.js'
+      - '.github/workflows/bust-customer-assets.yml'
+permissions:
+  contents: write
+jobs:
+  bust:
+    if: ${{ !contains(github.event.head_commit.message, '[customer-cache-bust]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refresh customer script versions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('customer.html')
+          s=p.read_text(encoding='utf-8')
+          versions={'customer-fix.js':'20260906-14','customer-checkout.js':'20260906-4','customer-order-force.js':'20260906-8','customer-add-fix.js':'20260906-8'}
+          for name,ver in versions.items():
+              s=re.sub(r'(\./'+re.escape(name)+r')\?v=[^"\']+', r'\1?v='+ver, s)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit cache bust
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add customer.html
+          git diff --cached --quiet || git commit -m 'fix customer checkout asset cache [customer-cache-bust]'
+          git push
