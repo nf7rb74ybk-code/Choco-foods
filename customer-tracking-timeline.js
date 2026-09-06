@@ -1,15 +1,16 @@
-/* CHOCO SHIP - CUSTOMER LIVE ORDER TRACKING v3
- * Customer order status + assigned shipper GPS using MapLibre.
+/* CHOCO SHIP - CUSTOMER LIVE ORDER TRACKING v4
+ * Customer order status + assigned shipper GPS + real road routing using OSRM/MapLibre.
  */
 'use strict';
 (function(){
-  if(window.__CHOCO_CUSTOMER_TRACKING_V3__) return;
-  window.__CHOCO_CUSTOMER_TRACKING_V3__=true;
+  if(window.__CHOCO_CUSTOMER_TRACKING_V4__) return;
+  window.__CHOCO_CUSTOMER_TRACKING_V4__=true;
 
   const U=window.SUPABASE_URL||'https://guwdswqaqnhzqapflvey.supabase.co';
   const K=window.SUPABASE_KEY||'sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+  const ROUTER='https://router.project-osrm.org/route/v1/driving/';
   const steps=['Chờ xác nhận','Đã nhận','Đang lấy hàng','Đang giao','Đã giao','Hoàn thành'];
-  let timer=null,loading=false,map=null,shipMarker=null,destMarker=null,lineAdded=false;
+  let timer=null,loading=false,map=null,shipMarker=null,destMarker=null,routeRequestId=0;
 
   function esc(x){return String(x??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]))}
   function headers(){const t=localStorage.getItem('choco_access_token');return{apikey:K,Authorization:'Bearer '+(t||K),Accept:'application/json'}}
@@ -45,25 +46,49 @@
     map.addControl(new maplibregl.NavigationControl(),'top-right');
   }
 
-  function showLive(o,gps){
+  function setRoute(coords){
+    if(!map||!Array.isArray(coords)||coords.length<2)return;
+    const data={type:'Feature',properties:{},geometry:{type:'LineString',coordinates:coords}};
+    const source=map.getSource('cot-route');
+    if(source)source.setData(data);
+    else{map.addSource('cot-route',{type:'geojson',data:data});map.addLayer({id:'cot-route-line',type:'line',source:'cot-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#2563eb','line-width':5,'line-opacity':0.9}})}
+  }
+
+  async function drawRoadRoute(ship,dest){
+    const requestId=++routeRequestId;
+    if(!map)return null;
+    const fallback=[[ship.lng,ship.lat],[dest.lng,dest.lat]];
+    try{
+      const url=ROUTER+encodeURIComponent(ship.lng+','+ship.lat)+';'+encodeURIComponent(dest.lng+','+dest.lat)+'?overview=full&geometries=geojson&steps=false';
+      const r=await fetch(url,{headers:{Accept:'application/json'}});
+      if(!r.ok)throw Error('ROUTE_HTTP_'+r.status);
+      const j=await r.json();
+      const route=j?.routes?.[0];
+      if(requestId!==routeRequestId)return null;
+      if(route?.geometry?.coordinates?.length>=2){setRoute(route.geometry.coordinates);return{distanceKm:Number(route.distance)/1000,durationMin:Number(route.duration)/60,source:'road'}}
+    }catch(e){console.warn('[CHOCO ROAD ROUTE]',e)}
+    if(requestId===routeRequestId)setRoute(fallback);
+    return{distanceKm:haversine(ship,dest),durationMin:null,source:'straight'};
+  }
+
+  async function showLive(o,gps){
     const live=document.getElementById('cotLive'),info=document.getElementById('cotLiveInfo');if(!live||!gps)return;
     live.style.display='block';initMap();
-    if(!map){info.textContent='📍 GPS Shipper: '+gps.lat.toFixed(6)+', '+gps.lng.toFixed(6);return}
     const ship={lat:Number(gps.latitude),lng:Number(gps.longitude)},dest={lat:Number(o.latitude),lng:Number(o.longitude)};
     if(!Number.isFinite(ship.lat)||!Number.isFinite(ship.lng))return;
-    const km=Number.isFinite(dest.lat)&&Number.isFinite(dest.lng)?haversine(ship,dest):null;
-    const eta=km!=null?Math.max(1,Math.ceil(km/25*60)):'—';
-    info.innerHTML='🛵 Shipper đang ở <b>'+ship.lat.toFixed(5)+', '+ship.lng.toFixed(5)+'</b>'+(km!=null?' · 📏 Còn khoảng <b>'+km.toFixed(2)+' km</b> · ⏱️ ~<b>'+eta+' phút</b>':'');
+    if(!map){info.textContent='📍 GPS Shipper: '+ship.lat.toFixed(6)+', '+ship.lng.toFixed(6);return}
     try{
       if(shipMarker)shipMarker.remove();
       shipMarker=new maplibregl.Marker({color:'#ef4444'}).setLngLat([ship.lng,ship.lat]).setPopup(new maplibregl.Popup().setText('🛵 Vị trí Shipper')).addTo(map);
       if(Number.isFinite(dest.lat)&&Number.isFinite(dest.lng)){
         if(destMarker)destMarker.remove();
         destMarker=new maplibregl.Marker({color:'#16a34a'}).setLngLat([dest.lng,dest.lat]).setPopup(new maplibregl.Popup().setText('📍 Điểm giao')).addTo(map);
-        const coords=[[ship.lng,ship.lat],[dest.lng,dest.lat]];
-        const source=map.getSource('cot-route');
-        if(source)source.setData({type:'Feature',geometry:{type:'LineString',coordinates:coords}});
-        else {map.addSource('cot-route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});map.addLayer({id:'cot-route-line',type:'line',source:'cot-route',paint:{'line-color':'#2563eb','line-width':4}})}
+        const directKm=haversine(ship,dest);
+        info.innerHTML='🛵 Shipper đang ở <b>'+ship.lat.toFixed(5)+', '+ship.lng.toFixed(5)+'</b> · 🛣️ Đang tính đường đi thực tế...';
+        const route=await drawRoadRoute(ship,dest);
+        const km=route?.distanceKm??directKm;
+        const eta=route?.durationMin!=null?Math.max(1,Math.ceil(route.durationMin)):Math.max(1,Math.ceil(km/25*60));
+        info.innerHTML='🛵 Shipper đang ở <b>'+ship.lat.toFixed(5)+', '+ship.lng.toFixed(5)+'</b> · 🛣️ Còn <b>'+km.toFixed(2)+' km</b> · ⏱️ ~<b>'+eta+' phút</b>'+(route?.source==='road'?' · ✅ Theo đường thực tế':' · ⚠️ Tuyến dự phòng');
         const b=new maplibregl.LngLatBounds();b.extend([ship.lng,ship.lat]);b.extend([dest.lng,dest.lat]);map.fitBounds(b,{padding:45,maxZoom:16});
       }else map.flyTo({center:[ship.lng,ship.lat],zoom:16});
     }catch(e){console.warn('[CHOCO TRACK MAP]',e)}
@@ -82,7 +107,7 @@
       const live=['Đã nhận','Đang lấy hàng','Đang giao'].includes(String(o.status||''));
       if(live&&o.shipper_id){
         const g=await fetch(U+'/rest/v1/shipper_gps_history?select=latitude,longitude,recorded_at&shipper_id=eq.'+encodeURIComponent(o.shipper_id)+'&order=recorded_at.desc&limit=1',{headers:headers()});
-        if(g.ok){const gr=await g.json();if(Array.isArray(gr)&&gr[0])showLive(o,gr[0]);else{const x=document.getElementById('cotLive');if(x)x.style.display='block';const i=document.getElementById('cotLiveInfo');if(i)i.textContent='📡 Shipper chưa gửi GPS mới.'}}
+        if(g.ok){const gr=await g.json();if(Array.isArray(gr)&&gr[0])await showLive(o,gr[0]);else{const x=document.getElementById('cotLive');if(x)x.style.display='block';const i=document.getElementById('cotLiveInfo');if(i)i.textContent='📡 Shipper chưa gửi GPS mới.'}}
       }else{const x=document.getElementById('cotLive');if(x)x.style.display='none'}
     }catch(e){const ref=document.getElementById('cotRefresh');if(ref)ref.textContent='⚠️ Chưa đồng bộ máy chủ — đang thử lại';console.warn('[CHOCO TRACK]',e)}
     finally{loading=false}
