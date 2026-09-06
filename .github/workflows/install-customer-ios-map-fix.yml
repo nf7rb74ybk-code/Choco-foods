@@ -27,13 +27,13 @@ jobs:
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Parser-safe esc(): avoid regex literals and quote-sensitive ternaries.
-          fixed="var esc=function(v){return String(v==null?'':v).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split(chr(34)).join('&quot;').split(chr(39)).join('&#039;')};async function loadMenu"
+          # Keep esc() parser-safe AND runtime-safe on Safari/Chromium.
+          fixed='''var esc=function(v){return String(v==null?'':v).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;').split("'").join('&#039;')};async function loadMenu'''
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
               raise SystemExit(f'esc() patch expected 1 match, got {n}')
 
-          tag='<script src="./customer-ios-map-fix.js?v=20260906-4"></script>'
+          tag='<script src="./customer-ios-map-fix.js?v=20260906-5"></script>'
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>', '', s)
           if tag not in s:
               s=s.replace('</body>', tag+'</body>')
@@ -46,5 +46,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'install iOS customer map embed fix and JS syntax repair [skip ci]'
+          git commit -m 'install iOS customer map fix v5 [skip ci]'
           git push
