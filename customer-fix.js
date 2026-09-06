@@ -1,9 +1,11 @@
-/* CHOCO SHIP — CUSTOMER CORE FIX v12
+/* CHOCO SHIP — CUSTOMER CORE FIX v13
  * GPS + reverse geocode + guaranteed delivery-address field fill.
+ * FIX: recalculating shipping/address must never zero the food/cart total.
  */
 'use strict';
 (function(){
   const PHU_QUOC={lat:10.2899,lng:103.984};
+  const CART_KEY='choco_customer_cart_v1';
   let requestId=0,timer=null;
   const btns=()=>['gpsButton','cartGpsButton'].map(id=>document.getElementById(id)).filter(Boolean);
   const setBtns=(text,disabled)=>btns().forEach(b=>{b.disabled=!!disabled;b.textContent=text});
@@ -12,8 +14,16 @@
   const state=()=>window.currentGPS&&valid(window.currentGPS.lat,window.currentGPS.lng)?window.currentGPS:{lat:null,lng:null};
   const distance=(a,b,c,d)=>{const R=6371,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,z=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))};
   const fee=()=>{const g=state();if(g.lat==null)return 20000;const km=distance(PHU_QUOC.lat,PHU_QUOC.lng,g.lat,g.lng);return km<=3?20000:km<=5?25000:km<=7?30000:km<=10?40000:km<=15?50000:60000};
+  function cartFoodTotal(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(CART_KEY)||'[]');
+      if(Array.isArray(raw))return raw.reduce((sum,x)=>sum+(Number(x?.price)||0)*(Math.max(1,Math.min(99,Number(x?.qty??x?.quantity)||1))),0);
+    }catch(e){console.warn('[CHOCO CART TOTAL]',e)}
+    const c=Array.isArray(window.cart)?window.cart:[];
+    return c.reduce((sum,x)=>sum+(Number(x?.price)||0)*(Math.max(1,Math.min(99,Number(x?.qty??x?.quantity)||1))),0);
+  }
   function display(){
-    const g=state(),food=typeof getFoodTotal==='function'?getFoodTotal():0,ship=fee(),km=g.lat==null?null:distance(PHU_QUOC.lat,PHU_QUOC.lng,g.lat,g.lng);
+    const g=state(),food=typeof getFoodTotal==='function'?Number(getFoodTotal())||0:cartFoodTotal(),ship=fee(),km=g.lat==null?null:distance(PHU_QUOC.lat,PHU_QUOC.lng,g.lat,g.lng);
     [['foodTotal',food],['shippingFee',ship],['shippingTotal',ship],['total',food+ship]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=Number(v).toLocaleString('vi-VN')+'đ'});
     const d=document.getElementById('shippingDistance');if(d)d.textContent=km==null?'Chưa chọn vị trí':km.toFixed(1)+' km';
     const s=document.getElementById('selectedGPS');if(s)s.textContent=g.lat==null?'Chưa chọn':g.lat.toFixed(6)+', '+g.lng.toFixed(6);
@@ -45,7 +55,6 @@
   }
   async function address(lat,lng){
     const fallback='GPS '+lat.toFixed(6)+', '+lng.toFixed(6);
-    // Retry briefly because the cart modal/address node can be mounted after GPS is pressed.
     let filled=false;
     for(let i=0;i<12&&!filled;i++){
       filled=putAddress(fallback,lat,lng,false);
