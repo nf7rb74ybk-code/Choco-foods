@@ -33,17 +33,18 @@ jobs:
           if n!=1:
               print(f'WARNING: esc() pattern count={n}; leaving existing expression unchanged.')
 
-          # The current legacy MapLibre shim is missing one closing brace.
-          # marker:function(...) { return { ... remove:function(...) { ... } } }
-          # therefore the correct sequence before window.addEventListener is "}}};".
-          broken="remove:function(){if(this._ml)this._ml.remove()}};window.addEventListener"
-          repaired="remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
-          count=s.count(broken)
-          if count:
-              s=s.replace(broken,repaired,1)
-              print('Repaired missing MapLibre shim closing brace.')
+          # Correct MapLibre shim structure:
+          # L object -> marker function -> returned marker object -> remove function.
+          # Four closing braces are required before the semicolon.
+          old="remove:function(){if(this._ml)this._ml.remove()}}};window.addEventListener"
+          new="remove:function(){if(this._ml)this._ml.remove()}}}};window.addEventListener"
+          if old in s:
+              s=s.replace(old,new,1)
+              print('Repaired MapLibre shim: added missing outer object brace.')
+          elif new in s:
+              print('MapLibre shim already has the correct four closing braces.')
           else:
-              print('No broken MapLibre shim brace pattern found.')
+              print('No legacy MapLibre shim brace pattern found.')
 
           # Replace any previous iOS map-fix reference with the current v6 script.
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>\s*', '', s)
