@@ -24,11 +24,11 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
+          import subprocess
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Parser-safe JS: quote characters are addressed by character code,
-          # so Python/YAML escaping cannot corrupt the generated customer.html.
+          # Parser-safe JS: quote characters are addressed by character code.
           fixed="""var esc=function(v){return String(v==null?'':v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll(String.fromCharCode(34),'&quot;').replaceAll(String.fromCharCode(39),'&#039;')};async function loadMenu"""
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
@@ -46,6 +46,30 @@ jobs:
           s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>', '', s)
           if tag not in s:
               s=s.replace('</body>', tag+'</body>')
+
+          # Validate the main customer inline script before committing. The current
+          # generated page has an EOF parse error, so repair only an unclosed block.
+          pat=re.compile(r'(<script>(var SUPABASE_URL=.*?)(</script>)',re.S)
+          m=pat.search(s)
+          if not m:
+              raise SystemExit('customer main inline script not found')
+          main=m.group(2)
+          repaired=False
+          for attempt in range(4):
+              Path('/tmp/choco-main.js').write_text(main,encoding='utf-8')
+              chk=subprocess.run(['node','--check','/tmp/choco-main.js'],text=True,capture_output=True)
+              if chk.returncode==0:
+                  repaired=attempt>0
+                  break
+              if 'Unexpected end of input' not in chk.stderr or attempt>=3:
+                  raise SystemExit('customer main JS syntax check failed:\n'+chk.stderr)
+              main += '}'
+          if repaired:
+              s=s[:m.start(2)]+main+s[m.end(2):]
+              print('Repaired customer main inline JS by adding closing brace(s).')
+          else:
+              print('Customer main inline JS already parses cleanly.')
+
           p.write_text(s,encoding='utf-8')
           PY
           git config user.name 'github-actions[bot]'
@@ -55,5 +79,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'fix customer inline map shim extra brace [skip ci]'
+          git commit -m 'fix customer inline map shim EOF syntax [skip ci]'
           git push
