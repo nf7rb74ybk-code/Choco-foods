@@ -1,0 +1,43 @@
+name: CHOCO Install iOS Map Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'customer-ios-map-fix.js'
+      - '.github/workflows/install-customer-ios-map-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Inject iOS map fix into customer.html
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('customer.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="./customer-ios-map-fix.js?v=20260906-1"></script>'
+          s=re.sub(r'<script src="\./customer-ios-map-fix\.js\?v=[^\"]+"></script>', '', s)
+          if tag not in s:
+              s=s.replace('</body>', tag+'</body>')
+          p.write_text(s,encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add customer.html
+          if git diff --cached --quiet; then
+            echo 'No customer.html change needed'
+            exit 0
+          fi
+          git commit -m 'install iOS customer map raster fix [skip ci]'
+          git push
