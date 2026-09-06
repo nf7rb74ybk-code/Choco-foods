@@ -1,4 +1,4 @@
-/* CHOCO SHIP — Customer delivery profile UX v2 */
+/* CHOCO SHIP — Customer delivery profile UX v3 */
 'use strict';
 (function(){
   if(window.__CHOCO_CUSTOMER_DELIVERY_PROFILE__)return;
@@ -15,7 +15,6 @@
     const p=get(),n=document.getElementById('name'),ph=document.getElementById('phone'),a=document.getElementById('address');
     if(n&&!n.value&&p.name)n.value=p.name;
     if(ph&&!ph.value&&p.phone)ph.value=p.phone;
-    // Never overwrite a non-empty address. The customer's newest typed address wins.
     if(a&&!a.value&&p.address)a.value=p.address;
     const g=gps();
     if(g.lat!==null&&g.lng!==null){
@@ -43,6 +42,8 @@
     window.__CHOCO_PERSIST_DELIVERY__=persist;
     window.addEventListener('beforeunload',persist);
   }
-  const mo=new MutationObserver(()=>{if(document.getElementById('modal')){ui();fill()}});mo.observe(document.documentElement,{childList:true,subtree:true});
-  document.addEventListener('DOMContentLoaded',boot);if(document.readyState!=='loading')boot();
+  // Do not observe the whole document: fill() updates DOM text, which used to
+  // retrigger this observer indefinitely and lock the customer page.
+  document.addEventListener('DOMContentLoaded',boot,{once:true});
+  if(document.readyState!=='loading')boot();
 })();
