@@ -1,14 +1,14 @@
-/* CHOCO SHIP — CUSTOMER ORDER FORCE v13
+/* CHOCO SHIP — CUSTOMER ORDER FORCE v14
  * Ensures checkout + live order tracking are loaded.
  * Keeps 5-item customer bottom navigation: Home / Cart / Orders / GPS / Account.
- * Tracking loader aligned with CUSTOMER LIVE ORDER TRACKING v3.
+ * Tracking loader aligned with CUSTOMER LIVE ORDER TRACKING v4.
  */
 'use strict';
 (function(){
-  if(window.__CHOCO_ORDER_FORCE_V13__)return;
-  window.__CHOCO_ORDER_FORCE_V13__=true;
+  if(window.__CHOCO_ORDER_FORCE_V14__)return;
+  window.__CHOCO_ORDER_FORCE_V14__=true;
   const CHECKOUT='customer-checkout.js?v=20260906-6';
-  const TRACKING='customer-tracking-timeline.js?v=20260906-3';
+  const TRACKING='customer-tracking-timeline.js?v=20260906-4';
   let loadingCheckout=false,loadingTracking=false;
   function loadScript(src,ready,flag,onDone){
     if(ready())return true;
@@ -20,12 +20,12 @@
     (document.head||document.documentElement).appendChild(s);return false;
   }
   function loadCheckout(){return loadScript(CHECKOUT,()=>typeof window.createOrder==='function',()=>loadingCheckout,v=>loadingCheckout=v)}
-  function loadTracking(){return loadScript(TRACKING,()=>window.__CHOCO_CUSTOMER_TRACKING_V3__===true,()=>loadingTracking,v=>loadingTracking=v)}
+  function loadTracking(){return loadScript(TRACKING,()=>window.__CHOCO_CUSTOMER_TRACKING_V4__===true,()=>loadingTracking,v=>loadingTracking=v)}
   function bind(){
     const b=document.getElementById('orderButton');if(!b)return;
     b.type='button';b.disabled=false;b.style.pointerEvents='auto';b.removeAttribute('onclick');
-    if(!b.__chocoOrderBoundV13__){
-      b.__chocoOrderBoundV13__=true;
+    if(!b.__chocoOrderBoundV14__){
+      b.__chocoOrderBoundV14__=true;
       b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(!loadCheckout()){setTimeout(()=>{if(typeof window.createOrder==='function')window.createOrder(e);else alert('❌ Không tải được chức năng đặt đơn. Vui lòng kiểm tra kết nối mạng rồi thử lại.')},1000);return}try{window.createOrder(e)}catch(err){console.error('[CHOCO ORDER FORCE]',err);alert('❌ Lỗi đặt đơn: '+(err?.message||err))}},false);
     }
     loadCheckout();
