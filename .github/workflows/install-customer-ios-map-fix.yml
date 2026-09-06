@@ -27,16 +27,9 @@ jobs:
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
 
-          # Build the JS without Python escaping of the apostrophe character.
-          # This prevents the previous \"\\'\" sequence from leaking into customer.html.
-          q=chr(39)
-          fixed=(
-              'var esc=function(v){return String(v==null?'+q+q+':v)'
-              ".split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;')"
-              ".split('\\\"').join('&quot;').split("+q+q+q+").join('&#039;')};async function loadMenu"
-          )
-          # Normalize the generated double-quote split to plain JS syntax.
-          fixed=fixed.replace(".split('\\\"')", ".split('\\\"')")
+          # Parser-safe JS: quote characters are addressed by character code,
+          # so Python/YAML escaping cannot corrupt the generated customer.html.
+          fixed="""var esc=function(v){return String(v==null?'':v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll(String.fromCharCode(34),'&quot;').replaceAll(String.fromCharCode(39),'&#039;')};async function loadMenu"""
           s,n=re.subn(r"var esc=function\(v\)\{.*?\};async function loadMenu", fixed, s, count=1, flags=re.S)
           if n!=1:
               raise SystemExit(f'esc() patch expected 1 match, got {n}')
@@ -54,5 +47,5 @@ jobs:
             echo 'No customer.html change needed'
             exit 0
           fi
-          git commit -m 'install iOS customer map fix v6 [skip ci]'
+          git commit -m 'install iOS customer map fix v7 [skip ci]'
           git push
