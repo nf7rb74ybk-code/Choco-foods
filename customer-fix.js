@@ -1,8 +1,9 @@
-/* CHOCO SHIP — CUSTOMER CORE FIX v15
+/* CHOCO SHIP — CUSTOMER CORE FIX v16
  * GPS + reverse geocode + guaranteed delivery-address field fill.
  * FIX: shipping/GPS refresh never overwrites the persisted cart total.
  * FIX: map click supports MapLibre (current customer.html) and legacy Leaflet.
  * FIX v15: reliably binds the cart delivery map after the map instance is created.
+ * FIX v16: cart "Chọn trên bản đồ" closes the order modal first, then activates the main map picker.
  */
 'use strict';
 (function(){
@@ -96,6 +97,25 @@
     const fail=e=>{if(done||id!==requestId)return;if(!retried){retried=true;try{navigator.geolocation.getCurrentPosition(ok,fail,{enableHighAccuracy:false,timeout:8000,maximumAge:60000});return}catch{}}finish();const c=(()=>{try{return JSON.parse(localStorage.getItem('choco_customer_gps_v1')||'null')}catch{return null}})();if(c&&valid(c.lat,c.lng)){apply(c.lat,c.lng,'GPS gần nhất');return}msg(e?.code===1?'⚠️ Safari chưa được cấp quyền vị trí. Hãy bật Dịch vụ định vị + Vị trí chính xác.':e?.code===2?'⚠️ Không xác định được vị trí. Hãy bật Wi‑Fi/4G và thử lại.':'⚠️ GPS phản hồi quá chậm. Bạn có thể chạm trực tiếp lên bản đồ.')};
     try{navigator.geolocation.getCurrentPosition(ok,fail,{enableHighAccuracy:true,timeout:12000,maximumAge:60000})}catch(e){fail({code:2})}timer=setTimeout(()=>fail({code:3}),13000);
   }
+  function openMapPickerFromCart(){
+    try{
+      const modal=document.getElementById('modal');
+      if(modal)modal.style.display='none';
+      const mapEl=document.getElementById('map');
+      if(mapEl){
+        mapEl.scrollIntoView({behavior:'smooth',block:'center'});
+        setTimeout(()=>{try{window.__CHOCO_MAPLIBRE__?.resize?.();window.map?.invalidateSize?.()}catch{}},450);
+      }
+      const t=document.getElementById('locationText');
+      if(t)t.innerHTML='🗺️ <b>Chạm vào bản đồ để chọn vị trí giao hàng</b>';
+    }catch(e){console.warn('[CHOCO MAP PICKER]',e)}
+  }
+  function bindCartMapButton(){
+    const b=document.getElementById('cartGpsButton')?.parentElement?.querySelector('.address-map-btn');
+    if(!b||b.__chocoBound)return;
+    b.__chocoBound=true;
+    b.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();openMapPickerFromCart()},true);
+  }
   window.getGPS=run;window.setDeliveryLocation=(lat,lng)=>apply(lat,lng,'Bản đồ');window.calculateShippingFee=fee;window.updateShippingDisplay=display;
   function bindMap(){
     try{
@@ -119,6 +139,6 @@
     let tries=0;
     mapBindTimer=setInterval(()=>{tries++;if(bindMap()||tries>=40){clearInterval(mapBindTimer);mapBindTimer=null}},250);
   }
-  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();watchMap()}
+  function init(){setBtns('📍 LẤY / CẬP NHẬT GPS GIAO HÀNG',false);display();watchMap();bindCartMapButton();setTimeout(bindCartMapButton,500);setTimeout(bindCartMapButton,1500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
