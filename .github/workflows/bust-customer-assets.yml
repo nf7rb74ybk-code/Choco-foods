@@ -31,7 +31,7 @@ jobs:
           start=s.find('var esc=function(v)')
           end=s.find(';async function loadMenu', start)
           if start >= 0 and end > start:
-              esc='var esc=function(v){return String(v??\'\').replace(/[&<>"\']/g,function(c){return {\'&\':\'&amp;\',\'<\':\'&lt;\',\'>\':\'&gt;\',\'"\':\'&quot;\',"\'":\'&#039;\'}[c]})[c]}'
+              esc='var esc=function(v){return String(v??\'\').replace(/[&<>"\']/g,function(c){return {\'&\':\'&amp;\',\'<\':\'&lt;\',\'>\':\'&gt;\',\'"\':\'&quot;\',"\'":\'&#039;\'}[c]})}'
               s=s[:start]+esc+s[end:]
           versions={'customer-fix.js':'20260906-21','customer-checkout.js':'20260906-7','customer-order-force.js':'20260906-12','customer-tracking.js':'20260906-13','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
           for name,ver in versions.items():
@@ -51,7 +51,7 @@ jobs:
               m.__chocoV2Bound=true;
               try{m.on('click',function(e){var ll=e&&e.lngLat;if(ll&&window.setDeliveryLocation)window.setDeliveryLocation(ll.lat,ll.lng)})}catch(e){}
               try{m.on('load',function(){try{m.resize()}catch(e){}})}catch(e){}
-              try{m.on('idle',function(){try{m.resize()}catch(e){}})}catch(e){}
+              try{m.on('idle',function(){try{m.resize()}catch(e){} )}catch(e){}
               try{m.on('error',function(e){console.warn('[CHOCO MAP V2]',e&&e.error||e)})}catch(e){}
             }
             function force(){
