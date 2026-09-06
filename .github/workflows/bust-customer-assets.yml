@@ -21,16 +21,55 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Refresh customer script versions
+      - name: Refresh customer scripts and repair map fallback
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
-          versions={'customer-fix.js':'20260906-18','customer-checkout.js':'20260906-6','customer-order-force.js':'20260906-12','customer-tracking.js':'20260906-13','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
+          versions={'customer-fix.js':'20260906-19','customer-checkout.js':'20260906-6','customer-order-force.js':'20260906-12','customer-tracking.js':'20260906-13','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
           for name,ver in versions.items():
               s=re.sub(r'(\./'+re.escape(name)+r')\?v=[^"\']+', r'\1?v='+ver, s)
+          marker='id="choco-map-fallback-v1"'
+          fallback=r'''<script id="choco-map-fallback-v1">
+          (function(){
+            'use strict';
+            var OSM_STYLE={version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]};
+            function wire(m){
+              if(!m||m.__chocoFallbackWired)return;
+              m.__chocoFallbackWired=true;
+              try{m.on('error',function(){if(!m.__chocoRasterFallback){m.__chocoRasterFallback=true;try{m.setStyle(OSM_STYLE)}catch(e){}}})}catch(e){}
+              try{m.on('click',function(e){var ll=e&&e.lngLat;if(ll&&window.setDeliveryLocation)window.setDeliveryLocation(ll.lat,ll.lng)})}catch(e){}
+            }
+            function create(){
+              var el=document.getElementById('map');
+              if(!el||!window.maplibregl)return null;
+              if(window.__CHOCO_MAPLIBRE__)return window.__CHOCO_MAPLIBRE__;
+              try{
+                var m=new maplibregl.Map({container:el,style:OSM_STYLE,center:[103.984,10.2899],zoom:12,attributionControl:true});
+                window.__CHOCO_MAPLIBRE__=m;
+                window.map={on:function(ev,fn){if(ev==='click')m.on('click',function(e){fn({lngLat:e.lngLat,latlng:{lat:e.lngLat.lat,lng:e.lngLat.lng},originalEvent:e.originalEvent})});return this},setView:function(ll,z){m.flyTo({center:[Number(ll[1]),Number(ll[0])],zoom:z||12});return this},flyTo:function(o){m.flyTo(o);return this},invalidateSize:function(){m.resize();return this},removeLayer:function(x){try{x&&x.remove&&x.remove()}catch(e){}return this}};
+                wire(m);
+                return m;
+              }catch(e){return null}
+            }
+            function boot(){
+              var m=window.__CHOCO_MAPLIBRE__||create();
+              if(m){wire(m);try{m.resize()}catch(e){}}
+              return !!m;
+            }
+            var tries=0,t=setInterval(function(){tries++;if(boot()||tries>60){clearInterval(t);}},250);
+            setTimeout(function(){
+              var m=window.__CHOCO_MAPLIBRE__;
+              if(!m)return;
+              try{if(m.isStyleLoaded&&!m.isStyleLoaded()&&!m.__chocoRasterFallback){m.__chocoRasterFallback=true;m.setStyle(OSM_STYLE)}}catch(e){}
+              try{m.resize()}catch(e){}
+            },5000);
+          })();
+          </script>'''
+          if marker not in s:
+              s=s.replace('</body>',fallback+'\n</body>')
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit cache bust
@@ -42,7 +81,7 @@ jobs:
             echo 'No cache-bust changes needed.'
             exit 0
           fi
-          git commit -m 'fix customer checkout asset cache [customer-cache-bust]'
+          git commit -m 'fix customer map fallback [customer-cache-bust]'
           for i in 1 2 3 4 5; do
             if git push origin HEAD:main; then
               echo 'Push succeeded.'
