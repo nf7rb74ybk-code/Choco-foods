@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'customer.html'
+      - 'customer-ios-map-fix.js'
       - '.github/workflows/fix-customer-syntax.yml'
 
 permissions:
