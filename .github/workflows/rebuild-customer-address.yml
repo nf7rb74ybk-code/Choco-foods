@@ -1,9 +1,12 @@
 name: Rebuild customer delivery address
+
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['customer.html', '.github/workflows/rebuild-customer-address.yml']
+    paths:
+      - 'customer.html'
+      - '.github/workflows/rebuild-customer-address.yml'
 
 jobs:
   patch-address:
@@ -13,21 +16,55 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Rebuild delivery address block
+
+      - name: Ensure delivery address UI
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('customer.html')
-          s=p.read_text()
-          old='<label>Địa chỉ giao hàng</label><input id="address" placeholder="Ví dụ: 123 đường Trần Hưng Đạo..."><button type="button" class="cart-gps" id="cartGpsButton" onclick="getGPS()">📍 LẤY / CẬP NHẬT GPS GIAO HÀNG</button><div class="location-text" id="cartGpsText">Chưa chọn GPS giao hàng.</div>'
-          new='''<div class="delivery-address-box"><div class="delivery-address-title"><span>📍 Địa chỉ giao hàng</span><small>Bắt buộc</small></div><input id="address" autocomplete="street-address" placeholder="Nhập địa chỉ nhận hàng..."/><div class="delivery-actions"><button type="button" class="cart-gps" id="cartGpsButton" onclick="getGPS()">📍 Dùng vị trí hiện tại</button><button type="button" class="address-map-btn" onclick="document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'})">🗺️ Chọn trên bản đồ</button></div><div class="address-status" id="cartGpsText">Chưa chọn vị trí giao hàng</div></div>'''
-          if old not in s:
-              raise SystemExit('old address block not found')
-          s=s.replace(old,new,1)
-          css='''<style id="choco-address-v2">.delivery-address-box{margin-top:14px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.05)}.delivery-address-title{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:9px}.delivery-address-title small{font-size:11px;color:#dc2626;background:#fef2f2;padding:4px 7px;border-radius:7px}.delivery-address-box #address{width:100%;padding:13px;border:1px solid #d1d5db;border-radius:10px;font-size:15px;outline:none;background:#fafafa}.delivery-address-box #address:focus{border-color:#1677ff;background:#fff;box-shadow:0 0 0 3px rgba(22,119,255,.1)}.delivery-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.delivery-actions button{margin-top:9px!important}.address-map-btn{width:100%;border:1px solid #d1d5db;background:#fff;color:#222;padding:13px;border-radius:10px;font-weight:700}.address-status{font-size:12px;color:#6b7280;margin-top:8px;line-height:1.45}@media(max-width:390px){.delivery-actions{grid-template-columns:1fr}.address-map-btn{margin-top:0!important}}</style>'''
-          s=s.replace('</head>',css+'</head>',1)
+
+          p = Path('customer.html')
+          s = p.read_text()
+
+          old = '<label>Địa chỉ giao hàng</label><input id="address" placeholder="Ví dụ: 123 đường Trần Hưng Đạo..."><button type="button" class="cart-gps" id="cartGpsButton" onclick="getGPS()">📍 LẤY / CẬP NHẬT GPS GIAO HÀNG</button><div class="location-text" id="cartGpsText">Chưa chọn GPS giao hàng.</div>'
+          new = '''<div class="delivery-address-box"><div class="delivery-address-title"><span>📍 Địa chỉ giao hàng</span><small>Bắt buộc</small></div><input id="address" autocomplete="street-address" placeholder="Nhập địa chỉ nhận hàng..."/><div class="delivery-actions"><button type="button" class="cart-gps" id="cartGpsButton" onclick="getGPS()">📍 Dùng vị trí hiện tại</button><button type="button" class="address-map-btn" onclick="document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'})">🗺️ Chọn trên bản đồ</button></div><div class="address-status" id="cartGpsText">Chưa chọn vị trí giao hàng</div></div>'''
+
+          if old in s:
+              s = s.replace(old, new, 1)
+              print('Replaced legacy delivery address block.')
+          elif 'class="delivery-address-box"' in s and 'id="cartGpsText"' in s:
+              print('Delivery address v2 already present; nothing to replace.')
+          else:
+              raise SystemExit('delivery address block not recognized')
+
+          css = '''<style id="choco-address-v2">.delivery-address-box{margin-top:14px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.05)}.delivery-address-title{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:9px}.delivery-address-title small{font-size:11px;color:#dc2626;background:#fef2f2;padding:4px 7px;border-radius:7px}.delivery-address-box #address{width:100%;padding:13px;border:1px solid #d1d5db;border-radius:10px;font-size:15px;outline:none;background:#fafafa}.delivery-address-box #address:focus{border-color:#1677ff;background:#fff;box-shadow:0 0 0 3px rgba(22,119,255,.1)}.delivery-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.delivery-actions button{margin-top:9px!important}.address-map-btn{width:100%;border:1px solid #d1d5db;background:#fff;color:#222;padding:13px;border-radius:10px;font-weight:700}.address-status{font-size:12px;color:#6b7280;margin-top:8px;line-height:1.45}@media(max-width:390px){.delivery-actions{grid-template-columns:1fr}.address-map-btn{margin-top:0!important}}</style>'''
+
+          if 'id="choco-address-v2"' not in s:
+              s = s.replace('</head>', css + '</head>', 1)
+              print('Added address v2 CSS.')
+          else:
+              print('Address v2 CSS already present; nothing to add.')
+
           p.write_text(s)
           PY
+
+      - name: Validate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s = Path('customer.html').read_text()
+          required = [
+              'class="delivery-address-box"',
+              'id="address"',
+              'id="cartGpsButton"',
+              'id="cartGpsText"',
+              'id="choco-address-v2"',
+          ]
+          missing = [x for x in required if x not in s]
+          if missing:
+              raise SystemExit('missing required markers: ' + ', '.join(missing))
+          print('Customer address UI validation PASS')
+          PY
+
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
