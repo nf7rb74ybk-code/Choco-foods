@@ -6,6 +6,8 @@ on:
     paths:
       - 'customer-push.js'
       - 'customer-push-sw.js'
+      - 'onesignal-customer.js'
+      - 'OneSignalSDKWorker.js'
       - '.github/workflows/bust-customer-push.yml'
   workflow_dispatch:
 
@@ -17,7 +19,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Update customer push cache version
+      - name: Wire customer Native Push + OneSignal
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -26,20 +28,37 @@ jobs:
           s=p.read_text()
           new, n = re.subn(r'customer-push\.js\?v=[^"\']+', 'customer-push.js?v=20260907-5', s, count=1)
           if n == 0:
-              raise SystemExit('customer-push script tag not found')
-          p.write_text(new)
-          print('Updated customer-push cache version:', n)
+              marker='</body>'
+              tag='<script src="./customer-push.js?v=20260907-5"></script>'
+              if marker not in s:
+                  raise SystemExit('customer.html body marker not found')
+              s=s.replace(marker, tag+'\n'+marker, 1)
+          else:
+              s=new
+          tag2='<script src="./onesignal-customer.js?v=20260907-1"></script>'
+          if 'onesignal-customer.js?v=' not in s:
+              if '</body>' not in s:
+                  raise SystemExit('customer.html body marker not found for OneSignal')
+              s=s.replace('</body>', tag2+'\n</body>', 1)
+          else:
+              s=re.sub(r'onesignal-customer\.js\?v=[^"\']+', 'onesignal-customer.js?v=20260907-1', s, count=1)
+          p.write_text(s)
+          print('Customer push + OneSignal wiring updated')
           PY
       - name: Validate
         run: |
           grep -q 'customer-push.js?v=20260907-5' customer.html
-          grep -q 'customer-push-sw.js?v=20260907-5' customer-push.js
+          grep -q 'onesignal-customer.js?v=20260907-1' customer.html
+          grep -q '66bec449-f15b-4d0e-90fc-3dc470fef20c' onesignal-customer.js
+          grep -q 'OneSignalSDKWorker.js' onesignal-customer.js
+          grep -q 'cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js' onesignal-customer.js
+          grep -q 'importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js")' OneSignalSDKWorker.js
           test -s customer-push-sw.js
-          echo 'Customer push wiring validation PASS'
+          echo 'Customer Native Push + OneSignal wiring validation PASS'
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add customer.html
-          git diff --cached --quiet || git commit -m '[push-v5] Bust customer push cache'
+          git diff --cached --quiet || git commit -m '[push-v6] Wire customer OneSignal push'
           git push
