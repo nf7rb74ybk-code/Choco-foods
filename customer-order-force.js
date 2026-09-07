@@ -1,13 +1,11 @@
-/* CHOCO SHIP — CUSTOMER ORDER FORCE v14
- * Ensures checkout + live order tracking are loaded.
- * Keeps 5-item customer bottom navigation: Home / Cart / Orders / GPS / Account.
- * Tracking loader aligned with CUSTOMER LIVE ORDER TRACKING v4.
+/* CHOCO SHIP — CUSTOMER ORDER FORCE v15
+ * Ensures checkout v8 is loaded so expired JWT sessions are refreshed before ordering.
  */
 'use strict';
 (function(){
-  if(window.__CHOCO_ORDER_FORCE_V14__)return;
-  window.__CHOCO_ORDER_FORCE_V14__=true;
-  const CHECKOUT='customer-checkout.js?v=20260906-6';
+  if(window.__CHOCO_ORDER_FORCE_V15__)return;
+  window.__CHOCO_ORDER_FORCE_V15__=true;
+  const CHECKOUT='customer-checkout.js?v=20260907-8';
   const TRACKING='customer-tracking-timeline.js?v=20260906-4';
   let loadingCheckout=false,loadingTracking=false;
   function loadScript(src,ready,flag,onDone){
@@ -24,8 +22,8 @@
   function bind(){
     const b=document.getElementById('orderButton');if(!b)return;
     b.type='button';b.disabled=false;b.style.pointerEvents='auto';b.removeAttribute('onclick');
-    if(!b.__chocoOrderBoundV14__){
-      b.__chocoOrderBoundV14__=true;
+    if(!b.__chocoOrderBoundV15__){
+      b.__chocoOrderBoundV15__=true;
       b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(!loadCheckout()){setTimeout(()=>{if(typeof window.createOrder==='function')window.createOrder(e);else alert('❌ Không tải được chức năng đặt đơn. Vui lòng kiểm tra kết nối mạng rồi thử lại.')},1000);return}try{window.createOrder(e)}catch(err){console.error('[CHOCO ORDER FORCE]',err);alert('❌ Lỗi đặt đơn: '+(err?.message||err))}},false);
     }
     loadCheckout();
