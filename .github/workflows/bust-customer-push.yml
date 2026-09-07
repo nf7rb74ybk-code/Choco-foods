@@ -34,6 +34,7 @@ jobs:
         run: |
           grep -q 'customer-push.js?v=20260907-5' customer.html
           grep -q 'customer-push-sw.js?v=20260907-5' customer-push.js
+          test -s customer-push-sw.js
           echo 'Customer push wiring validation PASS'
       - name: Commit
         run: |
