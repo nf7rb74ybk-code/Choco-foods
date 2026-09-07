@@ -81,6 +81,7 @@
       wrap.innerHTML='<div style="font-size:12px;color:#64748b;margin-bottom:6px">🔄 Trạng thái tiếp theo: <b>'+esc(cfg.next)+'</b></div><button style="width:100%;padding:13px;border:0;border-radius:10px;background:#16a34a;color:#fff;font-weight:900;font-size:15px">'+cfg.label+'</button>';
       wrap.querySelector('button').onclick=()=>updateStatus(String(id),current,cfg.next,wrap);
       card.appendChild(wrap);
+      card.dataset.statusFlowReady='1';
     });
   }
 
