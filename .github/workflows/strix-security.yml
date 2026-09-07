@@ -1,0 +1,54 @@
+name: CHOCO — Strix Security Scan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'README*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strix-security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  strix:
+    name: Strix security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout CHOCO
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Strix
+        run: curl -sSL https://strix.ai/install | bash
+
+      - name: Verify Strix
+        run: strix --version
+
+      - name: Run repository security scan
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          test -n "$STRIX_LLM" || { echo 'Missing STRIX_LLM repository secret'; exit 1; }
+          test -n "$LLM_API_KEY" || { echo 'Missing LLM_API_KEY repository secret'; exit 1; }
+          strix -n -t ./ \
+            --scan-mode standard \
+            --max-budget 10 \
+            --instruction-file ./security/strix-instructions.md
+
+      - name: Upload Strix run data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-strix-report-${{ github.run_number }}
+          path: strix_runs/
+          if-no-files-found: ignore
+          retention-days: 14
