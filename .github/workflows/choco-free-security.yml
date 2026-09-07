@@ -1,0 +1,90 @@
+name: CHOCO — Free Security Baseline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'README*'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'README*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: choco-free-security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    name: Free security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout CHOCO
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scan with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: JavaScript syntax checks
+        shell: bash
+        run: |
+          set -e
+          files=$(find . -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) \
+            -not -path './.git/*' \
+            -not -path './node_modules/*' \
+            -not -path './vendor/*')
+          count=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            node --check "$file" >/dev/null
+            count=$((count + 1))
+          done <<< "$files"
+          echo "Checked $count JavaScript files for syntax errors."
+
+      - name: Dependency audit when package manifests exist
+        shell: bash
+        run: |
+          set -e
+          found=0
+          while IFS= read -r package; do
+            found=1
+            dir=$(dirname "$package")
+            echo "Auditing $package"
+            (cd "$dir" && npm audit --omit=dev --audit-level=high) || {
+              echo "npm audit reported high/critical findings in $package"
+              exit 1
+            }
+          done < <(find . -name package.json -not -path './node_modules/*' -not -path './.git/*')
+          if [ "$found" -eq 0 ]; then
+            echo 'No package.json files found; dependency audit skipped.'
+          fi
+
+      - name: Search for obvious hard-coded private key material
+        shell: bash
+        run: |
+          set -e
+          if grep -RInE --exclude-dir=.git --exclude-dir=node_modules \
+            --exclude='*.md' --exclude='package-lock.json' \
+            '(-----BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{20,})' .; then
+            echo 'Potential private credential material found in repository.'
+            exit 1
+          fi
+          echo 'No obvious private-key patterns found.'
+
+      - name: Summary
+        if: always()
+        run: |
+          echo 'CHOCO free security baseline completed.'
+          echo 'Strix remains available separately when an LLM backend is configured.'
