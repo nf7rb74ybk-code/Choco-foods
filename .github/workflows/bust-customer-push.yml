@@ -24,7 +24,7 @@ jobs:
           import re
           p=Path('customer.html')
           s=p.read_text()
-          new, n = re.subn(r'customer-push\.js\?v=[^"\']+', 'customer-push.js?v=20260907-3', s, count=1)
+          new, n = re.subn(r'customer-push\.js\?v=[^"\']+', 'customer-push.js?v=20260907-4', s, count=1)
           if n == 0:
               raise SystemExit('customer-push script tag not found')
           p.write_text(new)
@@ -32,13 +32,13 @@ jobs:
           PY
       - name: Validate
         run: |
-          grep -q 'customer-push.js?v=20260907-3' customer.html
-          grep -q 'customer-push-sw.js?v=20260907-3' customer-push.js
+          grep -q 'customer-push.js?v=20260907-4' customer.html
+          grep -q 'customer-push-sw.js?v=20260907-4' customer-push.js
           echo 'Customer push wiring validation PASS'
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add customer.html
-          git diff --cached --quiet || git commit -m '[push-v3] Bust customer push cache'
+          git diff --cached --quiet || git commit -m '[push-v4] Bust customer push cache'
           git push
