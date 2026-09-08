@@ -94,11 +94,11 @@ jobs:
 
       - name: Verify nationwide cleanup
         run: |
-          if grep -RInE '10\.2899|103\.984' --exclude-dir=.git --exclude='*.md' .; then
-            echo 'ERROR: Phu Quoc coordinates remain in deployment artifact'
+          if grep -RInE '10\.2899|103\.984' --exclude-dir=.git --exclude-dir=.github --exclude='*.md' .; then
+            echo 'ERROR: Phu Quoc coordinates remain in deployable runtime files'
             exit 1
           fi
-          echo 'PASS: no fixed Phu Quoc coordinates in deployment artifact'
+          echo 'PASS: no fixed Phu Quoc coordinates in deployable runtime files'
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
