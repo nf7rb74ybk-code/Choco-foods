@@ -33,7 +33,7 @@ jobs:
           if start >= 0 and end > start:
               esc='var esc=function(v){return String(v??\'\').replace(/[&<>"\']/g,function(c){return {\'&\':\'&amp;\',\'<\':\'&lt;\',\'>\':\'&gt;\',\'"\':\'&quot;\',"\'":\'&#039;\'}[c]})}'
               s=s[:start]+esc+s[end:]
-          versions={'customer-fix.js':'20260906-21','customer-checkout.js':'20260907-9','customer-order-force.js':'20260907-15','customer-tracking.js':'20260906-14','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
+          versions={'customer-fix.js':'20260906-21','customer-checkout.js':'20260907-9','customer-order-force.js':'20260907-16','customer-tracking.js':'20260906-14','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
           for name,ver in versions.items():
               s=re.sub(r'(\./'+re.escape(name)+r')\?v=[^"\']+', r'\1?v='+ver, s)
           for mid in ('choco-map-fallback-v1','choco-leaflet-fallback-v1','choco-map-fallback-v2'):
