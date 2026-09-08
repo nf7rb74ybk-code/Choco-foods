@@ -61,20 +61,25 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Patch customer shipping cache-bust
+      - name: Patch customer shipping guard and cache-bust
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('customer.html')
           s = p.read_text(encoding='utf-8')
           replacements = {
-              './customer-gps-fix.js?v=20260906-12': './customer-gps-fix.js?v=20260909-1',
-              './customer-gps-fix.js?v=20260908-12': './customer-gps-fix.js?v=20260909-1',
+              './customer-gps-fix.js?v=20260906-12': './customer-gps-fix.js?v=20260909-2',
+              './customer-gps-fix.js?v=20260908-12': './customer-gps-fix.js?v=20260909-2',
+              './customer-gps-fix.js?v=20260909-1': './customer-gps-fix.js?v=20260909-2',
           }
           for old, new in replacements.items():
               s = s.replace(old, new)
+          guard = '<script src="./customer-shipping-v13.js?v=20260909-1"></script>'
+          if guard not in s:
+              s = s.replace('</body>', guard + '</body>', 1)
           p.write_text(s, encoding='utf-8')
-          print('customer-gps-fix cache-bust:', './customer-gps-fix.js?v=20260909-1' in s)
+          print('customer-gps-fix cache-bust:', './customer-gps-fix.js?v=20260909-2' in s)
+          print('customer-shipping-v13 injected:', guard in s)
           PY
 
       - name: Upload Pages artifact
