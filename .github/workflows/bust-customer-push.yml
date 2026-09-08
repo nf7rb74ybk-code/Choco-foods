@@ -19,46 +19,36 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Wire customer Native Push + OneSignal
+      - name: Wire customer Native Push only
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
           p=Path('customer.html')
           s=p.read_text()
-          new, n = re.subn(r'customer-push\.js\?v=[^"\']+', 'customer-push.js?v=20260907-6', s, count=1)
+          new, n = re.subn(r'customer-push\.js\?v=[^"\']+', 'customer-push.js?v=20260908-1', s, count=1)
           if n == 0:
               marker='</body>'
-              tag='<script src="./customer-push.js?v=20260907-6"></script>'
+              tag='<script src="./customer-push.js?v=20260908-1"></script>'
               if marker not in s:
                   raise SystemExit('customer.html body marker not found')
               s=s.replace(marker, tag+'\n'+marker, 1)
           else:
               s=new
-          tag2='<script src="./onesignal-customer.js?v=20260907-1"></script>'
-          if 'onesignal-customer.js?v=' not in s:
-              if '</body>' not in s:
-                  raise SystemExit('customer.html body marker not found for OneSignal')
-              s=s.replace('</body>', tag2+'\n</body>', 1)
-          else:
-              s=re.sub(r'onesignal-customer\.js\?v=[^"\']+', 'onesignal-customer.js?v=20260907-1', s, count=1)
+          s=re.sub(r'<script src="\./onesignal-customer\.js\?v=[^"]+"></script>\s*', '', s)
           p.write_text(s)
-          print('Customer push + OneSignal wiring updated')
+          print('Customer Native Push only wiring updated')
           PY
       - name: Validate
         run: |
-          grep -q 'customer-push.js?v=20260907-6' customer.html
-          grep -q 'onesignal-customer.js?v=20260907-1' customer.html
-          grep -q '66bec449-f15b-4d0e-90fc-3dc470fef20c' onesignal-customer.js
-          grep -q 'OneSignalSDKWorker.js' onesignal-customer.js
-          grep -q 'cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js' onesignal-customer.js
-          grep -q 'importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js")' OneSignalSDKWorker.js
+          grep -q 'customer-push.js?v=20260908-1' customer.html
+          ! grep -q 'onesignal-customer.js?v=' customer.html
           test -s customer-push-sw.js
-          echo 'Customer Native Push + OneSignal wiring validation PASS'
+          echo 'Customer Native Push only validation PASS'
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add customer.html
-          git diff --cached --quiet || git commit -m '[push-v6] Align customer push user id with auth session'
+          git diff --cached --quiet || git commit -m '[push-v7] Use native customer push only'
           git push
