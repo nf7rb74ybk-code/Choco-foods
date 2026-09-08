@@ -26,10 +26,10 @@ jobs:
           import re
           p=Path('customer.html')
           s=p.read_text()
-          new, n = re.subn(r'customer-push\.js\?v=[^"\']+', 'customer-push.js?v=20260907-5', s, count=1)
+          new, n = re.subn(r'customer-push\.js\?v=[^"\']+', 'customer-push.js?v=20260907-6', s, count=1)
           if n == 0:
               marker='</body>'
-              tag='<script src="./customer-push.js?v=20260907-5"></script>'
+              tag='<script src="./customer-push.js?v=20260907-6"></script>'
               if marker not in s:
                   raise SystemExit('customer.html body marker not found')
               s=s.replace(marker, tag+'\n'+marker, 1)
@@ -47,7 +47,7 @@ jobs:
           PY
       - name: Validate
         run: |
-          grep -q 'customer-push.js?v=20260907-5' customer.html
+          grep -q 'customer-push.js?v=20260907-6' customer.html
           grep -q 'onesignal-customer.js?v=20260907-1' customer.html
           grep -q '66bec449-f15b-4d0e-90fc-3dc470fef20c' onesignal-customer.js
           grep -q 'OneSignalSDKWorker.js' onesignal-customer.js
@@ -60,5 +60,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add customer.html
-          git diff --cached --quiet || git commit -m '[push-v6] Wire customer OneSignal push'
+          git diff --cached --quiet || git commit -m '[push-v6] Align customer push user id with auth session'
           git push
