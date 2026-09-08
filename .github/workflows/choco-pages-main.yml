@@ -34,12 +34,14 @@ jobs:
           from pathlib import Path
           p = Path('customer.html')
           s = p.read_text(encoding='utf-8')
-          old = './customer-gps-fix.js?v=20260906-12'
-          new = './customer-gps-fix.js?v=20260908-12'
-          if old in s:
+          replacements = {
+              './customer-gps-fix.js?v=20260906-12': './customer-gps-fix.js?v=20260909-1',
+              './customer-gps-fix.js?v=20260908-12': './customer-gps-fix.js?v=20260909-1',
+          }
+          for old, new in replacements.items():
               s = s.replace(old, new)
           p.write_text(s, encoding='utf-8')
-          print('customer-gps-fix cache-bust:', new in s)
+          print('customer-gps-fix cache-bust:', './customer-gps-fix.js?v=20260909-1' in s)
           PY
 
       - name: Upload Pages artifact
@@ -50,5 +52,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-# Fresh-run trigger: avoid reusing a workflow attempt with duplicate Pages artifacts.
