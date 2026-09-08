@@ -22,19 +22,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Refresh customer scripts and force stable raster map
+      - name: Refresh customer scripts and neutral map fallback
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
           p=Path('customer.html')
           s=p.read_text(encoding='utf-8')
-          start=s.find('var esc=function(v)')
-          end=s.find(';async function loadMenu', start)
-          if start >= 0 and end > start:
-              esc='var esc=function(v){return String(v??\'\').replace(/[&<>"\']/g,function(c){return {\'&\':\'&amp;\',\'<\':\'&lt;\',\'>\':\'&gt;\',\'"\':\'&quot;\',"\'":\'&#039;\'}[c]})}'
-              s=s[:start]+esc+s[end:]
-          versions={'customer-fix.js':'20260906-21','customer-checkout.js':'20260907-9','customer-gps-fix.js':'20260908-12','customer-order-force.js':'20260907-16','customer-tracking.js':'20260906-14','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
+          versions={'customer-fix.js':'20260906-21','customer-checkout.js':'20260907-9','customer-gps-fix.js':'20260909-5','customer-order-force.js':'20260907-16','customer-tracking.js':'20260906-14','customer-tracking-timeline.js':'20260906-12','customer-add-fix.js':'20260906-8'}
           for name,ver in versions.items():
               s=re.sub(r'(\./'+re.escape(name)+r')\?v=[^"\']+', r'\1?v='+ver, s)
           for mid in ('choco-map-fallback-v1','choco-leaflet-fallback-v1','choco-map-fallback-v2'):
@@ -42,39 +37,19 @@ jobs:
           fallback=r'''<script id="choco-map-fallback-v2">
           (function(){
             'use strict';
-            /* iPhone/iPad use customer-ios-map-fix.js exclusively. Do not create a second MapLibre map. */
             var ua=navigator.userAgent||'';
             var isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
             if(isIOS)return;
             var OSM_STYLE={version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]};
-            function bind(m){
-              if(!m||m.__chocoV2Bound)return;
-              m.__chocoV2Bound=true;
-              try{m.on('click',function(e){var ll=e&&e.lngLat;if(ll&&window.setDeliveryLocation)window.setDeliveryLocation(ll.lat,ll.lng)})}catch(e){}
-              try{m.on('load',function(){try{m.resize()}catch(e){}})}catch(e){}
-              try{m.on('idle',function(){try{m.resize()}catch(e){}})}catch(e){}
-              try{m.on('error',function(e){console.warn('[CHOCO MAP V2]',e&&e.error||e)})}catch(e){}
-            }
-            function force(){
-              var el=document.getElementById('map');
-              if(!el||!window.maplibregl)return false;
-              var m=window.__CHOCO_MAPLIBRE__;
-              try{
-                if(!m){
-                  m=new maplibregl.Map({container:el,style:OSM_STYLE,center:[103.984,10.2899],zoom:12,attributionControl:true});
-                  window.__CHOCO_MAPLIBRE__=m;
-                }else{
-                  m.setStyle(OSM_STYLE,{diff:false});
-                }
-                bind(m);
-                setTimeout(function(){try{m.resize()}catch(e){}},150);
-                return true;
-              }catch(e){console.warn('[CHOCO MAP V2 BOOT]',e);return false}
-            }
-            [400,1200,2500,5000].forEach(function(ms){setTimeout(force,ms)});
+            function validGPS(p){return p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))}
+            function getCenter(){var g=window.currentGPS||window.selectedGPS;if(validGPS(g))return [Number(g.lng),Number(g.lat)];return [0,0]}
+            function bind(m){if(!m||m.__chocoV2Bound)return;m.__chocoV2Bound=true;try{m.on('click',function(e){var ll=e&&e.lngLat;if(ll&&window.setDeliveryLocation)window.setDeliveryLocation(ll.lat,ll.lng)})}catch(e){}try{m.on('load',function(){try{m.resize()}catch(e){}})}catch(e){}}
+            function force(){var el=document.getElementById('map');if(!el||!window.maplibregl)return false;var m=window.__CHOCO_MAPLIBRE__;try{if(!m){m=new maplibregl.Map({container:el,style:OSM_STYLE,center:getCenter(),zoom:12,attributionControl:true});window.__CHOCO_MAPLIBRE__=m}else if(validGPS(window.currentGPS)||validGPS(window.selectedGPS)){m.flyTo({center:getCenter(),zoom:14,duration:400})}bind(m);setTimeout(function(){try{m.resize()}catch(e){}},150);return true}catch(e){console.warn('[CHOCO MAP V2 BOOT]',e);return false}}
+            [400,1200,2500,5000].forEach(function(ms){setTimeout(force,ms)})
           })();
           </script>'''
           s=s.replace('</body>',fallback+'\n</body>')
+          if '10.2899' in s or '103.984' in s: raise SystemExit('Phu Quoc coordinates still present in generated customer.html')
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit cache bust
@@ -82,19 +57,11 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add customer.html
-          if git diff --cached --quiet; then
-            echo 'No cache-bust changes needed.'
-            exit 0
-          fi
-          git commit -m 'fix customer map force raster v21 [customer-cache-bust]'
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'fix customer map neutral fallback [customer-cache-bust]'
           for i in 1 2 3 4 5; do
-            if git push origin HEAD:main; then
-              echo 'Push succeeded.'
-              exit 0
-            fi
-            echo "Push race detected; rebasing attempt $i..."
+            if git push origin HEAD:main; then exit 0; fi
             git fetch origin main
             git rebase origin/main
           done
-          echo 'Push failed after 5 retries.'
           exit 1
