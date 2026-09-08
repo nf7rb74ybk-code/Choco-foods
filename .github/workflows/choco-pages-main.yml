@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,6 +24,39 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
+
+      - name: Remove legacy Phu Quoc shipping origin
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('customer.html')
+          s = p.read_text(encoding='utf-8')
+          old_fee = "function shipFee(){if(currentGPS.lat===null)return 20000;var k=distance(10.2899,103.984,currentGPS.lat,currentGPS.lng);return k<=3?20000:k<=5?25000:k<=7?30000:k<=10?40000:k<=15?50000:60000}"
+          new_fee = "function shipFee(){return 20000}"
+          old_display = "var f=getFoodTotal(),s=shipFee(),k=currentGPS.lat===null?null:distance(10.2899,103.984,currentGPS.lat,currentGPS.lng);"
+          new_display = "var f=getFoodTotal(),s=shipFee(),k=null;"
+          if old_fee in s:
+              s = s.replace(old_fee, new_fee, 1)
+              print('removed legacy shipFee origin')
+          if old_display in s:
+              s = s.replace(old_display, new_display, 1)
+              print('removed legacy display origin')
+          p.write_text(s, encoding='utf-8')
+          if 'distance(10.2899,103.984,currentGPS.lat,currentGPS.lng)' in s:
+              raise SystemExit('legacy fixed origin still present')
+          PY
+
+      - name: Commit source cleanup
+        run: |
+          if git diff --quiet -- customer.html; then
+            echo "customer.html already clean"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add customer.html
+          git commit -m "fix: remove fixed Phu Quoc distance calculation"
+          git push
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
