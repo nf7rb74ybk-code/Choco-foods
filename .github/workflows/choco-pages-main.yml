@@ -28,6 +28,20 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Patch customer shipping cache-bust
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('customer.html')
+          s = p.read_text(encoding='utf-8')
+          old = './customer-gps-fix.js?v=20260906-12'
+          new = './customer-gps-fix.js?v=20260908-12'
+          if old in s:
+              s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          print('customer-gps-fix cache-bust:', new in s)
+          PY
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
