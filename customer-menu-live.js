@@ -12,12 +12,12 @@ async function get(path){const r=await fetch(SB+path,{headers:auth()});if(!r.ok)
 async function loadLiveMenu(){
  try{
   const [rs,cs,ms]=await Promise.all([
-   get('/rest/v1/restaurants?select=id,name,category,description,image_url,banner_url,rating,is_open,delivery_fee,eta_min,eta_max&is_open=eq.true&order=name.asc'),
+   get('/rest/v1/restaurants?select=id,name,category,description,image_url,banner_url,rating,is_open,delivery_fee,eta_min,eta_max,latitude,longitude&is_open=eq.true&order=name.asc'),
    get('/rest/v1/menu_categories?select=id,restaurant_id,name,sort_order,is_active&is_active=eq.true&order=sort_order.asc'),
    get('/rest/v1/menu_items?select=id,restaurant_id,category_id,name,description,price,image_url,is_available,sort_order&is_available=eq.true&order=sort_order.asc')
   ]);
   const items=Array.isArray(ms)?ms:[];
-  liveData=(Array.isArray(rs)?rs:[]).map(r=>({id:r.id,name:r.name,category:String(r.category||'').toLowerCase(),rating:String(r.rating??'0'),image:r.image_url||r.banner_url||'',foods:items.filter(f=>String(f.restaurant_id)===String(r.id)).map(f=>({id:f.id,name:f.name,price:Number(f.price||0),image:f.image_url||'',description:f.description||'',categoryId:f.category_id}))}));
+  liveData=(Array.isArray(rs)?rs:[]).map(r=>({id:r.id,name:r.name,category:String(r.category||'').toLowerCase(),rating:String(r.rating??'0'),image:r.image_url||r.banner_url||'',latitude:r.latitude==null?null:Number(r.latitude),longitude:r.longitude==null?null:Number(r.longitude),deliveryFee:Number(r.delivery_fee||0),etaMin:Number(r.eta_min||0),etaMax:Number(r.eta_max||0),foods:items.filter(f=>String(f.restaurant_id)===String(r.id)).map(f=>({id:f.id,name:f.name,price:Number(f.price||0),image:f.image_url||'',description:f.description||'',categoryId:f.category_id}))}));
   window.__CHOCO_LIVE_RESTAURANTS__=liveData;
   window.showRestaurants=render;
   window.add=addLive;
