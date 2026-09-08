@@ -35,61 +35,35 @@ jobs:
                   ('center: [103.984,10.2899]', 'center: [0,0]'),
                   ('center:[103.984, 10.2899]', 'center:[0,0]'),
               ],
-              'customer-ios-map-fix.js': [
-                  ('center={lat:10.2899,lng:103.984}', 'center={lat:0,lng:0}'),
-              ],
-              'admin-live-route.js': [
-                  ('center:[103.984,10.2899]', 'center:[0,0]'),
-              ],
-              'customer-tracking.js': [
-                  ('center:[103.984,10.2899]', 'center:[0,0]'),
-              ],
-              'admin-shipper-map.js': [
-                  ('const CENTER=[103.9840,10.2899];', 'const CENTER=[0,0];'),
-              ],
+              'customer-ios-map-fix.js': [('center={lat:10.2899,lng:103.984}', 'center={lat:0,lng:0}')],
+              'admin-live-route.js': [('center:[103.984,10.2899]', 'center:[0,0]')],
+              'customer-tracking.js': [('center:[103.984,10.2899]', 'center:[0,0]')],
+              'admin-shipper-map.js': [('const CENTER=[103.9840,10.2899];', 'const CENTER=[0,0];')],
           }
-          changed=[]
-          for name, pairs in replacements.items():
+          for name,pairs in replacements.items():
               p=Path(name)
-              if not p.exists():
-                  continue
+              if not p.exists(): continue
               s=p.read_text(encoding='utf-8')
-              old=s
-              for a,b in pairs:
-                  s=s.replace(a,b)
-              if s!=old:
-                  p.write_text(s,encoding='utf-8')
-                  changed.append(name)
-          print('nationwide coordinate cleanup:', ', '.join(changed) if changed else 'already clean')
+              for a,b in pairs: s=s.replace(a,b)
+              p.write_text(s,encoding='utf-8')
           PY
 
       - name: Remove legacy Phu Quoc shipping origin
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('customer.html')
-          s = p.read_text(encoding='utf-8')
-          old_fee = "function shipFee(){if(currentGPS.lat===null)return 20000;var k=distance(10.2899,103.984,currentGPS.lat,currentGPS.lng);return k<=3?20000:k<=5?25000:k<=7?30000:k<=10?40000:k<=15?50000:60000}"
-          new_fee = "function shipFee(){return 20000}"
-          old_display = "var f=getFoodTotal(),s=shipFee(),k=currentGPS.lat===null?null:distance(10.2899,103.984,currentGPS.lat,currentGPS.lng);"
-          new_display = "var f=getFoodTotal(),s=shipFee(),k=null;"
-          if old_fee in s:
-              s = s.replace(old_fee, new_fee, 1)
-              print('removed legacy shipFee origin')
-          if old_display in s:
-              s = s.replace(old_display, new_display, 1)
-              print('removed legacy display origin')
-          p.write_text(s, encoding='utf-8')
-          if '10.2899' in s or '103.984' in s:
-              raise SystemExit('Phu Quoc coordinates still present in customer.html')
+          p=Path('customer.html');s=p.read_text(encoding='utf-8')
+          old="function shipFee(){if(currentGPS.lat===null)return 20000;var k=distance(10.2899,103.984,currentGPS.lat,currentGPS.lng);return k<=3?20000:k<=5?25000:k<=7?30000:k<=10?40000:k<=15?50000:60000}"
+          s=s.replace(old,'function shipFee(){return 20000}',1)
+          old2="var f=getFoodTotal(),s=shipFee(),k=currentGPS.lat===null?null:distance(10.2899,103.984,currentGPS.lat,currentGPS.lng);"
+          s=s.replace(old2,'var f=getFoodTotal(),s=shipFee(),k=null;',1)
+          if '10.2899' in s or '103.984' in s: raise SystemExit('Phu Quoc coordinates still present in customer.html')
+          p.write_text(s,encoding='utf-8')
           PY
 
       - name: Commit source cleanup
         run: |
-          if git diff --quiet; then
-            echo "source already clean"
-            exit 0
-          fi
+          if git diff --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add customer.html customer-ios-map-fix.js admin-live-route.js customer-tracking.js admin-shipper-map.js
@@ -103,25 +77,28 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('customer.html')
-          s = p.read_text(encoding='utf-8')
-          replacements = {
-              './customer-gps-fix.js?v=20260906-12': './customer-gps-fix.js?v=20260909-5',
-              './customer-gps-fix.js?v=20260908-12': './customer-gps-fix.js?v=20260909-5',
-              './customer-gps-fix.js?v=20260909-1': './customer-gps-fix.js?v=20260909-5',
-              './customer-gps-fix.js?v=20260909-2': './customer-gps-fix.js?v=20260909-5',
-              './customer-gps-fix.js?v=20260909-3': './customer-gps-fix.js?v=20260909-5',
-              './customer-gps-fix.js?v=20260909-4': './customer-gps-fix.js?v=20260909-5',
-          }
-          for old, new in replacements.items():
-              s = s.replace(old, new)
-          guard = '<script src="./customer-shipping-v13.js?v=20260909-4"></script>'
-          if guard not in s:
-              s = s.replace('</body>', guard + '</body>', 1)
-          p.write_text(s, encoding='utf-8')
-          print('customer-gps-fix cache-bust:', './customer-gps-fix.js?v=20260909-5' in s)
-          print('customer-shipping-v13 injected:', guard in s)
+          p=Path('customer.html');s=p.read_text(encoding='utf-8')
+          replacements={
+            './customer-gps-fix.js?v=20260906-12':'./customer-gps-fix.js?v=20260909-5',
+            './customer-gps-fix.js?v=20260908-12':'./customer-gps-fix.js?v=20260909-5',
+            './customer-gps-fix.js?v=20260909-1':'./customer-gps-fix.js?v=20260909-5',
+            './customer-gps-fix.js?v=20260909-2':'./customer-gps-fix.js?v=20260909-5',
+            './customer-gps-fix.js?v=20260909-3':'./customer-gps-fix.js?v=20260909-5',
+            './customer-gps-fix.js?v=20260909-4':'./customer-gps-fix.js?v=20260909-5'}
+          for a,b in replacements.items(): s=s.replace(a,b)
+          guard='<script src="./customer-shipping-v13.js?v=20260909-4"></script>'
+          if guard not in s: s=s.replace('</body>',guard+'</body>',1)
+          if '10.2899' in s or '103.984' in s: raise SystemExit('Phu Quoc coordinates still present before deploy')
+          p.write_text(s,encoding='utf-8')
           PY
+
+      - name: Verify nationwide cleanup
+        run: |
+          if grep -RInE '10\.2899|103\.984' --exclude-dir=.git --exclude='*.md' .; then
+            echo 'ERROR: Phu Quoc coordinates remain in deployment artifact'
+            exit 1
+          fi
+          echo 'PASS: no fixed Phu Quoc coordinates in deployment artifact'
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
