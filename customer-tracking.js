@@ -66,7 +66,7 @@
     if(!el||!window.maplibregl){throw Error('MapLibre chưa sẵn sàng');}
     mapReady=new Promise((resolve,reject)=>{
       try{
-        map=new maplibregl.Map({container:el,style:'https://tiles.openfreemap.org/styles/liberty',center:[103.984,10.2899],zoom:12});
+        map=new maplibregl.Map({container:el,style:'https://tiles.openfreemap.org/styles/liberty',center:[0,0],zoom:12});
         map.addControl(new maplibregl.NavigationControl(),'top-right');
         map.on('load',()=>resolve(map));
         map.on('error',e=>console.warn('[CHOCO TRACK MAP]',e?.error||e));

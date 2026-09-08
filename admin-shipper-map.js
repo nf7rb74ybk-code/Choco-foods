@@ -12,7 +12,7 @@
   const MAPLIBRE_CSS='https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css';
   const MAPLIBRE_JS='https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js';
   const MAP_STYLE='https://tiles.openfreemap.org/styles/liberty';
-  const CENTER=[103.9840,10.2899];
+  const CENTER=[0,0];
   const css=document.createElement('link');css.rel='stylesheet';css.href=MAPLIBRE_CSS;document.head.appendChild(css);
 
   const panel=document.createElement('div');panel.id='shipperGpsPanel';panel.className='admin-box';panel.innerHTML='<div style="font-size:18px;font-weight:bold;margin-bottom:8px">🗺️ VỊ TRÍ SHIPPER</div><div id="shipperGpsStatus" style="font-size:12px;color:#64748b;margin-bottom:10px">⏳ Đang tải vị trí...</div><div style="display:flex;gap:8px;margin-bottom:10px"><button id="shipperGpsRefresh" style="flex:1;border:0;border-radius:10px;padding:10px;background:#1677ff;color:#fff;font-weight:800">🔄 Cập nhật</button><button id="shipperGpsAll" style="flex:1;border:0;border-radius:10px;padding:10px;background:#ff6b00;color:#fff;font-weight:800">🎯 Xem tất cả</button></div><div id="shipperGpsMap" style="height:360px;border-radius:12px;overflow:hidden;background:#e5e7eb"></div><div id="shipperGpsList" style="margin-top:10px"></div>';

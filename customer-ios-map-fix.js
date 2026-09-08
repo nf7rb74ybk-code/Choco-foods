@@ -1,7 +1,7 @@
 /* CHOCO SHIP — iOS MAP FALLBACK v10 — MAPLIBRE FIRST + OSM RASTER FALLBACK */
 (function(){
 'use strict';
-var started=false,center={lat:10.2899,lng:103.984},el;
+var started=false,center={lat:0,lng:0},el;
 function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function valid(a,b){return Number.isFinite(a)&&Number.isFinite(b)&&a>=-85&&a<=85&&b>=-180&&b<=180}
 function installMarkerShim(map){

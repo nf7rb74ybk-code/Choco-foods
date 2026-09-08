@@ -17,7 +17,7 @@
     const style=document.createElement('style');style.textContent='#adminLiveRouteBox{background:#fff;border-radius:15px;padding:14px;margin:12px 0;box-shadow:0 2px 8px #ddd}#adminLiveRouteMap{height:420px;border-radius:12px;margin-top:10px;overflow:hidden}.alr-title{font-size:19px;font-weight:800}.alr-note{font-size:12px;color:#666;margin-top:8px}.alr-card{background:#f8fafc;border-radius:10px;padding:9px;margin-top:8px}';document.head.appendChild(style);
     const box=document.createElement('section');box.id='adminLiveRouteBox';box.innerHTML='<div class="alr-title">🗺️ LIVE SHIPPER & TUYẾN ĐƯỜNG</div><div id="adminLiveRouteList" class="alr-card">⏳ Đang tải...</div><div id="adminLiveRouteMap"></div><div class="alr-note">🔄 GPS cập nhật tự động mỗi 10 giây. Bản đồ MapLibre + OpenFreeMap • Tuyến đường OSRM.</div>';
     const host=document.querySelector('.container')||document.querySelector('main')||document.body;host.insertBefore(box,host.firstChild);
-    map=new maplibregl.Map({container:'adminLiveRouteMap',style:MAP_STYLE,center:[103.984,10.2899],zoom:12,attributionControl:true});
+    map=new maplibregl.Map({container:'adminLiveRouteMap',style:MAP_STYLE,center:[0,0],zoom:12,attributionControl:true});
     map.addControl(new maplibregl.NavigationControl(),'top-right');
     await new Promise((resolve,reject)=>{map.once('load',resolve);map.once('error',e=>reject(e?.error||e))});
   }
