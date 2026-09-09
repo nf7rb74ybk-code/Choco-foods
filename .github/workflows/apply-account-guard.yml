@@ -1,0 +1,47 @@
+name: Apply direct account status guard
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-account-guard.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Inject account status guard
+        shell: bash
+        run: |
+          set -e
+          guard='<script src="./account-status-guard.js?v=20260909-1"></script>'
+          python3 - <<'PY'
+          from pathlib import Path
+          guard='<script src="./account-status-guard.js?v=20260909-1"></script>'
+          for name in ['customer.html','shipper.html']:
+              p=Path(name)
+              s=p.read_text(encoding='utf-8')
+              if 'account-status-guard.js' not in s:
+                  marker='<body>'
+                  if marker not in s:
+                      raise SystemExit(f'{name}: body marker not found')
+                  s=s.replace(marker, marker+guard, 1)
+                  p.write_text(s, encoding='utf-8')
+                  print('patched', name)
+              else:
+                  print('already patched', name)
+          PY
+      - name: Commit guard injection
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add customer.html shipper.html
+          if git diff --cached --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git commit -m 'fix: enforce locked account guard on direct customer and shipper pages'
+          git push origin HEAD:main
