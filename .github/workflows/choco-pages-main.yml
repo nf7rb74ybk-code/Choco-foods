@@ -86,7 +86,9 @@ jobs:
             './customer-gps-fix.js?v=20260909-3':'./customer-gps-fix.js?v=20260909-5',
             './customer-gps-fix.js?v=20260909-4':'./customer-gps-fix.js?v=20260909-5'}
           for a,b in replacements.items(): s=s.replace(a,b)
-          guard='<script src="./customer-shipping-v13.js?v=20260909-4"></script>'
+          guard='<script src="./customer-shipping-v14.js?v=20260909-1"></script>'
+          import re
+          s=re.sub(r'<script src="\./customer-shipping-v13\.js\?v=[^"]+"></script>','',s)
           if guard not in s: s=s.replace('</body>',guard+'</body>',1)
           if '10.2899' in s or '103.984' in s: raise SystemExit('Phu Quoc coordinates still present before deploy')
           p.write_text(s,encoding='utf-8')
