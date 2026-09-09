@@ -1,14 +1,37 @@
-// CHOCO ADMIN ACCOUNTS CORE + SHIPPER DASHBOARD
+/* CHOCO SHIP — ADMIN ACCOUNT MANAGER v1 */
+'use strict';
 (function(){
-  const base='https://raw.githubusercontent.com/nf7rb74ybk-code/Choco-foods/362db9f72353c03b51e27b7c23ebdfde23ab1cdc/';
-  const a=document.createElement('script');
-  a.src=base+'admin-accounts.js';
-  a.onload=function(){
-    const p=document.createElement('script');
-    p.src='./admin-shipper-performance.js?v=20260904-2';
-    p.async=true;
-    document.head.appendChild(p);
-  };
-  a.onerror=function(){console.error('CHOCO ADMIN ACCOUNTS CORE LOAD FAILED')};
-  document.head.appendChild(a);
+  if(window.__CHOCO_ADMIN_ACCOUNTS_V1__) return;
+  window.__CHOCO_ADMIN_ACCOUNTS_V1__=true;
+  const SB='https://guwdswqaqnhzqapflvey.supabase.co';
+  const KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+  const token=()=>localStorage.getItem('choco_access_token')||'';
+  const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));
+  let rows=[];
+  async function api(path,opts={}){const r=await fetch(SB+path,{...opts,headers:{apikey:KEY,Authorization:'Bearer '+token(),Accept:'application/json',...(opts.headers||{})}});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw Error(typeof d==='string'?d:(d?.message||d?.error_description||'Supabase HTTP '+r.status));return d}
+  function roleLabel(r){return r==='admin'?'👑 Admin':r==='shipper'?'🚚 Shipper':'👤 Khách'}
+  function inject(){
+    let p=document.getElementById('chocoAccountsPanel');
+    if(!p){p=document.createElement('div');p.id='chocoAccountsPanel';p.className='acct-panel';const container=document.querySelector('.container');if(container)container.insertBefore(p,container.firstChild);}
+    if(!document.getElementById('chocoAcctStyle')){const s=document.createElement('style');s.id='chocoAcctStyle';s.textContent='.acct-panel{background:#fff;border-radius:15px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px #ddd}.acct-title{font-size:18px;font-weight:800;margin-bottom:10px}.acct-toolbar{display:grid;grid-template-columns:1fr auto;gap:8px}.acct-search{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px;font-size:14px}.acct-refresh,.acct-action{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}.acct-refresh{background:#f1f5f9}.acct-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}.acct-stat{background:#f8fafc;border-radius:10px;padding:9px;text-align:center;font-size:12px}.acct-stat b{display:block;font-size:20px;margin-top:3px}.acct-status{color:#64748b;font-size:12px;margin:8px 0}.acct-row{border-top:1px solid #eee;padding:11px 0}.acct-head{display:flex;justify-content:space-between;gap:8px}.acct-name{font-weight:800}.acct-muted,.acct-id{color:#64748b;font-size:12px;margin-top:3px;word-break:break-word}.acct-controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.acct-select{padding:8px;border:1px solid #d1d5db;border-radius:9px;background:#fff}.acct-action{background:#111827;color:#fff}.acct-action.warn{background:#b91c1c}.acct-action.ok{background:#15803d}.acct-role.admin{color:#b45309}.acct-role.shipper{color:#1d4ed8}.acct-role.customer{color:#15803d}@media(max-width:600px){.acct-toolbar{grid-template-columns:1fr}.acct-stats{grid-template-columns:1fr 1fr}.acct-head{display:block}}';document.head.appendChild(s)}
+    p.innerHTML='<div class="acct-title">👥 TÀI KHOẢN & PHÂN QUYỀN</div><div class="acct-toolbar"><input id="acctSearch" class="acct-search" placeholder="🔎 Tìm tên, SĐT, ID..."><button id="acctRefresh" class="acct-refresh">🔄 Làm mới</button></div><div class="acct-stats"><div class="acct-stat">👑 Admin<b id="acctAdmin">0</b></div><div class="acct-stat">🚚 Shipper<b id="acctShipper">0</b></div><div class="acct-stat">👤 Khách<b id="acctCustomer">0</b></div><div class="acct-stat">🔒 Khóa<b id="acctLocked">0</b></div></div><div class="acct-status" id="chocoAccountsStatus">Đang tải...</div><div id="chocoAccountsRows"></div>';
+    document.getElementById('acctSearch').oninput=render;document.getElementById('acctRefresh').onclick=load;
+  }
+  async function load(){
+    const status=document.getElementById('chocoAccountsStatus');if(!status)return;status.textContent='⏳ Đang tải tài khoản...';
+    try{rows=await api('/rest/v1/profiles?select=id,role,full_name,phone,created_at,last_seen,is_online,account_status&order=created_at.desc');if(!Array.isArray(rows))rows=[];render();status.textContent='Tổng '+rows.length+' tài khoản • cập nhật '+new Date().toLocaleTimeString('vi-VN');}
+    catch(e){console.error(e);status.textContent='❌ '+e.message;document.getElementById('chocoAccountsRows').innerHTML='';}
+  }
+  function render(){
+    const q=(document.getElementById('acctSearch')?.value||'').trim().toLowerCase();const filtered=rows.filter(x=>!q||[x.full_name,x.phone,x.id,x.role].some(v=>String(v??'').toLowerCase().includes(q)));const counts={admin:0,shipper:0,customer:0,locked:0};rows.forEach(x=>{if(counts[x.role]!==undefined)counts[x.role]++;if(x.account_status==='locked')counts.locked++});
+    ['Admin','Shipper','Customer','Locked'].forEach((k,i)=>{const el=document.getElementById('acct'+k);if(el)el.textContent=[counts.admin,counts.shipper,counts.customer,counts.locked][i]});
+    const box=document.getElementById('chocoAccountsRows');if(!box)return;
+    box.innerHTML=filtered.length?filtered.map(x=>{const locked=x.account_status==='locked';const self=String(x.id)===String(localStorage.getItem('choco_user_id')||'');const role=x.role||'customer';return '<div class="acct-row"><div class="acct-head"><div><div class="acct-name">'+esc(x.full_name||'Chưa có tên')+'</div><div class="acct-muted">📞 '+esc(x.phone||'Chưa có SĐT')+'</div></div><div class="acct-role '+esc(role)+'">'+roleLabel(role)+'</div></div><div class="acct-id">ID: '+esc(x.id)+' • '+(locked?'🔒 Đã khóa':'🟢 Đang hoạt động')+' • '+esc(x.created_at?new Date(x.created_at).toLocaleDateString('vi-VN'):'')+'</div><div class="acct-controls"><select class="acct-select" data-role="'+esc(x.id)+'"><option value="customer" '+(role==='customer'?'selected':'')+'>👤 Khách</option><option value="shipper" '+(role==='shipper'?'selected':'')+'>🚚 Shipper</option><option value="admin" '+(role==='admin'?'selected':'')+'>👑 Admin</option></select><button class="acct-action" data-save="'+esc(x.id)+'">💾 Đổi quyền</button><button class="acct-action '+(locked?'ok':'warn')+'" data-lock="'+esc(x.id)+'">'+(locked?'🔓 Mở khóa':'🔒 Khóa')+'</button></div></div>'}).join(''):'<div class="acct-muted">📭 Không tìm thấy tài khoản.</div>';
+    box.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>changeRole(b.dataset.save));box.querySelectorAll('[data-lock]').forEach(b=>b.onclick=()=>toggleLock(b.dataset.lock));
+  }
+  async function changeRole(id){const row=rows.find(x=>String(x.id)===String(id));if(!row)return;const sel=document.querySelector('[data-role="'+CSS.escape(id)+'"]');const role=sel?.value;if(role===row.role){alert('Tài khoản đã có quyền này.');return}if(!confirm('Đổi quyền tài khoản này thành '+roleLabel(role)+'?'))return;try{await api('/rest/v1/rpc/admin_set_profile_role',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_user_id:id,p_role:role})});await load();alert('✅ Đổi quyền thành công.');}catch(e){alert('❌ Không thể đổi quyền: '+e.message)}}
+  async function toggleLock(id){const row=rows.find(x=>String(x.id)===String(id));if(!row)return;const next=row.account_status==='locked'?'active':'locked';if(!confirm(next==='locked'?'Khóa tài khoản này?':'Mở khóa tài khoản này?'))return;try{await api('/rest/v1/rpc/admin_set_profile_status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_user_id:id,p_status:next})});await load();alert(next==='locked'?'🔒 Đã khóa tài khoản.':'🔓 Đã mở khóa tài khoản.');}catch(e){alert('❌ Không thể cập nhật: '+e.message)}}
+  function start(){inject();load();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
+(function(){const p=document.createElement('script');p.src='./admin-shipper-performance.js?v=20260904-2';p.async=true;document.head.appendChild(p);})();
