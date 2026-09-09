@@ -94,6 +94,21 @@ jobs:
           p.write_text(s,encoding='utf-8')
           PY
 
+      - name: Inject shipper realtime
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('shipper.html')
+          s=p.read_text(encoding='utf-8')
+          cdn='<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>'
+          rt='<script src="./shipper-realtime.js?v=20260909-1"></script>'
+          if 'cdn.jsdelivr.net/npm/@supabase/supabase-js@2' not in s:
+              s=s.replace('</body>',cdn+'</body>',1)
+          if 'shipper-realtime.js?v=20260909-1' not in s:
+              s=s.replace('</body>',rt+'</body>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+
       - name: Verify nationwide cleanup
         run: |
           if grep -RInE '10\.2899|103\.984' --exclude-dir=.git --exclude-dir=.github --exclude='*.md' .; then
