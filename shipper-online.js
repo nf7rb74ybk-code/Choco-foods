@@ -38,6 +38,6 @@
   }
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(isOffline()){stopGPS();gpsStatus('🔴 Đang TẮT NHẬN ĐƠN. Bật lại trong Tài khoản để hoạt động.');return}save(coords?{latitude:coords.lat,longitude:coords.lng}:{});if(watchId===null)gpsStatus('Chưa bật GPS. Bấm "BẬT GPS SHIPPER" để cấp quyền vị trí.');else if(coords)startGPS(true)}});
   window.addEventListener('pageshow',()=>{if(document.visibilityState==='visible'&&!isOffline()&&coords)startGPS(true)});
-  window.addEventListener('pagehide',()=>{stopGPS();nativeFetch(SB+'/rest/v1/profiles?id=eq.'+encodeURIComponent(UID()),{method:'PATCH',keepalive:true,headers,body:JSON.stringify({last_seen:new Date().toISOString(),is_online:false})}).catch(()=>{})});
+  window.addEventListener('pagehide',()=>{stopGPS();nativeFetch(SB+'/rest/v1/profiles?id=eq.'+encodeURIComponent(UID),{method:'PATCH',keepalive:true,headers,body:JSON.stringify({last_seen:new Date().toISOString(),is_online:false})}).catch(()=>{})});
   const chatScript=document.createElement('script');chatScript.src='./customer-shipper-chat.js';chatScript.async=true;document.head.appendChild(chatScript);
 })();
