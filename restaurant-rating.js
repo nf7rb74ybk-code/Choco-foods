@@ -1,18 +1,25 @@
-/* CHOCO SHIP - PUBLIC RESTAURANT RATING v1 */
+/* CHOCO SHIP - PUBLIC RESTAURANT RATING v2 - DYNAMIC RESTAURANT ID */
 'use strict';
 (function(){
   if(window.__CHOCO_RESTAURANT_RATING__)return;
   window.__CHOCO_RESTAURANT_RATING__=true;
   const SB='https://guwdswqaqnhzqapflvey.supabase.co';
   const KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
-  const esc=x=>String(x??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));
+  async function resolveId(){
+    const qs=new URLSearchParams(location.search);
+    const direct=qs.get('restaurant_id')||qs.get('restaurantId')||'';
+    if(/^\d+$/.test(direct))return Number(direct);
+    const name=qs.get('name')||'';
+    if(!name)return null;
+    const r=await fetch(SB+'/rest/v1/restaurants?select=id&name=eq.'+encodeURIComponent(name)+'&limit=1',{headers:{apikey:KEY}});
+    if(!r.ok)return null;
+    const rows=await r.json();
+    return rows?.[0]?.id?Number(rows[0].id):null;
+  }
   async function load(){
-    const name=new URLSearchParams(location.search).get('name')||'';
-    if(!name)return;
-    const map={'Choco Drinks':1,'Gà Rán PQ':2,'Cơm Nhà Phú Quốc':3,'Bún Phú Quốc':4};
-    const id=map[name];
-    if(!id)return;
     try{
+      const id=await resolveId();
+      if(!id)return;
       const r=await fetch(SB+'/rest/v1/rpc/get_restaurant_rating_summary',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_restaurant_id:id})});
       if(!r.ok)throw Error(await r.text());
       const x=(await r.json())?.[0];
