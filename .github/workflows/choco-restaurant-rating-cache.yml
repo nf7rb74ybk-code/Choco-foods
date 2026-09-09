@@ -8,6 +8,9 @@ on:
       - '.github/workflows/choco-restaurant-rating-cache.yml'
 permissions:
   contents: write
+concurrency:
+  group: choco-main-autocommit
+  cancel-in-progress: false
 jobs:
   refresh:
     if: github.actor != 'github-actions[bot]'
@@ -21,7 +24,7 @@ jobs:
           p=Path('restaurant.html')
           s=p.read_text(encoding='utf-8')
           import re
-          tag='./restaurant-rating.js?v=20260909-2'
+          tag='./restaurant-rating.js?v=20260909-4'
           s=re.sub(r'\./restaurant-rating\.js\?v=[^"\']+', tag, s)
           if tag not in s:
               s=s.replace('</body>', f'<script src="{tag}"></script></body>')
@@ -34,4 +37,9 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add restaurant.html
           git commit -m 'fix: refresh dynamic restaurant rating cache'
-          git push
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main
+          done
+          exit 1
