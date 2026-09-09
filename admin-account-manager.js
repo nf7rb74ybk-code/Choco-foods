@@ -22,8 +22,8 @@
     document.head.appendChild(st);
     const p=document.createElement('div');p.id='chocoAccountManager';p.className='cam';
     p.innerHTML='<div class="cam-title">🔐 QUẢN LÝ TÀI KHOẢN THỰC TẾ</div><div class="cam-tools"><input id="camSearch" class="cam-input" placeholder="🔎 Tìm tên, SĐT, ID..."><select id="camRole" class="cam-select"><option value="all">Tất cả quyền</option><option value="admin">👑 Admin</option><option value="shipper">🚚 Shipper</option><option value="customer">👤 Customer</option></select></div><div class="cam-summary"><div class="cam-stat">Admin<b id="camAdmin">0</b></div><div class="cam-stat">Shipper<b id="camShipper">0</b></div><div class="cam-stat">Customer<b id="camCustomer">0</b></div><div class="cam-stat">Khóa<b id="camLocked">0</b></div></div><div id="camStatus" class="cam-meta">Đang tải...</div><div id="camList" class="cam-list"></div>';
-    const anchor=document.getElementById('chocoAccountsPanel')||document.querySelector('.container');
-    if(anchor&&anchor.parentElement)anchor.parentElement.insertBefore(p,anchor.nextSibling);else document.body.prepend(p);
+    const legacy=document.getElementById('chocoAccountsPanel');
+    if(legacy){legacy.replaceWith(p)}else{const container=document.querySelector('.container');if(container)container.insertBefore(p,container.firstChild);else document.body.prepend(p)}
     document.getElementById('camSearch').addEventListener('input',render);document.getElementById('camRole').addEventListener('change',render);
   }
   async function load(){
@@ -41,7 +41,7 @@
   }
   function tokenUserId(){try{const p=JSON.parse(atob((token().split('.')[1]||'').replace(/-/g,'+').replace(/_/g,'/')));return p.sub||''}catch{return ''}}
   async function callRpc(name,body){return api('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(body)})}
-  window.chocoSetRole=async(id,role)=>{if(!role)return;const x=rows.find(r=>r.id===id);if(!x||x.role===role)return; if(!confirm('Đổi quyền tài khoản này thành '+role+'?')){load();return}try{await callRpc('admin_set_profile_role',{p_user_id:id,p_role:role});await load();alert('✅ Đã đổi quyền thành công.')}catch(e){alert('❌ Không đổi được quyền: '+e.message);load()}};
+  window.chocoSetRole=async(id,role)=>{if(!role)return;const x=rows.find(r=>r.id===id);if(!x||x.role===role)return;if(!confirm('Đổi quyền tài khoản này thành '+role+'?')){load();return}try{await callRpc('admin_set_profile_role',{p_user_id:id,p_role:role});await load();alert('✅ Đã đổi quyền thành công.')}catch(e){alert('❌ Không đổi được quyền: '+e.message);load()}};
   window.chocoSetStatus=async(id,status)=>{if(!confirm(status==='locked'?'Khóa tài khoản này?':'Mở khóa tài khoản này?'))return;try{await callRpc('admin_set_profile_status',{p_user_id:id,p_status:status});await load();alert(status==='locked'?'🔒 Đã khóa tài khoản.':'🔓 Đã mở khóa tài khoản.')}catch(e){alert('❌ Thao tác thất bại: '+e.message);load()}};
   window.chocoRefreshAccounts=load;
   function start(){inject();load()}
