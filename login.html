@@ -1,1 +1,55 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CHOCO SHIP - Đăng nhập</title></head><body><script>location.replace('index.html');</script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CHOCO — Đăng nhập</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif;background:#f5f5f5;color:#222}.box{width:100%;max-width:420px;background:#fff;padding:26px;border-radius:20px;box-shadow:0 5px 25px rgba(0,0,0,.12)}.logo{text-align:center;font-size:30px;font-weight:800;color:#ff6b00}.title{text-align:center;font-size:22px;font-weight:800;margin:8px 0 22px}label{display:block;font-weight:700;margin:12px 0 6px}input{width:100%;padding:14px;border:1px solid #ddd;border-radius:10px;font-size:16px;outline:none}input:focus{border-color:#ff6b00}.btn{width:100%;padding:14px;margin-top:20px;border:0;border-radius:11px;background:#ff6b00;color:#fff;font-size:16px;font-weight:800}.btn:disabled{opacity:.6}.msg{display:none;margin-top:14px;padding:13px;border-radius:10px;line-height:1.45;white-space:pre-line}.error{background:#fee2e2;color:#991b1b}.success{background:#dcfce7;color:#166534}.links{text-align:center;margin-top:18px;line-height:2}.links a{color:#ff6b00;font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">🍔 CHOCO</div>
+  <div class="title">Đăng nhập</div>
+  <form id="form">
+    <label>Email</label>
+    <input id="email" type="email" autocomplete="email" placeholder="email@example.com" required>
+    <label>Mật khẩu</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+    <button class="btn" id="btn" type="submit">🔐 ĐĂNG NHẬP</button>
+  </form>
+  <div id="msg" class="msg"></div>
+  <div class="links"><a href="register.html">🚚 Đăng ký Shipper</a><br><a href="home.html">← Xem trang chủ</a></div>
+</div>
+<script>
+const U='https://guwdswqaqnhzqapflvey.supabase.co',K='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+const form=document.getElementById('form'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
+function show(t,c){msg.className='msg '+c;msg.textContent=t;msg.style.display='block'}
+async function route(token,user){
+  localStorage.setItem('choco_access_token',token.access_token||'');
+  localStorage.setItem('choco_refresh_token',token.refresh_token||'');
+  localStorage.setItem('choco_user_id',user.id||'');
+  localStorage.setItem('choco_email',user.email||'');
+  let role='customer';
+  try{
+    const r=await fetch(U+'/rest/v1/profiles?id=eq.'+encodeURIComponent(user.id)+'&select=role',{headers:{apikey:K,Authorization:'Bearer '+token.access_token,Accept:'application/json'}});
+    if(r.ok){const a=await r.json();if(a[0]&&a[0].role)role=String(a[0].role).toLowerCase()}
+  }catch(e){console.warn('role lookup',e)}
+  localStorage.setItem('choco_role',role);
+  if(role==='admin') location.replace('admin.html');
+  else if(role==='shipper') location.replace('shipper.html');
+  else location.replace('home.html');
+}
+form.onsubmit=async e=>{
+ e.preventDefault();btn.disabled=true;btn.textContent='⏳ Đang đăng nhập...';
+ try{
+  const email=document.getElementById('email').value.trim().toLowerCase(),password=document.getElementById('password').value;
+  const r=await fetch(U+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json',apikey:K},body:JSON.stringify({email,password})});
+  const t=await r.json();if(!r.ok)throw Error(t.error_description||t.msg||'Email hoặc mật khẩu không đúng.');
+  show('✅ Đăng nhập thành công. Đang mở CHOCO...','success');await route(t,t.user);
+ }catch(x){show('❌ '+x.message,'error');btn.disabled=false;btn.textContent='🔐 ĐĂNG NHẬP'}
+};
+</script>
+</body>
+</html>
