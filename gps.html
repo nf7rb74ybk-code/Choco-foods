@@ -1,1 +1,113 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CHOCO — GPS</title><link rel="stylesheet" href="./customer-pages.css?v=20260910-1"></head><body><main class="choco-page"><header class="choco-header">📍 GPS</header><section class="choco-content"><h1 class="page-title">Vị trí của bạn</h1><p class="page-subtitle">Chức năng GPS hiện tại sẽ được chuyển nguyên vẹn sang trang này ở bước tiếp theo.</p><div id="selectedGPS">Chưa chọn vị trí</div></section><nav class="customer-bottom-nav"><a href="home.html"><span class="nav-icon">🏠</span>Trang chủ</a><a href="cart.html"><span class="nav-icon">🛒</span>Giỏ hàng</a><a href="orders.html"><span class="nav-icon">📦</span>Đơn hàng</a><a class="active" href="gps.html"><span class="nav-icon">📍</span>GPS</a><a href="account.html"><span class="nav-icon">👤</span>Tài khoản</a></nav></main></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>CHOCO — GPS giao hàng</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="./customer-pages.css?v=20260910-1">
+  <style>
+    .gps-card{background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 18px rgba(0,0,0,.07);margin-bottom:14px}
+    #map{width:100%;height:48vh;min-height:330px;border-radius:16px;overflow:hidden;background:#e9eef0}
+    #gpsButton{width:100%;border:0;border-radius:14px;padding:14px;background:#ff6b00;color:#fff;font-size:16px;font-weight:800;margin-bottom:10px}
+    #locationText,#selectedGPS{font-size:14px;line-height:1.5;word-break:break-word}
+    .gps-back{display:block;text-align:center;padding:11px;border-radius:12px;background:#fff3ea;color:#d95300;text-decoration:none;font-weight:700}
+    .gps-hint{font-size:13px;color:#666;margin:8px 0 0}
+  </style>
+</head>
+<body>
+<main class="choco-page">
+  <header class="choco-header">📍 GPS giao hàng</header>
+
+  <section class="choco-content">
+    <div class="gps-card">
+      <h1 class="page-title">Chọn vị trí giao hàng</h1>
+      <p class="page-subtitle">Lấy GPS hiện tại hoặc chạm trực tiếp trên bản đồ để chọn vị trí.</p>
+      <button id="gpsButton" type="button">📍 LẤY / CẬP NHẬT GPS GIAO HÀNG</button>
+      <div id="locationText">Chưa chọn vị trí</div>
+      <p class="gps-hint">💡 Nếu GPS không chính xác, hãy chạm vào đúng vị trí trên bản đồ.</p>
+    </div>
+
+    <div class="gps-card">
+      <div id="map" aria-label="Bản đồ chọn vị trí giao hàng"></div>
+    </div>
+
+    <div class="gps-card">
+      <b>📌 Tọa độ đã chọn</b>
+      <div id="selectedGPS" style="margin-top:6px">Chưa chọn</div>
+      <div id="cartGpsText" style="margin-top:8px;color:#555">📍 Chưa chọn vị trí</div>
+    </div>
+
+    <a class="gps-back" href="cart.html">🛒 Quay lại giỏ hàng</a>
+  </section>
+
+  <nav class="customer-bottom-nav">
+    <a href="home.html"><span class="nav-icon">🏠</span>Trang chủ</a>
+    <a href="cart.html"><span class="nav-icon">🛒</span>Giỏ hàng</a>
+    <a href="orders.html"><span class="nav-icon">📦</span>Đơn hàng</a>
+    <a class="active" href="gps.html"><span class="nav-icon">📍</span>GPS</a>
+    <a href="account.html"><span class="nav-icon">👤</span>Tài khoản</a>
+  </nav>
+</main>
+
+<script>
+  window.SUPABASE_URL='https://guwdswqaqnhzqapflvey.supabase.co';
+  window.SUPABASE_KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
+  try{
+    const g=JSON.parse(localStorage.getItem('choco_customer_gps_v1')||'null');
+    if(g && Number.isFinite(Number(g.lat)) && Number.isFinite(Number(g.lng)) && !(Number(g.lat)===0&&Number(g.lng)===0)) window.currentGPS={lat:Number(g.lat),lng:Number(g.lng),source:g.source||'GPS gần nhất'};
+  }catch(e){}
+</script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="./customer-fix.js?v=20260910-21"></script>
+<script src="./customer-gps-fix.js?v=20260910-12"></script>
+<script src="./customer-gps-lock.js?v=20260910-1"></script>
+<script src="./customer-ios-map-fix.js?v=20260910-10"></script>
+<script>
+(function(){
+  'use strict';
+  let mapReady=false;
+  function valid(a,b){return Number.isFinite(Number(a))&&Number.isFinite(Number(b))&&Number(a)>=-90&&Number(a)<=90&&Number(b)>=-180&&Number(b)<=180&&!(Number(a)===0&&Number(b)===0)}
+  function center(){
+    const g=window.currentGPS;
+    if(valid(g?.lat,g?.lng)) return [Number(g.lng),Number(g.lat)];
+    return [106.003,10.216];
+  }
+  function initMap(){
+    if(mapReady||!window.maplibregl)return;
+    const el=document.getElementById('map'); if(!el)return;
+    /* customer-ios-map-fix owns iPhone/Safari map creation. */
+    if(/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){
+      if(window.__CHOCO_MAPLIBRE__){mapReady=true;return;}
+      setTimeout(initMap,300);return;
+    }
+    try{
+      const c=center();
+      const map=new maplibregl.Map({container:el,style:'https://tiles.openfreemap.org/styles/liberty',center:c,zoom:15,attributionControl:false,antialias:true});
+      window.__CHOCO_MAPLIBRE__=map;window.map=map;
+      map.addControl(new maplibregl.NavigationControl({showCompass:true}), 'top-right');
+      map.addControl(new maplibregl.AttributionControl({customAttribution:'© OpenStreetMap contributors © OpenMapTiles'}),'bottom-right');
+      map.on('load',function(){mapReady=true;map.resize();placeSaved();});
+      map.on('click',function(e){if(typeof window.setDeliveryLocation==='function')window.setDeliveryLocation(e.lngLat.lat,e.lngLat.lng)});
+    }catch(e){console.warn('[CHOCO GPS PAGE] Map init failed',e)}
+  }
+  function placeSaved(){
+    const g=window.currentGPS;if(!valid(g?.lat,g?.lng))return;
+    const map=window.__CHOCO_MAPLIBRE__;if(!map||!window.maplibregl)return;
+    try{
+      if(window.__CHOCO_GPS_PAGE_MARKER__)window.__CHOCO_GPS_PAGE_MARKER__.remove();
+      window.__CHOCO_GPS_PAGE_MARKER__=new maplibregl.Marker({color:'#ff6b00'}).setLngLat([g.lng,g.lat]).addTo(map);
+      map.flyTo({center:[g.lng,g.lat],zoom:16});
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    initMap();
+    const b=document.getElementById('gpsButton');
+    if(b)b.addEventListener('click',function(){if(typeof window.getGPS==='function')window.getGPS()});
+    setTimeout(function(){placeSaved()},800);
+    setTimeout(function(){initMap();placeSaved()},1800);
+  });
+})();
+</script>
+</body>
+</html>
