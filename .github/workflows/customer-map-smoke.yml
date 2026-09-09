@@ -25,7 +25,7 @@ jobs:
           const { PNG } = require('pngjs');
           const acorn = require('acorn');
           (async()=>{
-            const url='https://nf7rb74ybk-code.github.io/Choco-foods/customer.html?mapSmoke=1&v=20260909-1';
+            const url='https://nf7rb74ybk-code.github.io/Choco-foods/customer.html?mapSmoke=1&v=20260909-2';
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
             const errors=[];
@@ -63,7 +63,7 @@ jobs:
               const leafletTiles=!!(el&&el.querySelector('.leaflet-tile'));
               return {width:el?.clientWidth||0,height:el?.clientHeight||0,canvasWidth:c?.width||0,canvasHeight:c?.height||0,maplibre:!!ml,styleLoaded:!!(ml&&ml.isStyleLoaded&&ml.isStyleLoaded()),tilesLoaded:!!(ml&&ml.areTilesLoaded&&ml.areTilesLoaded()),leaflet:!!lf,leafletTiles};
             });
-            if(!document.getElementById('map'))throw new Error('Customer map container #map is missing after deployed page load: '+JSON.stringify({url:page.url(),diagnostics}));
+            if(!diagnostics.hasMap)throw new Error('Customer map container #map is missing after deployed page load: '+JSON.stringify({url:page.url(),diagnostics}));
             const shot=await page.locator('#map').screenshot({type:'png'});
             require('fs').writeFileSync('/tmp/map.png',shot);
             const png=PNG.sync.read(shot);
