@@ -5,7 +5,7 @@
   var SUPABASE_KEY='sb_publishable_AfTScx4Qcwmk3dk8pCo9Fg_kZgglof9';
   var token=String(localStorage.getItem('choco_access_token')||'').trim();
   var path=String(location.pathname||'').toLowerCase();
-  var expected=path.indexOf('shipper.html')>=0?'shipper':path.indexOf('customer.html')>=0?'customer':null;
+  var expected=path.indexOf('shipper.html')>=0?'shipper':path.indexOf('customer.html')>=0||path.indexOf('restaurant.html')>=0?'customer':null;
   if(!expected)return;
   document.documentElement.style.visibility='hidden';
   function clear(){['choco_access_token','choco_user_id','choco_role','choco_email'].forEach(function(k){localStorage.removeItem(k)});try{sessionStorage.clear()}catch(e){}}
