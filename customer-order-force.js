@@ -6,7 +6,7 @@
   const CHECKOUT='customer-checkout.js?v=20260907-9';
   const TRACKING='customer-tracking-timeline.js?v=20260906-12';
   const CHAT='customer-shipper-chat.js?v=20260909-3';
-  const RATING='customer-shipper-rating.js?v=20260909-1';
+  const RATING='customer-shipper-rating.js?v=20260909-2';
   let loadingCheckout=false,loadingTracking=false,loadingChat=false,loadingRating=false;
   function loadScript(src,ready,flag,onDone){if(ready())return true;if(flag())return false;onDone(true);const s=document.createElement('script');s.src=src;s.async=false;s.onload=function(){onDone(false)};s.onerror=function(){onDone(false);console.error('[CHOCO] script load failed',src)};(document.head||document.documentElement).appendChild(s);return false}
   function loadCheckout(){return loadScript(CHECKOUT,()=>typeof window.createOrder==='function',()=>loadingCheckout,v=>loadingCheckout=v)}
