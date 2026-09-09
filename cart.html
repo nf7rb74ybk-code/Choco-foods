@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>CHOCO — Giỏ hàng & Đặt đơn</title>
 <link rel="stylesheet" href="./customer-pages.css?v=20260910-1">
+<script src="./customer-auth-guard.js?v=20260910-2"></script>
 <style>
 body{background:#f7f7f7}.cart-wrap{padding-bottom:90px}.cart-section{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .cart-section h2{font-size:17px;margin:0 0 12px}.cart-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #eee}.cart-item:last-child{border-bottom:0}.qty{display:flex;align-items:center;gap:7px}.qty button{border:0;background:#fff0e8;color:#f05a00;border-radius:9px;min-width:34px;height:34px;font-size:18px;font-weight:800}.empty{padding:25px 10px;text-align:center;color:#777}.field{margin-bottom:11px}.field label{display:block;font-weight:700;font-size:13px;margin-bottom:5px}.field input,.field textarea,.field select{width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:10px;padding:11px;font:inherit;background:#fff}.field textarea{min-height:72px;resize:vertical}.gps-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:11px}.gps-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.gps-actions button,.gps-actions a{border:0;border-radius:10px;padding:10px 12px;font-weight:800;text-decoration:none;font-size:13px}.gps-main{background:#ff6b00;color:#fff}.gps-map{background:#fff;color:#c2410c;border:1px solid #fed7aa!important}.summary-row{display:flex;justify-content:space-between;padding:7px 0}.summary-row.total{border-top:1px solid #eee;margin-top:5px;padding-top:12px;font-size:18px;font-weight:900}.order-btn{width:100%;border:0;border-radius:12px;background:#ff6b00;color:#fff;padding:14px;font-size:16px;font-weight:900;margin-top:10px}.order-btn:disabled{opacity:.6}.hint{font-size:12px;color:#777;margin-top:5px;line-height:1.4}.success-box{display:none;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:12px;padding:12px;margin-bottom:12px}.count-pill{background:#fff0e8;color:#f05a00;border-radius:20px;padding:4px 9px;font-size:12px;font-weight:800}
@@ -15,67 +16,13 @@ body{background:#f7f7f7}.cart-wrap{padding-bottom:90px}.cart-section{background:
 <header class="choco-header">🛒 Giỏ hàng <span id="count" class="count-pill">0</span></header>
 <section class="choco-content">
   <div id="successBox" class="success-box"></div>
-
-  <section class="cart-section">
-    <h2>🛒 Món đã chọn</h2>
-    <div id="cartItems"><div class="empty">Đang tải giỏ hàng...</div></div>
-    <div style="margin-top:10px"><a href="food.html" style="color:#ff5a00;font-weight:800;text-decoration:none">＋ Thêm món ăn</a></div>
-  </section>
-
-  <section class="cart-section">
-    <h2>📍 Thông tin giao hàng</h2>
-    <div class="field"><label for="name">Họ tên</label><input id="name" autocomplete="name" placeholder="Nhập họ tên"></div>
-    <div class="field"><label for="phone">Số điện thoại</label><input id="phone" type="tel" autocomplete="tel" placeholder="Nhập số điện thoại"></div>
-    <div class="field"><label for="address">Địa chỉ giao hàng</label><textarea id="address" autocomplete="street-address" placeholder="Nhập địa chỉ giao hàng"></textarea></div>
-    <div class="gps-box">
-      <b>📍 Vị trí giao hàng</b>
-      <div id="cartGpsText" style="margin-top:5px;color:#666">Chưa chọn GPS</div>
-      <div class="gps-actions">
-        <button id="cartGpsButton" type="button" class="gps-main">📍 LẤY / CẬP NHẬT GPS GIAO HÀNG</button>
-        <a href="gps.html" class="gps-map">🗺️ Chọn trên bản đồ</a>
-      </div>
-      <div class="hint">GPS được dùng để tính khoảng cách từ quán đến địa chỉ giao hàng và tính phí ship tự động.</div>
-      <div id="selectedGPS" style="font-size:12px;color:#777;margin-top:6px">Chưa chọn</div>
-    </div>
-  </section>
-
-  <section class="cart-section">
-    <h2>📝 Ghi chú & thanh toán</h2>
-    <div class="field"><label for="note">Ghi chú</label><textarea id="note" placeholder="Ví dụ: ít cay, gọi trước khi giao..."></textarea></div>
-    <div class="field"><label for="payment">Phương thức thanh toán</label><select id="payment"><option value="cash">💵 Tiền mặt</option><option value="bank">🏦 Chuyển khoản</option></select></div>
-  </section>
-
-  <section class="cart-section">
-    <h2>💰 Tổng đơn</h2>
-    <div class="summary-row"><span>Tiền món</span><b id="foodTotal">0đ</b></div>
-    <div class="summary-row"><span>Khoảng cách</span><b id="shippingDistance">Chưa chọn vị trí</b></div>
-    <div class="summary-row"><span>Phí giao hàng</span><b id="shippingFee">20.000đ</b></div>
-    <div class="summary-row"><span>Phí ship</span><b id="shippingTotal">20.000đ</b></div>
-    <div class="summary-row total"><span>Tổng cộng</span><b id="total">20.000đ</b></div>
-    <button id="orderButton" class="order-btn" type="button">🚀 ĐẶT ĐƠN</button>
-    <div class="hint">Phí giao hàng được tính theo khoảng cách GPS từ nhà hàng đến vị trí giao hàng.</div>
-  </section>
+  <section class="cart-section"><h2>🛒 Món đã chọn</h2><div id="cartItems"><div class="empty">Đang tải giỏ hàng...</div></div><div style="margin-top:10px"><a href="food.html" style="color:#ff5a00;font-weight:800;text-decoration:none">＋ Thêm món ăn</a></div></section>
+  <section class="cart-section"><h2>📍 Thông tin giao hàng</h2><div class="field"><label for="name">Họ tên</label><input id="name" autocomplete="name" placeholder="Nhập họ tên"></div><div class="field"><label for="phone">Số điện thoại</label><input id="phone" type="tel" autocomplete="tel" placeholder="Nhập số điện thoại"></div><div class="field"><label for="address">Địa chỉ giao hàng</label><textarea id="address" autocomplete="street-address" placeholder="Nhập địa chỉ giao hàng"></textarea></div><div class="gps-box"><b>📍 Vị trí giao hàng</b><div id="cartGpsText" style="margin-top:5px;color:#666">Chưa chọn GPS</div><div class="gps-actions"><button id="cartGpsButton" type="button" class="gps-main">📍 LẤY / CẬP NHẬT GPS GIAO HÀNG</button><a href="gps.html" class="gps-map">🗺️ Chọn trên bản đồ</a></div><div class="hint">GPS được dùng để tính khoảng cách từ quán đến địa chỉ giao hàng và tính phí ship tự động.</div><div id="selectedGPS" style="font-size:12px;color:#777;margin-top:6px">Chưa chọn</div></div></section>
+  <section class="cart-section"><h2>📝 Ghi chú & thanh toán</h2><div class="field"><label for="note">Ghi chú</label><textarea id="note" placeholder="Ví dụ: ít cay, gọi trước khi giao..."></textarea></div><div class="field"><label for="payment">Phương thức thanh toán</label><select id="payment"><option value="cash">💵 Tiền mặt</option><option value="bank">🏦 Chuyển khoản</option></select></div></section>
+  <section class="cart-section"><h2>💰 Tổng đơn</h2><div class="summary-row"><span>Tiền món</span><b id="foodTotal">0đ</b></div><div class="summary-row"><span>Khoảng cách</span><b id="shippingDistance">Chưa chọn vị trí</b></div><div class="summary-row"><span>Phí giao hàng</span><b id="shippingFee">20.000đ</b></div><div class="summary-row"><span>Phí ship</span><b id="shippingTotal">20.000đ</b></div><div class="summary-row total"><span>Tổng cộng</span><b id="total">20.000đ</b></div><button id="orderButton" class="order-btn" type="button">🚀 ĐẶT ĐƠN</button><div class="hint">Phí giao hàng được tính theo khoảng cách GPS từ nhà hàng đến vị trí giao hàng.</div></section>
 </section>
-
-<nav class="customer-bottom-nav">
-<a href="home.html"><span class="nav-icon">🏠</span>Trang chủ</a>
-<a class="active" href="cart.html"><span class="nav-icon">🛒</span>Giỏ hàng</a>
-<a href="orders.html"><span class="nav-icon">📦</span>Đơn hàng</a>
-<a href="gps.html"><span class="nav-icon">📍</span>GPS</a>
-<a href="account.html"><span class="nav-icon">👤</span>Tài khoản</a>
-</nav>
+<nav class="customer-bottom-nav"><a href="home.html"><span class="nav-icon">🏠</span>Trang chủ</a><a class="active" href="cart.html"><span class="nav-icon">🛒</span>Giỏ hàng</a><a href="orders.html"><span class="nav-icon">📦</span>Đơn hàng</a><a href="gps.html"><span class="nav-icon">📍</span>GPS</a><a href="account.html"><span class="nav-icon">👤</span>Tài khoản</a></nav>
 </main>
-
-<script>
-(function(){try{const g=JSON.parse(localStorage.getItem('choco_customer_gps_v1')||'null');const lat=Number(g?.lat),lng=Number(g?.lng);if(Number.isFinite(lat)&&Number.isFinite(lng)&&!(lat===0&&lng===0))window.currentGPS={lat,lng,source:g.source||'GPS gần nhất'}}catch{}})();
-</script>
-<script src="./account-status-guard.js?v=20260909-1"></script>
-<script src="./customer-add-fix.js?v=20260910-1"></script>
-<script src="./customer-fix.js?v=20260906-21"></script>
-<script src="./customer-order-identity.js?v=20260906-12"></script>
-<script src="./customer-cart-sync.js?v=20260906-12"></script>
-<script src="./customer-delivery-profile.js?v=20260906-12"></script>
-<script src="./customer-checkout.js?v=20260907-9"></script>
-<script src="./customer-gps-fix.js?v=20260909-5"></script>
-</body>
-</html>
+<script>(function(){try{const g=JSON.parse(localStorage.getItem('choco_customer_gps_v1')||'null');const lat=Number(g?.lat),lng=Number(g?.lng);if(Number.isFinite(lat)&&Number.isFinite(lng)&&!(lat===0&&lng===0))window.currentGPS={lat,lng,source:g.source||'GPS gần nhất'}}catch{}})();</script>
+<script src="./account-status-guard.js?v=20260909-1"></script><script src="./customer-add-fix.js?v=20260910-1"></script><script src="./customer-fix.js?v=20260906-21"></script><script src="./customer-order-identity.js?v=20260906-12"></script><script src="./customer-cart-sync.js?v=20260906-12"></script><script src="./customer-delivery-profile.js?v=20260906-12"></script><script src="./customer-checkout.js?v=20260907-9"></script><script src="./customer-gps-fix.js?v=20260909-5"></script>
+</body></html>
