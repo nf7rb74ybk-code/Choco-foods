@@ -42,7 +42,7 @@ body{background:#f7f7f7}.cart-wrap{padding-bottom:90px}.cart-section{background:
   <section class="cart-section">
     <h2>📝 Ghi chú & thanh toán</h2>
     <div class="field"><label for="note">Ghi chú</label><textarea id="note" placeholder="Ví dụ: ít cay, gọi trước khi giao..."></textarea></div>
-    <div class="field"><label for="payment">Phương thức thanh toán</label><select id="payment"><option value="cash">💵 Tiền mặt</option><option value="transfer">🏦 Chuyển khoản</option></select></div>
+    <div class="field"><label for="payment">Phương thức thanh toán</label><select id="payment"><option value="cash">💵 Tiền mặt</option><option value="bank">🏦 Chuyển khoản</option></select></div>
   </section>
 
   <section class="cart-section">
@@ -67,7 +67,6 @@ body{background:#f7f7f7}.cart-wrap{padding-bottom:90px}.cart-section{background:
 </main>
 
 <script>
-// Restore the last valid GPS before the existing CHOCO modules boot.
 (function(){try{const g=JSON.parse(localStorage.getItem('choco_customer_gps_v1')||'null');const lat=Number(g?.lat),lng=Number(g?.lng);if(Number.isFinite(lat)&&Number.isFinite(lng)&&!(lat===0&&lng===0))window.currentGPS={lat,lng,source:g.source||'GPS gần nhất'}}catch{}})();
 </script>
 <script src="./account-status-guard.js?v=20260909-1"></script>
