@@ -12,102 +12,18 @@
   function readCart(){try{const c=JSON.parse(localStorage.getItem(CART_KEY)||'[]');return Array.isArray(c)?c:[]}catch{return[]}}
   function jwt(t){try{const p=String(t||'').split('.')[1];if(!p)return null;return JSON.parse(atob(p.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-p.length%4)%4)))}catch{return null}}
   function standardSession(){try{let s=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');if(s?.session)s=s.session;return s&&s.access_token?s:null}catch{return null}}
-  function saveSession(j){
-    if(j?.access_token)localStorage.setItem('choco_access_token',j.access_token);
-    if(j?.refresh_token)localStorage.setItem('choco_refresh_token',j.refresh_token);
-    const id=String(j?.user?.id||jwt(j?.access_token)?.sub||'');
-    if(id)localStorage.setItem('choco_user_id',id);
-    if(j?.user?.email)localStorage.setItem('choco_email',j.user.email);
-    try{localStorage.setItem(AUTH_KEY,JSON.stringify(j))}catch{}
-  }
-  async function token(){
-    const now=Math.floor(Date.now()/1000);
-    const s=standardSession();
-    let t=localStorage.getItem('choco_access_token')||s?.access_token||'';
-    let rt=localStorage.getItem('choco_refresh_token')||s?.refresh_token||'';
-    const p=jwt(t);
-    if(t&&p?.exp&&p.exp>now+60){
-      if(!localStorage.getItem('choco_access_token'))localStorage.setItem('choco_access_token',t);
-      return t;
-    }
-    if(!rt){
-      try{localStorage.removeItem('choco_access_token')}catch{}
-      throw Error('SESSION_EXPIRED_LOGIN_REQUIRED');
-    }
-    const r=await fetch(U+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'Content-Type':'application/json',apikey:K},body:JSON.stringify({refresh_token:rt})});
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok||!j.access_token){
-      try{localStorage.removeItem('choco_access_token');localStorage.removeItem('choco_refresh_token')}catch{}
-      throw Error('SESSION_EXPIRED_LOGIN_REQUIRED');
-    }
-    saveSession(j);
-    return j.access_token;
-  }
+  function saveSession(j){if(j?.access_token)localStorage.setItem('choco_access_token',j.access_token);if(j?.refresh_token)localStorage.setItem('choco_refresh_token',j.refresh_token);const id=String(j?.user?.id||jwt(j?.access_token)?.sub||'');if(id)localStorage.setItem('choco_user_id',id);if(j?.user?.email)localStorage.setItem('choco_email',j.user.email);try{localStorage.setItem(AUTH_KEY,JSON.stringify(j))}catch{}}
+  async function token(){const now=Math.floor(Date.now()/1000),s=standardSession();let t=localStorage.getItem('choco_access_token')||s?.access_token||'',rt=localStorage.getItem('choco_refresh_token')||s?.refresh_token||'';const p=jwt(t);if(t&&p?.exp&&p.exp>now+60){if(!localStorage.getItem('choco_access_token'))localStorage.setItem('choco_access_token',t);return t}if(!rt){try{localStorage.removeItem('choco_access_token')}catch{}throw Error('SESSION_EXPIRED_LOGIN_REQUIRED')}const r=await fetch(U+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'Content-Type':'application/json',apikey:K},body:JSON.stringify({refresh_token:rt})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.access_token){try{localStorage.removeItem('choco_access_token');localStorage.removeItem('choco_refresh_token')}catch{}throw Error('SESSION_EXPIRED_LOGIN_REQUIRED')}saveSession(j);return j.access_token}
   function gps(){const valid=(a,b)=>{const lat=Number(a),lng=Number(b);return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180&&!(lat===0&&lng===0)};const g=window.currentGPS;if(valid(g?.lat,g?.lng))return{lat:Number(g.lat),lng:Number(g.lng)};const s=String(document.getElementById('selectedGPS')?.textContent||'');const m=s.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);return m&&valid(m[1],m[2])?{lat:Number(m[1]),lng:Number(m[2])}:null}
   function haversine(a,b,c,d){const R=6371,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,z=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))}
   function feeForKm(k){return k<=3?20000:k<=5?25000:k<=7?30000:k<=10?40000:k<=15?50000:60000}
   function cartRestaurantId(){const c=readCart();return Number(c[0]?.restaurantId??c[0]?.restaurant_id)||0}
-  async function getRestaurantLocation(id){
-    id=Number(id||0);if(!id)return null;
-    if(restaurantLocationCache[id])return restaurantLocationCache[id];
-    const r=await fetch(U+'/rest/v1/restaurants?select=id,latitude,longitude&id=eq.'+encodeURIComponent(id)+'&limit=1',{headers:{apikey:K,Authorization:'Bearer '+(localStorage.getItem('choco_access_token')||K),Accept:'application/json'}});
-    const rows=await r.json().catch(()=>[]);const x=Array.isArray(rows)?rows[0]:null;
-    const lat=Number(x?.latitude),lng=Number(x?.longitude);
-    if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;
-    return restaurantLocationCache[id]={lat,lng};
-  }
-  async function refreshShippingFromRestaurant(){
-    const g=gps();const rid=cartRestaurantId();
-    if(!g||!rid)return;
-    try{
-      const loc=await getRestaurantLocation(rid);if(!loc)return;
-      const k=haversine(loc.lat,loc.lng,g.lat,g.lng),fee=feeForKm(k);
-      const f=typeof window.getFoodTotal==='function'?Number(window.getFoodTotal()||0):readCart().reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||1),0);
-      const money=n=>Number(n||0).toLocaleString('vi-VN')+'đ';
-      const a=document.getElementById('foodTotal'),b=document.getElementById('shippingFee'),c=document.getElementById('shippingTotal'),d=document.getElementById('total'),e=document.getElementById('shippingDistance');
-      if(a)a.innerText=money(f);if(b)b.innerText=money(fee);if(c)c.innerText=money(fee);if(d)d.innerText=money(f+fee);if(e)e.innerText=k.toFixed(1)+' km';
-      const s=document.getElementById('selectedGPS');if(s&&g)s.innerText=g.lat.toFixed(6)+', '+g.lng.toFixed(6);
-    }catch(err){console.warn('[CHOCO SHIPPING v9]',err)}
-  }
-  function installRestaurantShipping(){
-    window.shipFee=function(){
-      const c=readCart(),g=gps();if(!g||!c.length)return 20000;
-      const rid=Number(c[0]?.restaurantId??c[0]?.restaurant_id)||0,loc=restaurantLocationCache[rid];
-      return loc?feeForKm(haversine(loc.lat,loc.lng,g.lat,g.lng)):20000;
-    };
-    window.updateShippingDisplay=function(){
-      refreshShippingFromRestaurant();
-    };
-    refreshShippingFromRestaurant();
-  }
-  function liveFood(restaurantId,item){const rows=Array.isArray(window.__CHOCO_LIVE_MENU__)?window.__CHOCO_LIVE_MENU__:[];const r=rows.find(x=>String(x.id)===String(restaurantId));if(!r)return null;const id=Number(item?.foodId??item?.food_id);if(Number.isInteger(id)&&id>0){const f=r.foods?.find(x=>Number(x.id)===id);if(f)return f}const name=String(item?.name??item?.foodName??item?.food_name??'').trim().toLowerCase();if(name)return(r.foods||[]).find(x=>String(x.name||'').trim().toLowerCase()===name)||null;return null}
-  async function checkout(e){
-    if(e?.preventDefault)e.preventDefault();
-    const c=readCart();if(!c.length){alert('🛒 Giỏ hàng đang trống.');return}
-    const name=String(document.getElementById('name')?.value||'').trim(),phone=String(document.getElementById('phone')?.value||'').trim(),address=String(document.getElementById('address')?.value||'').trim(),note=String(document.getElementById('note')?.value||'').trim(),payment=String(document.getElementById('payment')?.value||'cash').trim()||'cash';
-    if(!name||!phone||!address){alert('⚠️ Vui lòng nhập họ tên, số điện thoại và địa chỉ.');return}
-    const g=gps();if(!g){alert('📍 GPS chưa hợp lệ. Vui lòng bật GPS/chọn lại vị trí giao hàng.');return}
-    const restaurantId=Number(c[0]?.restaurantId??c[0]?.restaurant_id);if(!Number.isInteger(restaurantId)||restaurantId<=0){alert('❌ Không xác định được quán.');return}
-    if(c.some(x=>Number(x?.restaurantId??x?.restaurant_id)!==restaurantId)){alert('⚠️ Mỗi đơn chỉ được đặt món từ một quán.');return}
-    const items=c.map(x=>{const f=liveFood(restaurantId,x);return{foodId:f?Number(f.id):Number(x?.foodId??x?.food_id),name:f?.name||String(x?.name||''),qty:Number(x?.qty??x?.quantity??1)}});
-    if(items.some(x=>!Number.isInteger(x.foodId)||x.foodId<=0||!Number.isInteger(x.qty)||x.qty<1||x.qty>99)){alert('❌ Món trong giỏ không còn hợp lệ. Vui lòng xóa món lỗi và thêm lại từ menu.');return}
-    try{localStorage.setItem(CART_KEY,JSON.stringify(c.map((x,i)=>({...x,foodId:items[i].foodId,name:items[i].name,qty:items[i].qty}))))}catch{}
-    const btn=document.getElementById('orderButton');if(btn){btn.disabled=true;btn.textContent='⏳ ĐANG GỬI ĐƠN...'}
-    try{
-      let t=await token();
-      const body={p_restaurant_id:restaurantId,p_items:items.map(x=>({foodId:x.foodId,qty:x.qty,name:x.name})),p_name:name,p_phone:phone,p_address:address,p_note:note,p_payment:payment,p_latitude:g.lat,p_longitude:g.lng};
-      let r=await fetch(U+'/rest/v1/rpc/create_customer_order',{method:'POST',headers:{apikey:K,Authorization:'Bearer '+t,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(body)});
-      let data=await r.json().catch(()=>null);
-      if(r.status===401||r.status===403){t=await token();r=await fetch(U+'/rest/v1/rpc/create_customer_order',{method:'POST',headers:{apikey:K,Authorization:'Bearer '+t,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(body)});data=await r.json().catch(()=>null)}
-      if(!r.ok)throw Error(String(data?.message||data?.hint||data?.details||data?.code||('HTTP '+r.status)));
-      const order=Array.isArray(data)?data[0]:data;if(!order?.code)throw Error('Server không trả về mã đơn');
-      localStorage.setItem('choco_ship_last_order',JSON.stringify({code:order.code,order_id:order.id,status:order.status,created_at:order.created_at||new Date().toISOString()}));localStorage.removeItem(CART_KEY);window.cart=[];
-      if(typeof window.renderCart==='function')try{window.renderCart()}catch{};if(typeof window.updateCart==='function')try{window.updateCart([])}catch{}
-      alert('✅ ĐẶT ĐƠN THÀNH CÔNG!\nMã đơn: '+order.code+'\nTổng tiền: '+Number(order.total||0).toLocaleString('vi-VN')+'đ');if(typeof window.closeCart==='function')window.closeCart();
-    }catch(err){console.error('[CHOCO CHECKOUT v9]',err);const m=err?.message==='SESSION_EXPIRED_LOGIN_REQUIRED'?'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đặt đơn.':(err?.message||String(err));alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+m)}
-    finally{if(btn){btn.disabled=false;btn.textContent='🚀 ĐẶT ĐƠN'}}
-  }
+  async function getRestaurantLocation(id){id=Number(id||0);if(!id)return null;if(restaurantLocationCache[id])return restaurantLocationCache[id];const r=await fetch(U+'/rest/v1/restaurants?select=id,latitude,longitude&id=eq.'+encodeURIComponent(id)+'&limit=1',{headers:{apikey:K,Authorization:'Bearer '+(localStorage.getItem('choco_access_token')||K),Accept:'application/json'}});const rows=await r.json().catch(()=>[]),x=Array.isArray(rows)?rows[0]:null,lat=Number(x?.latitude),lng=Number(x?.longitude);if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;return restaurantLocationCache[id]={lat,lng}}
+  async function refreshShippingFromRestaurant(){const g=gps(),rid=cartRestaurantId();if(!g||!rid)return;try{const loc=await getRestaurantLocation(rid);if(!loc)return;const k=haversine(loc.lat,loc.lng,g.lat,g.lng),fee=feeForKm(k),f=typeof window.getFoodTotal==='function'?Number(window.getFoodTotal()||0):readCart().reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||1),0),money=n=>Number(n||0).toLocaleString('vi-VN')+'đ';const a=document.getElementById('foodTotal'),b=document.getElementById('shippingFee'),c=document.getElementById('shippingTotal'),d=document.getElementById('total'),e=document.getElementById('shippingDistance');if(a)a.innerText=money(f);if(b)b.innerText=money(fee);if(c)c.innerText=money(fee);if(d)d.innerText=money(f+fee);if(e)e.innerText=k.toFixed(1)+' km';const s=document.getElementById('selectedGPS');if(s&&g)s.innerText=g.lat.toFixed(6)+', '+g.lng.toFixed(6)}catch(err){console.warn('[CHOCO SHIPPING v9]',err)}}
+  function installRestaurantShipping(){window.shipFee=function(){const c=readCart(),g=gps();if(!g||!c.length)return 20000;const rid=Number(c[0]?.restaurantId??c[0]?.restaurant_id)||0,loc=restaurantLocationCache[rid];return loc?feeForKm(haversine(loc.lat,loc.lng,g.lat,g.lng)):20000};window.updateShippingDisplay=function(){refreshShippingFromRestaurant()};refreshShippingFromRestaurant()}
+  function liveFood(restaurantId,item){const rows=Array.isArray(window.__CHOCO_LIVE_MENU__)?window.__CHOCO_LIVE_MENU__:[],r=rows.find(x=>String(x.id)===String(restaurantId));if(!r)return null;const id=Number(item?.foodId??item?.food_id);if(Number.isInteger(id)&&id>0){const f=r.foods?.find(x=>Number(x.id)===id);if(f)return f}const name=String(item?.name??item?.foodName??item?.food_name??'').trim().toLowerCase();if(name)return(r.foods||[]).find(x=>String(x.name||'').trim().toLowerCase()===name)||null;return null}
+  async function checkout(e){if(e?.preventDefault)e.preventDefault();const c=readCart();if(!c.length){alert('🛒 Giỏ hàng đang trống.');return}const name=String(document.getElementById('name')?.value||'').trim(),phone=String(document.getElementById('phone')?.value||'').trim(),address=String(document.getElementById('address')?.value||'').trim(),note=String(document.getElementById('note')?.value||'').trim(),payment=String(document.getElementById('payment')?.value||'cash').trim()||'cash';if(!name||!phone||!address){alert('⚠️ Vui lòng nhập họ tên, số điện thoại và địa chỉ.');return}const g=gps();if(!g){alert('📍 GPS chưa hợp lệ. Vui lòng bật GPS/chọn lại vị trí giao hàng.');return}const restaurantId=Number(c[0]?.restaurantId??c[0]?.restaurant_id);if(!Number.isInteger(restaurantId)||restaurantId<=0){alert('❌ Không xác định được quán.');return}if(c.some(x=>Number(x?.restaurantId??x?.restaurant_id)!==restaurantId)){alert('⚠️ Mỗi đơn chỉ được đặt món từ một quán.');return}const items=c.map(x=>{const f=liveFood(restaurantId,x);return{foodId:f?Number(f.id):Number(x?.foodId??x?.food_id),name:f?.name||String(x?.name||''),qty:Number(x?.qty??x?.quantity??1)}});if(items.some(x=>!Number.isInteger(x.foodId)||x.foodId<=0||!Number.isInteger(x.qty)||x.qty<1||x.qty>99)){alert('❌ Món trong giỏ không còn hợp lệ. Vui lòng xóa món lỗi và thêm lại từ menu.');return}try{localStorage.setItem(CART_KEY,JSON.stringify(c.map((x,i)=>({...x,foodId:items[i].foodId,name:items[i].name,qty:items[i].qty}))))}catch{}const btn=document.getElementById('orderButton');if(btn){btn.disabled=true;btn.textContent='⏳ ĐANG GỬI ĐƠN...'}try{let t=await token();const body={p_restaurant_id:restaurantId,p_items:items.map(x=>({foodId:x.foodId,qty:x.qty,name:x.name})),p_name:name,p_phone:phone,p_address:address,p_note:note,p_payment:payment,p_latitude:g.lat,p_longitude:g.lng};let r=await fetch(U+'/rest/v1/rpc/create_customer_order',{method:'POST',headers:{apikey:K,Authorization:'Bearer '+t,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(body)});let data=await r.json().catch(()=>null);if(r.status===401||r.status===403){t=await token();r=await fetch(U+'/rest/v1/rpc/create_customer_order',{method:'POST',headers:{apikey:K,Authorization:'Bearer '+t,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(body)});data=await r.json().catch(()=>null)}if(!r.ok)throw Error(String(data?.message||data?.hint||data?.details||data?.code||('HTTP '+r.status)));const order=Array.isArray(data)?data[0]:data;if(!order?.code)throw Error('Server không trả về mã đơn');localStorage.setItem('choco_ship_last_order',JSON.stringify({code:order.code,order_id:order.id,status:order.status,created_at:order.created_at||new Date().toISOString()}));localStorage.removeItem(CART_KEY);window.cart=[];if(typeof window.renderCart==='function')try{window.renderCart()}catch{}if(typeof window.updateCart==='function')try{window.updateCart([])}catch{}alert('✅ ĐẶT ĐƠN THÀNH CÔNG!\nMã đơn: '+order.code+'\nTổng tiền: '+Number(order.total||0).toLocaleString('vi-VN')+'đ');if(typeof window.closeCart==='function')window.closeCart()}catch(err){console.error('[CHOCO CHECKOUT v9]',err);const m=err?.message==='SESSION_EXPIRED_LOGIN_REQUIRED'?'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đặt đơn.':(err?.message||String(err));alert('❌ KHÔNG GỬI ĐƯỢC ĐƠN.\n\n'+m)}finally{if(btn){btn.disabled=false;btn.textContent='🚀 ĐẶT ĐƠN'}}}
   window.createOrder=checkout;
-  function bind(){const b=document.getElementById('orderButton');if(!b)return;b.onclick=checkout;b.removeAttribute('onclick');installRestaurantShipping()}
+  function bind(){const b=document.getElementById('orderButton');if(!b)return;b.onclick=checkout;b.removeAttribute('onclick');installRestaurantShipping();const s=document.createElement('script');s.src='./customer-shipper-chat.js';s.async=true;document.head.appendChild(s)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
