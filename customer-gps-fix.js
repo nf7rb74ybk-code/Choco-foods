@@ -1,7 +1,6 @@
-/* CHOCO SHIP — CUSTOMER GPS / SHIPPING FIX v12
+/* CHOCO SHIP — CUSTOMER GPS / SHIPPING FIX v13
  * Shipping is location-based. Never use a fixed Phu Quoc origin.
- * This shim runs after customer-checkout.js and keeps the legacy inline
- * customer.html pricing from overriding the real restaurant-based price.
+ * Calculates restaurant -> customer distance whenever GPS/cart data becomes available.
  */
 'use strict';
 (function(){
@@ -18,10 +17,7 @@
     return m&&valid(m[1],m[2])?{lat:Number(m[1]),lng:Number(m[2])}:null;
   }
   function cart(){
-    try{
-      const a=JSON.parse(localStorage.getItem('choco_customer_cart_v1')||'[]');
-      if(Array.isArray(a)&&a.length)return a;
-    }catch{}
+    try{const a=JSON.parse(localStorage.getItem('choco_customer_cart_v1')||'[]');if(Array.isArray(a)&&a.length)return a}catch{}
     return Array.isArray(window.cart)?window.cart:[];
   }
   function restaurantId(){const c=cart();return Number(c[0]?.restaurantId??c[0]?.restaurant_id)||0;}
@@ -48,17 +44,20 @@
   }
   async function refresh(){
     const g=gps(),rid=restaurantId();
-    if(!g||!rid)return;
-    const loc=await restaurantLocation(rid);if(!loc)return;
-    const km=hav(loc.lat,loc.lng,g.lat,g.lng),ship=fee(km),total=foodTotal()+ship;
+    if(!g||!rid)return false;
+    const loc=await restaurantLocation(rid);if(!loc)return false;
+    const food=foodTotal(),km=hav(loc.lat,loc.lng,g.lat,g.lng),ship=fee(km),total=food+ship;
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
-    set('foodTotal',money(foodTotal()));
+    set('foodTotal',money(food));
     set('shippingFee',money(ship));
     set('shippingTotal',money(ship));
     set('total',money(total));
     set('shippingDistance',km.toFixed(1)+' km');
     set('selectedGPS',g.lat.toFixed(6)+', '+g.lng.toFixed(6));
     const st=document.getElementById('cartGpsText');if(st)st.textContent='📍 GPS: '+g.lat.toFixed(6)+', '+g.lng.toFixed(6);
+    window.__CHOCO_SHIPPING_DISTANCE_KM__=Number(km.toFixed(3));
+    window.__CHOCO_SHIPPING_FEE__=ship;
+    return true;
   }
   window.shipFee=function(){
     const g=gps(),rid=restaurantId(),loc=CACHE[rid];
@@ -66,7 +65,9 @@
     return fee(hav(loc.lat,loc.lng,g.lat,g.lng));
   };
   window.updateShippingDisplay=function(){refresh();};
-  window.__CHOCO_CUSTOMER_GPS_FIX__={version:'12',mode:'restaurant_to_customer'};
-  setTimeout(refresh,150);
-  setTimeout(refresh,1000);
+  window.__CHOCO_CUSTOMER_GPS_FIX__={version:'13',mode:'restaurant_to_customer'};
+  let tries=0;
+  const timer=setInterval(async()=>{tries++;if(await refresh()||tries>=15)clearInterval(timer)},800);
+  setTimeout(refresh,100);
+  setTimeout(refresh,1500);
 })();
