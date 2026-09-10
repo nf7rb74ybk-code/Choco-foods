@@ -37,3 +37,6 @@ jobs:
 
       - name: Run Level 5 final stress test
         run: node --experimental-default-type=module auto/src/test/step-l5-stress-test.js
+
+      - name: Run Level 6 read-only observer test
+        run: node --experimental-default-type=module auto/src/test/step23-live-snapshot-test.js
