@@ -40,3 +40,6 @@ jobs:
 
       - name: Run Level 6 read-only observer test
         run: node --experimental-default-type=module auto/src/test/step23-live-snapshot-test.js
+
+      - name: Run Level 6 read-only runtime integration test
+        run: node --experimental-default-type=module auto/src/test/step-l6-live-observer-runtime-test.js
