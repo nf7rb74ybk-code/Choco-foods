@@ -1,4 +1,4 @@
-// CHOCO AUTO LEVEL 5 — Steps 8, 17-18: Full Agent Orchestrator
+// CHOCO AUTO LEVEL 5 — Adaptive Agent Pipeline
 // LAB/TEST ONLY. This pipeline never executes Production actions.
 import { createTask, buildPlan } from './task-planner.js';
 import { assertSafePlan } from './safety-gate.js';
@@ -6,6 +6,7 @@ import { createApprovalRequest, approvalAllowsSimulation, approvalSafetyCheck } 
 import { createTaskState, stateSafetyCheck } from './state-controller.js';
 import { buildObservationContext, observationContextSafetyCheck } from './observation-context-controller.js';
 import { buildReasoningDecision, decisionSafetyCheck } from './reasoning-decision-engine.js';
+import { rankDecisions, adaptivePrioritySafetyCheck } from './adaptive-priority-engine.js';
 import { simulateAction, executionSafetyCheck } from '../execution/lab-execution-simulator.js';
 
 export const AGENT_PIPELINE_MODE = 'LAB_AGENT_PIPELINE_ONLY';
@@ -18,20 +19,27 @@ export function runAgentPipeline({ type, target = null, context = {}, requestedB
   let effectiveType = type;
   let effectiveTarget = target;
   let effectiveContext = context;
+  let priorityDecision = null;
 
   if (observationContext) {
     observation = buildObservationContext(observationContext);
     if (!observationContextSafetyCheck(observation)) throw new Error('CHOCO AUTO PIPELINE: observation safety check failed');
     decision = buildReasoningDecision(observation);
     if (!decisionSafetyCheck(decision)) throw new Error('CHOCO AUTO PIPELINE: decision safety check failed');
-    effectiveType = decision.recommended_action;
-    effectiveTarget = decision.target;
-    effectiveContext = { ...context, observation, decision };
+    const ranked = rankDecisions([decision], observation);
+    if (!adaptivePrioritySafetyCheck(ranked)) throw new Error('CHOCO AUTO PIPELINE: adaptive priority safety check failed');
+    priorityDecision = ranked[0];
+    effectiveType = priorityDecision.recommended_action;
+    effectiveTarget = priorityDecision.target;
+    effectiveContext = { ...context, observation, decision: priorityDecision, priority_score: priorityDecision.priority_score };
   }
 
   if (!effectiveType) throw new Error('CHOCO AUTO PIPELINE: task type is required');
   const task = createTask({ type: effectiveType, target: effectiveTarget, context: effectiveContext, requestedBy });
-  const plan = buildPlan(task);
+  const taskWithPriority = priorityDecision
+    ? Object.freeze({ ...task, priority_score: priorityDecision.priority_score })
+    : task;
+  const plan = buildPlan(taskWithPriority);
   const safety = assertSafePlan(plan);
   const approval = createApprovalRequest(plan, requestedBy);
   if (!approvalSafetyCheck(approval)) throw new Error('CHOCO AUTO PIPELINE: approval safety check failed');
@@ -43,12 +51,12 @@ export function runAgentPipeline({ type, target = null, context = {}, requestedB
     : [];
 
   const simulations = simulationSteps.map((step) => {
-    const result = simulateAction({ action: step.action, target: task.target, payload: task.context });
+    const result = simulateAction({ action: step.action, target: taskWithPriority.target, payload: taskWithPriority.context });
     if (!executionSafetyCheck(result)) throw new Error(`CHOCO AUTO PIPELINE: execution safety check failed for ${step.action}`);
     return result;
   });
 
-  const state = createTaskState({ task, plan, approval, simulations, lifecycleStatus: waitingForTarget ? 'WAITING_FOR_TARGET' : undefined });
+  const state = createTaskState({ task: taskWithPriority, plan, approval, simulations, lifecycleStatus: waitingForTarget ? 'WAITING_FOR_TARGET' : undefined });
   if (!stateSafetyCheck(state)) throw new Error('CHOCO AUTO PIPELINE: state safety check failed');
 
   return Object.freeze({
@@ -57,7 +65,9 @@ export function runAgentPipeline({ type, target = null, context = {}, requestedB
     push_or_onesignal_enabled: false,
     observation,
     decision,
-    task,
+    priority_decision: priorityDecision,
+    priority_score: priorityDecision?.priority_score ?? null,
+    task: taskWithPriority,
     plan,
     safety,
     approval,
