@@ -42,7 +42,8 @@ for (;;) {
 }
 
 if (processed !== 3) throw new Error(`Expected 3 processed tasks, got ${processed}`);
-if (orchestrator.queue.size() !== 0) throw new Error('Queue was not drained');
+const queueStats = orchestrator.queue.stats();
+if (queueStats.queued !== 0 || queueStats.processing !== 0 || queueStats.done !== 3) throw new Error('Queue was not drained');
 if (orchestrator.audit().length !== 3) throw new Error('Audit count mismatch');
 
 console.log('CHOCO_AUTO_LEVEL_5_FINAL_STRESS_TEST: PASS');
