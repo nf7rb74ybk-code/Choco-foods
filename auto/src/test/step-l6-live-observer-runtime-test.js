@@ -14,8 +14,9 @@ const mockRows = {
     { id: 'shipper-1', role: 'shipper', is_online: true },
     { id: 'customer-1', role: 'customer', is_online: false },
   ],
+  // Neutral test coordinates only. Do not embed real operational/geographic coordinates in CI fixtures.
   shipper_gps_history: [
-    { id: 1, shipper_id: 'shipper-1', latitude: 10.289, longitude: 103.984 },
+    { id: 1, shipper_id: 'shipper-1', latitude: 0.123456, longitude: 0.654321 },
   ],
 };
 
