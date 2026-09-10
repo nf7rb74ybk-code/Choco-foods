@@ -5,11 +5,11 @@
 CHOCO AUTO is currently runnable in two safe modes:
 
 1. **LAB simulation** — plans, approvals, queueing and execution simulation with Production writes disabled.
-2. **Live read-only observer** — reads operational data through SELECT-only requests and produces a non-executable decision report.
+2. **Live read-only observer/controller** — reads operational data through SELECT-only requests, detects changes, routes them through the LAB orchestrator, and simulates the resulting task without touching Production.
 
 Production mutation, automatic order changes, Push/OneSignal and real execution remain fail-closed.
 
-## Run the real read-only observer
+## Run the real read-only observer once
 
 From the repository root with Node 22+:
 
@@ -29,6 +29,23 @@ The observer reads only these allow-listed tables:
 
 The REST adapter only sends HTTP `GET` requests.
 
+## Run the continuous LAB watch
+
+To keep observing live data continuously while still keeping every action in LAB simulation:
+
+```bash
+SUPABASE_URL='https://YOUR_PROJECT.supabase.co' \
+SUPABASE_ANON_KEY='YOUR_PUBLISHABLE_OR_ANON_KEY' \
+CHOCO_AUTO_INTERVAL_MS=60000 \
+node --experimental-default-type=module auto/src/cli/choco-auto-lab-watch.js
+```
+
+The watch performs this loop:
+
+`SELECT snapshot → normalize observation → detect change → create event → queue → safety gate → LAB simulation → audit`
+
+Press `Ctrl+C` to stop it. It never assigns a real shipper, changes an order, sends Push/OneSignal, or writes to Supabase.
+
 ## Automated LAB pipeline
 
 GitHub Actions validates:
@@ -41,6 +58,8 @@ GitHub Actions validates:
 - continuous observer loop
 - Level 6.2 change detection
 - Level 6.3 change → event → LAB task controller
+- Level 6.4 reliability/retry recovery
+- Level 6 event-routing E2E
 - SELECT-only REST adapter
 
 ## Safety contract
