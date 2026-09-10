@@ -60,3 +60,6 @@ jobs:
 
       - name: Run Level 6.3 live auto controller test
         run: node --experimental-default-type=module auto/src/test/step-l6-live-auto-controller-test.js
+
+      - name: Run Level 6 read-only REST client test
+        run: node --experimental-default-type=module auto/src/test/step-l6-readonly-rest-client-test.js
