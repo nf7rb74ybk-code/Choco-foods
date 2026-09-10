@@ -22,7 +22,8 @@ const events = [
   { type: 'ORDER_STUCK', target: null, context: { count: 3 }, dedupe_key: 'stress:1' },
   { type: 'ORDER_STUCK', target: null, context: { count: 3 }, dedupe_key: 'stress:1' },
   { type: 'ORDER_STUCK', target: null, context: { count: 2 }, dedupe_key: 'stress:2' },
-  { type: 'GENERATE_REPORT', target: null, context: {}, dedupe_key: 'stress:3' },
+  // event-trigger maps DAILY_REPORT -> GENERATE_REPORT; GENERATE_REPORT itself is a task type, not an event type.
+  { type: 'DAILY_REPORT', target: null, context: {}, dedupe_key: 'stress:3' },
 ];
 
 const accepted = events.map((event) => orchestrator.ingest(event));
