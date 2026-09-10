@@ -23,6 +23,7 @@ export function buildReasoningDecision(context) {
   const stuckCount = Number(context.orders?.potentially_stuck_over_30m ?? 0);
   const onlineShippers = Number(context.shippers?.online ?? 0);
   const totalOrders = Number(context.orders?.total ?? 0);
+  const eventType = context.event_type ?? context.event?.type ?? null;
 
   let action = 'GENERATE_REPORT';
   let risk = 'LOW';
@@ -30,7 +31,30 @@ export function buildReasoningDecision(context) {
   let reason = 'No urgent operational signal detected; prepare a safe operational report.';
   let requiresTargetSelection = false;
 
-  if (stuckCount > 0) {
+  // Event-aware routing takes precedence so the autonomous observer does not
+  // collapse every detected event into the generic report action.
+  if (eventType === 'NEW_ORDER') {
+    action = 'SEND_ALERT';
+    risk = 'MEDIUM';
+    approvalRequired = true;
+    reason = 'A new order was observed; prepare a safe alert proposal for human approval.';
+  } else if (eventType === 'SHIPPER_OFFLINE') {
+    action = 'GENERATE_REPORT';
+    risk = 'LOW';
+    approvalRequired = false;
+    reason = 'A shipper-offline transition was observed; prepare an operational report for human review.';
+  } else if (eventType === 'SYSTEM_ERROR') {
+    action = 'SEND_ALERT';
+    risk = 'MEDIUM';
+    approvalRequired = true;
+    reason = 'A system error signal was observed; prepare a safe alert proposal for human approval.';
+  } else if (eventType === 'ORDER_DELAYED' || eventType === 'ORDER_STUCK') {
+    action = 'REMIND_STUCK_ORDER';
+    risk = 'MEDIUM';
+    approvalRequired = true;
+    reason = `A ${eventType.toLowerCase()} signal was observed; prepare a safe reminder proposal.`;
+    requiresTargetSelection = true;
+  } else if (stuckCount > 0) {
     action = 'REMIND_STUCK_ORDER';
     risk = 'MEDIUM';
     approvalRequired = true;
@@ -55,6 +79,7 @@ export function buildReasoningDecision(context) {
     reason,
     based_on: Object.freeze({
       observation_mode: context.mode ?? 'UNKNOWN',
+      event_type: eventType,
       orders_total: totalOrders,
       potentially_stuck_over_30m: stuckCount,
       online_shippers: onlineShippers,
