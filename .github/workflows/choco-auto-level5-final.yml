@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   level5-final-lab:
-    name: Level 5 Final LAB Integrity
+    name: Level 5 + Level 6 LAB Integrity
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -32,6 +32,14 @@ jobs:
         with:
           node-version: 22
 
+      - name: Verify all AUTO JavaScript parses
+        run: |
+          set -e
+          while IFS= read -r file; do
+            node --check "$file"
+          done < <(find auto/src -type f -name '*.js' | sort)
+          echo 'PASS: all auto/src JavaScript files parse'
+
       - name: Run Level 5 final LAB test
         run: node --experimental-default-type=module auto/src/test/step-l5-final-test.js
 
@@ -49,3 +57,6 @@ jobs:
 
       - name: Run Level 6.2 observer change detector test
         run: node --experimental-default-type=module auto/src/test/step-l6-observer-change-detector-test.js
+
+      - name: Run Level 6.3 live auto controller test
+        run: node --experimental-default-type=module auto/src/test/step-l6-live-auto-controller-test.js
