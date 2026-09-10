@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   level5-final-lab:
-    name: Level 5 + Level 6 LAB Integrity
+    name: Level 5 + Level 7 LAB Integrity
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -72,3 +72,6 @@ jobs:
 
       - name: Run Level 6 read-only REST client test
         run: node --experimental-default-type=module auto/src/test/step-l6-readonly-rest-client-test.js
+
+      - name: Run Level 7 health and daily report test
+        run: node --experimental-default-type=module auto/src/test/step-l7-health-report-test.js
