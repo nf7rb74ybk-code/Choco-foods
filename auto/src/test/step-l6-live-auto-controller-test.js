@@ -3,24 +3,15 @@
 
 import { createLiveAutoController, liveAutoControllerSafetyCheck } from '../live/live-auto-controller.js';
 
-let cycle = 0;
-const rows = () => {
-  cycle += 1;
-  const orders = cycle === 1
-    ? [{ id: 1, status: 'Chờ xác nhận', created_at: '2026-09-10T10:00:00Z' }]
-    : [
-        { id: 1, status: 'Đang giao', created_at: '2026-09-10T10:00:00Z' },
-        { id: 2, status: 'Chờ xác nhận', created_at: '2026-09-10T10:30:00Z' },
-      ];
-  const profiles = [{ id: 's1', role: 'shipper', is_online: true }];
-  const gps = cycle === 1 ? [{ id: 1 }] : [{ id: 1 }, { id: 2 }];
-  return { orders, profiles, gps };
+let currentData = {
+  orders: [{ id: 1, status: 'Chờ xác nhận', created_at: '2026-09-10T10:00:00Z' }],
+  profiles: [{ id: 's1', role: 'shipper', is_online: true }],
+  gps: [{ id: 1 }],
 };
 
 const client = {
   from(table) {
-    const data = rows();
-    const values = table === 'orders' ? data.orders : table === 'profiles' ? data.profiles : data.gps;
+    const values = table === 'orders' ? currentData.orders : table === 'profiles' ? currentData.profiles : currentData.gps;
     return {
       select() {
         return Promise.resolve({ data: values, error: null });
@@ -31,6 +22,16 @@ const client = {
 
 const controller = createLiveAutoController({ client });
 const first = await controller.tick();
+
+currentData = {
+  orders: [
+    { id: 1, status: 'Đang giao', created_at: '2026-09-10T10:00:00Z' },
+    { id: 2, status: 'Chờ xác nhận', created_at: '2026-09-10T10:30:00Z' },
+  ],
+  profiles: [{ id: 's1', role: 'shipper', is_online: true }],
+  gps: [{ id: 1 }, { id: 2 }],
+};
+
 const second = await controller.tick();
 
 const checks = {
