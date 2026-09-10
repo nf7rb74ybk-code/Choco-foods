@@ -24,7 +24,15 @@ export function runAgentPipeline({ type, target = null, context = {}, requestedB
   if (observationContext) {
     observation = buildObservationContext(observationContext);
     if (!observationContextSafetyCheck(observation)) throw new Error('CHOCO AUTO PIPELINE: observation safety check failed');
-    decision = buildReasoningDecision(observation);
+
+    // Preserve the trigger metadata from the queued task while keeping the
+    // operational snapshot read-only. This lets reasoning distinguish NEW_ORDER,
+    // SHIPPER_OFFLINE, ORDER_STUCK, etc. without giving the agent a write path.
+    const reasoningContext = Object.freeze({
+      ...observation,
+      event_type: context?.event_type ?? null,
+    });
+    decision = buildReasoningDecision(reasoningContext);
     if (!decisionSafetyCheck(decision)) throw new Error('CHOCO AUTO PIPELINE: decision safety check failed');
     const ranked = rankDecisions([decision], observation);
     if (!adaptivePrioritySafetyCheck(ranked)) throw new Error('CHOCO AUTO PIPELINE: adaptive priority safety check failed');
