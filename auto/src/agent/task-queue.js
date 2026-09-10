@@ -18,7 +18,7 @@ function priorityFor(action, requestedPriority) {
 }
 
 function isAvailable(item) {
-  return item.status !== 'PROCESSING' && item.status !== 'DONE' && item.status !== 'BLOCKED';
+  return item.status === 'QUEUED' || item.status === 'RETRY_WAIT';
 }
 
 function compareQueueItems(a, b) {
@@ -48,6 +48,7 @@ export function createTaskQueue() {
       dedupe_key: dedupeKey,
       queued_at: new Date().toISOString(),
       status: 'QUEUED',
+      attempts: 0,
     });
     items.push(item);
     keys.add(dedupeKey);
@@ -67,24 +68,44 @@ export function createTaskQueue() {
       }
     }
     if (bestIndex < 0) return null;
-    const updated = Object.freeze({ ...best, status: 'PROCESSING' });
+    const updated = Object.freeze({ ...best, status: 'PROCESSING', attempts: best.attempts + 1 });
     items[bestIndex] = updated;
     return updated;
   }
 
-  function complete(queueId, status = 'DONE') {
+  function complete(queueId, status = 'DONE', reason = null) {
     const index = items.findIndex((item) => item.queue_id === queueId);
     if (index < 0) return false;
-    items[index] = Object.freeze({ ...items[index], status, completed_at: new Date().toISOString() });
+    items[index] = Object.freeze({
+      ...items[index],
+      status,
+      ...(reason ? { reason } : {}),
+      completed_at: new Date().toISOString(),
+    });
+    return true;
+  }
+
+  function retry(queueId, reason = null) {
+    const index = items.findIndex((item) => item.queue_id === queueId);
+    if (index < 0) return false;
+    const item = items[index];
+    if (item.status !== 'PROCESSING') return false;
+    items[index] = Object.freeze({
+      ...item,
+      status: 'RETRY_WAIT',
+      ...(reason ? { reason } : {}),
+      retry_at: new Date().toISOString(),
+    });
     return true;
   }
 
   function snapshot() { return Object.freeze(items.slice()); }
 
   function stats() {
-    const result = { total: items.length, queued: 0, processing: 0, done: 0, blocked: 0 };
+    const result = { total: items.length, queued: 0, processing: 0, retry_wait: 0, done: 0, blocked: 0 };
     for (const item of items) {
       if (item.status === 'PROCESSING') result.processing += 1;
+      else if (item.status === 'RETRY_WAIT') result.retry_wait += 1;
       else if (item.status === 'DONE') result.done += 1;
       else if (item.status === 'BLOCKED') result.blocked += 1;
       else result.queued += 1;
@@ -92,7 +113,7 @@ export function createTaskQueue() {
     return Object.freeze(result);
   }
 
-  return Object.freeze({ enqueue, next, complete, snapshot, stats, size: () => items.length });
+  return Object.freeze({ enqueue, next, complete, retry, snapshot, stats, size: () => items.length });
 }
 
 export function taskQueueSafetyCheck(queue) {
