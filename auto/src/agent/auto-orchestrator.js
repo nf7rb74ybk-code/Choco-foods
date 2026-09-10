@@ -23,10 +23,17 @@ export function createLabOrchestrator() {
     return Object.freeze({ accepted: queue.enqueue(task), task });
   }
 
-  function processNext() {
+  /**
+   * Process one queued task. An observation context may be supplied by the
+   * read-only observer controller so reasoning is based on the same snapshot.
+   */
+  function processNext({ observationContext = null } = {}) {
     const item = queue.next();
     if (!item) return null;
-    const result = runAgentPipeline(item.task);
+    const result = runAgentPipeline({
+      ...item.task,
+      ...(observationContext ? { observationContext } : {}),
+    });
     const validation = result.decision ? validateDecision(result.decision) : Object.freeze({ status: 'VALID' });
     if (!decisionValidationSafetyCheck(validation)) throw new Error('CHOCO AUTO ORCHESTRATOR: decision validation failed');
     const entry = createAuditEntry({ task_id: result.state.task_id, action: result.task.type, result: result.waiting_for_target ? 'WAITING_FOR_TARGET' : 'SIMULATED' });
