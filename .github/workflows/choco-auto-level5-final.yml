@@ -34,3 +34,6 @@ jobs:
 
       - name: Run Level 5 final LAB test
         run: node --experimental-default-type=module auto/src/test/step-l5-final-test.js
+
+      - name: Run Level 5 final stress test
+        run: node --experimental-default-type=module auto/src/test/step-l5-stress-test.js
