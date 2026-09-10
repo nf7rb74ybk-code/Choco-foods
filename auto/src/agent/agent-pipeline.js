@@ -1,9 +1,10 @@
-// CHOCO AUTO LEVEL 5 — Step 4: Agent -> Planner -> Safety Gate -> Approval Controller -> Execution Simulator
+// CHOCO AUTO LEVEL 5 — Step 5: Agent -> Planner -> Safety Gate -> Approval -> Simulation -> State
 // LAB/TEST ONLY. This pipeline never executes Production actions.
 
 import { createTask, buildPlan } from './task-planner.js';
 import { assertSafePlan } from './safety-gate.js';
 import { createApprovalRequest, approvalAllowsSimulation, approvalSafetyCheck } from './approval-controller.js';
+import { createTaskState, stateSafetyCheck } from './state-controller.js';
 import { simulateAction, executionSafetyCheck } from '../execution/lab-execution-simulator.js';
 
 export const AGENT_PIPELINE_MODE = 'LAB_AGENT_PIPELINE_ONLY';
@@ -40,6 +41,12 @@ export function runAgentPipeline({ type, target = null, context = {}, requestedB
     return result;
   });
 
+  const state = createTaskState({ task, plan, approval, simulations });
+
+  if (!stateSafetyCheck(state)) {
+    throw new Error('CHOCO AUTO PIPELINE: state safety check failed');
+  }
+
   return Object.freeze({
     mode: AGENT_PIPELINE_MODE,
     production_execution_enabled: PRODUCTION_EXECUTION_ENABLED,
@@ -51,6 +58,7 @@ export function runAgentPipeline({ type, target = null, context = {}, requestedB
     approval_required: plan.requires_approval === true,
     approval_status: approval.status,
     simulations: Object.freeze(simulations),
+    state,
     production_write: false,
     database_mutation: false,
     push_sent: false,
