@@ -1,4 +1,4 @@
-// CHOCO AUTO LEVEL 5 — Steps 11-13: Task Queue + Priority Manager
+// CHOCO AUTO LEVEL 5 — Steps 11-13: Task Queue + Adaptive Priority Manager
 // LAB/TEST ONLY. In-memory queue. Never writes Production or Supabase.
 export const TASK_QUEUE_MODE = 'LAB_TASK_QUEUE_ONLY';
 export const PRODUCTION_WRITE_PERMITTED = false;
@@ -22,7 +22,9 @@ function isAvailable(item) {
 }
 
 function compareQueueItems(a, b) {
-  return a.priority_rank - b.priority_rank || a.queued_at.localeCompare(b.queued_at);
+  return a.priority_rank - b.priority_rank
+    || (b.adaptive_priority_score ?? 0) - (a.adaptive_priority_score ?? 0)
+    || a.queued_at.localeCompare(b.queued_at);
 }
 
 export function createTaskQueue() {
@@ -36,11 +38,13 @@ export function createTaskQueue() {
     if (keys.has(dedupeKey)) return Object.freeze({ added: false, reason: 'DUPLICATE', dedupe_key: dedupeKey });
 
     const resolvedPriority = priorityFor(action, priority);
+    const adaptiveScore = Number(task.priority_score);
     const item = Object.freeze({
       queue_id: `QUEUE-${Date.now()}-${items.length + 1}`,
       task,
       priority: resolvedPriority,
       priority_rank: PRIORITY[resolvedPriority],
+      adaptive_priority_score: Number.isFinite(adaptiveScore) ? Math.max(0, Math.min(100, adaptiveScore)) : 0,
       dedupe_key: dedupeKey,
       queued_at: new Date().toISOString(),
       status: 'QUEUED',
@@ -50,12 +54,10 @@ export function createTaskQueue() {
     return Object.freeze({ added: true, item });
   }
 
-  // Performance optimization: select the best item in one O(n) scan.
-  // The previous implementation sorted the full available set on every call (O(n log n)).
+  // Performance: one O(n) scan; adaptive score breaks ties inside the same priority tier.
   function next() {
     let best = null;
     let bestIndex = -1;
-
     for (let index = 0; index < items.length; index += 1) {
       const item = items[index];
       if (!isAvailable(item)) continue;
@@ -64,7 +66,6 @@ export function createTaskQueue() {
         bestIndex = index;
       }
     }
-
     if (bestIndex < 0) return null;
     const updated = Object.freeze({ ...best, status: 'PROCESSING' });
     items[bestIndex] = updated;
@@ -78,9 +79,7 @@ export function createTaskQueue() {
     return true;
   }
 
-  function snapshot() {
-    return Object.freeze(items.slice());
-  }
+  function snapshot() { return Object.freeze(items.slice()); }
 
   function stats() {
     const result = { total: items.length, queued: 0, processing: 0, done: 0, blocked: 0 };
@@ -93,14 +92,7 @@ export function createTaskQueue() {
     return Object.freeze(result);
   }
 
-  return Object.freeze({
-    enqueue,
-    next,
-    complete,
-    snapshot,
-    stats,
-    size: () => items.length,
-  });
+  return Object.freeze({ enqueue, next, complete, snapshot, stats, size: () => items.length });
 }
 
 export function taskQueueSafetyCheck(queue) {
