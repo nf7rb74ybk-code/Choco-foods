@@ -17,6 +17,14 @@ function priorityFor(action, requestedPriority) {
   return ACTION_PRIORITY[action] ?? 'LOW';
 }
 
+function isAvailable(item) {
+  return item.status !== 'PROCESSING' && item.status !== 'DONE' && item.status !== 'BLOCKED';
+}
+
+function compareQueueItems(a, b) {
+  return a.priority_rank - b.priority_rank || a.queued_at.localeCompare(b.queued_at);
+}
+
 export function createTaskQueue() {
   const items = [];
   const keys = new Set();
@@ -26,27 +34,40 @@ export function createTaskQueue() {
     const action = task.type ?? task.action;
     const dedupeKey = task.dedupe_key ?? `${action}:${task.target?.id ?? task.target ?? 'none'}`;
     if (keys.has(dedupeKey)) return Object.freeze({ added: false, reason: 'DUPLICATE', dedupe_key: dedupeKey });
+
+    const resolvedPriority = priorityFor(action, priority);
     const item = Object.freeze({
       queue_id: `QUEUE-${Date.now()}-${items.length + 1}`,
       task,
-      priority: priorityFor(action, priority),
-      priority_rank: PRIORITY[priorityFor(action, priority)],
+      priority: resolvedPriority,
+      priority_rank: PRIORITY[resolvedPriority],
       dedupe_key: dedupeKey,
       queued_at: new Date().toISOString(),
+      status: 'QUEUED',
     });
     items.push(item);
     keys.add(dedupeKey);
     return Object.freeze({ added: true, item });
   }
 
+  // Performance optimization: select the best item in one O(n) scan.
+  // The previous implementation sorted the full available set on every call (O(n log n)).
   function next() {
-    const available = items.filter((item) => item.status !== 'PROCESSING' && item.status !== 'DONE');
-    available.sort((a, b) => a.priority_rank - b.priority_rank || a.queued_at.localeCompare(b.queued_at));
-    const item = available[0];
-    if (!item) return null;
-    const updated = Object.freeze({ ...item, status: 'PROCESSING' });
-    const index = items.indexOf(item);
-    items[index] = updated;
+    let best = null;
+    let bestIndex = -1;
+
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      if (!isAvailable(item)) continue;
+      if (best === null || compareQueueItems(item, best) < 0) {
+        best = item;
+        bestIndex = index;
+      }
+    }
+
+    if (bestIndex < 0) return null;
+    const updated = Object.freeze({ ...best, status: 'PROCESSING' });
+    items[bestIndex] = updated;
     return updated;
   }
 
@@ -57,11 +78,27 @@ export function createTaskQueue() {
     return true;
   }
 
+  function snapshot() {
+    return Object.freeze(items.slice());
+  }
+
+  function stats() {
+    const result = { total: items.length, queued: 0, processing: 0, done: 0, blocked: 0 };
+    for (const item of items) {
+      if (item.status === 'PROCESSING') result.processing += 1;
+      else if (item.status === 'DONE') result.done += 1;
+      else if (item.status === 'BLOCKED') result.blocked += 1;
+      else result.queued += 1;
+    }
+    return Object.freeze(result);
+  }
+
   return Object.freeze({
     enqueue,
     next,
     complete,
-    snapshot: () => Object.freeze(items.slice()),
+    snapshot,
+    stats,
     size: () => items.length,
   });
 }
