@@ -19,8 +19,14 @@ export function createLabOrchestrator() {
     const task = eventToTask(event);
     if (!task) return Object.freeze({ accepted: false, reason: 'UNSUPPORTED_EVENT' });
     const guard = idempotency.check(task.dedupe_key);
-    if (!guard.allowed) return Object.freeze({ accepted: false, reason: guard.reason });
-    return Object.freeze({ accepted: queue.enqueue(task), task });
+    if (!guard.allowed) return Object.freeze({ accepted: false, reason: guard.reason, task });
+    const queued = queue.enqueue(task);
+    return Object.freeze({
+      accepted: queued.added === true,
+      reason: queued.added === true ? 'QUEUED' : queued.reason,
+      task,
+      queue: queued,
+    });
   }
 
   /**
