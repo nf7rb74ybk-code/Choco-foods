@@ -40,6 +40,9 @@ jobs:
           done < <(find auto/src -type f -name '*.js' | sort)
           echo 'PASS: all auto/src JavaScript files parse'
 
+      - name: Run Level 6 read-only runtime safety scan
+        run: node --experimental-default-type=module auto/src/test/step-l6-readonly-runtime-safety-scan.js
+
       - name: Run Level 5 final LAB test
         run: node --experimental-default-type=module auto/src/test/step-l5-final-test.js
 
