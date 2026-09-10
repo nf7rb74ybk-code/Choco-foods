@@ -1,0 +1,36 @@
+name: CHOCO AUTO Level 5 Final LAB Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'auto/**'
+      - '.github/workflows/choco-auto-level5-final.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  level5-final-lab:
+    name: Level 5 Final LAB Integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CHOCO_AUTO_LAB_ONLY: 'true'
+      CHOCO_AUTO_PRODUCTION_EXECUTION_ENABLED: 'false'
+      CHOCO_AUTO_PRODUCTION_WRITE: 'false'
+      CHOCO_AUTO_DATABASE_MUTATION: 'false'
+      CHOCO_AUTO_PUSH_ENABLED: 'false'
+      CHOCO_AUTO_ONESIGNAL_ENABLED: 'false'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run Level 5 final LAB test
+        run: node --experimental-default-type=module auto/src/test/step-l5-final-test.js
