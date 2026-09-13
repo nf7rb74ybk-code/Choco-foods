@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch customer menu auth and loader
+      - name: Normalize customer menu auth and remove duplicate rescue loader
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -27,8 +27,7 @@ jobs:
           new = "Authorization:'Bearer '+(localStorage.getItem('choco_access_token')||SUPABASE_KEY),Accept:'application/json'"
           s = s.replace(old, new)
           marker = '<script src="./customer-menu-fix.js?v=20260906-2"></script>'
-          if marker not in s:
-              s = s.replace('</body>', marker + '</body>')
+          s = s.replace(marker, '')
           p.write_text(s, encoding='utf-8')
           PY
       - name: Commit fix
